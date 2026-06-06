@@ -15,9 +15,7 @@ export function setupApiDocs(app: INestApplication) {
   app.use(
     '/docs',
     apiReference({
-      spec: {
-        content: document,
-      },
+      content: document,
       theme: 'purple',
     })
   );
