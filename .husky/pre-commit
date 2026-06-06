@@ -1,1 +1,1 @@
-pnpm exec lint && prettier --write "src/**/*.ts" "test/**/*.ts" && pnpm test
+pnpm run lint && pnpm exec prettier --write "src/**/*.ts" "test/**/*.ts" && pnpm test
