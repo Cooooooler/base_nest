@@ -1,6 +1,6 @@
 {
   "name": "base_nest",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "",
   "license": "UNLICENSED",
@@ -18,7 +18,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "migration:generate": "nest build && typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts src/database/migrations/%npm_config_name%",
+    "migration:run": "nest build && typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
+    "migration:revert": "nest build && typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts"
   },
   "jest": {
     "collectCoverageFrom": [
@@ -39,10 +42,15 @@
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
+    "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.1",
     "@nestjs/platform-express": "^11.0.1",
+    "@nestjs/typeorm": "^11.0.1",
+    "dotenv": "^17.4.2",
+    "pg": "^8.21.0",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "typeorm": "^1.0.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
@@ -56,6 +64,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^24.0.0",
     "@types/supertest": "^7.0.0",
+    "changelogen": "^0.6.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
