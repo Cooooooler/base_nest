@@ -25,6 +25,7 @@
 17. [全局 ValidationPipe](#17-全局-validationpipe)
 18. [用 curl 测试 API](#18-用-curl-测试-api)
 19. [常见问题](#19-常见问题)
+20. [课后练习](#20-课后练习)
 
 ---
 
@@ -906,6 +907,15 @@ JWT 本身是无状态的，但"注销"这个需求天然需要状态——你�
 
 ### Q：generateTokens 里的 `as any` 是什么？
 `@nestjs/jwt` 的类型定义和我们的用法有细微差别（`expiresIn` 的类型不兼容），用 `as any` 绕过类型检查。不影响运行。
+
+### Q：为什么 User 实体里的 password 加 `@Exclude()`？
+`@Exclude()` 是 `class-transformer` 的装饰器，配合 `ClassSerializerInterceptor` 拦截器（在 `main.ts` 中全局注册），自动排除响应中的 password 字段。即使开发者在 Controller 中直接 return User 实体，密码也不会出现在 API 响应中。
+
+### Q：register 方法为什么要用事务？
+保证"查邮箱 → 写入用户"这两个操作的原子性。如果不用事务，在高并发下可能出现两个请求同时通过邮箱检查，都执行插入，导致数据不一致。
+
+### Q：全局 HttpExceptionFilter 有什么用？
+如果没有 filter，未捕获的异常可能返回默认的 HTML 错误页面或不一致的 JSON 格式。`HttpExceptionFilter` 保证所有错误都返回统一的 JSON 格式：`{ statusCode, message, timestamp, path }`，同时自动记录 500 错误到日志。
 
 ---
 
