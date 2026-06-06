@@ -86,44 +86,42 @@ pnpm add @nestjs/swagger @scalar/nestjs-api-reference
 
 ---
 
-## 4. main.ts 中配置文档
+## 4. 封装到独立函数
 
-**文件：** `src/main.ts`
+为了保持 `main.ts` 简洁，文档配置被封装到了 `src/common/docs/setup.ts` 中：
+
+**应用入口：** `src/main.ts`
 
 ```typescript
-import { NestFactory } from '@nestjs/core';
+// main.ts 中只需一行调用
+setupApiDocs(app);
+```
+
+**文档配置：** `src/common/docs/setup.ts`
+
+```typescript
+import { INestApplication } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
-import { AppModule } from './app.module';
 
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-
-  // 第一步：用 DocumentBuilder 创建 OpenAPI 配置
+export function setupApiDocs(app: INestApplication) {
   const config = new DocumentBuilder()
-    .setTitle('Base Nest API')              // API 标题
-    .setDescription('NestJS 11 项目接口文档') // 描述
-    .setVersion('0.0.2')                     // 版本号
-    .addBearerAuth()                         // 启用 Bearer Token 认证
-    .build();                                // 生成配置对象
+    .setTitle('Base Nest API')
+    .setDescription('NestJS 11 项目接口文档')
+    .setVersion('0.0.2')
+    .addBearerAuth()
+    .build();
 
-  // 第二步：生成 OpenAPI 规范文档（遍历所有控制器和 DTO）
   const document = SwaggerModule.createDocument(app, config);
 
-  // 第三步：挂载 Scalar 页面
   app.use(
-    '/docs',                                 // 访问路径
+    '/docs',
     apiReference({
-      spec: {
-        content: document,                   // 传入 OpenAPI 规范
-      },
-      theme: 'purple',                       // 主题色
+      spec: { content: document },
+      theme: 'purple',
     }),
   );
-
-  await app.listen(process.env.PORT ?? 3000);
 }
-void bootstrap();
 ```
 
 **三步详解：**
@@ -427,7 +425,8 @@ apiReference({
 | 文件 | 操作 | 说明 |
 |------|------|------|
 | `package.json` | 自动修改 | 新增 `@nestjs/swagger` 和 `@scalar/nestjs-api-reference` 依赖 |
-| `src/main.ts` | 修改 | 添加 DocumentBuilder + createDocument + apiReference 挂载 |
+| `src/common/docs/setup.ts` | 创建 | 文档配置独立封装 |
+| `src/main.ts` | 修改 | 抽空文档配置，添加拦截器和过滤器 |
 | `src/auth/auth.controller.ts` | 修改 | 加 `@ApiTags`、`@ApiOperation`、`@ApiBearerAuth`、`@ApiBody` |
 | `src/users/users.controller.ts` | 修改 | 加 `@ApiTags`、`@ApiOperation`、`@ApiBearerAuth` |
 | `src/auth/dto/register.dto.ts` | 修改 | 字段加 `@ApiProperty` |
@@ -508,5 +507,5 @@ Scalar 的主题可能被浏览器缓存了。可以：
 
 1. **换主题** — 在 `main.ts` 中把 `theme: 'purple'` 改成 `'moon'` 或 `'laserwave'`
 2. **添加新接口描述** — 如果在 UsersController 中加了新接口，记得加 `@ApiOperation`
-3. **隐藏更多敏感字段** — 确认所有响应中都没有暴露密码等敏感信息
+5. **确认密码字段被排除** — password 有 `@Exclude()` 配合 `ClassSerializerInterceptor` 自动过滤
 4. **调整分组名** — 把 `@ApiTags('Auth')` 改成 `@ApiTags('认证管理')` 看看中文效果

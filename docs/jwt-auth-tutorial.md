@@ -832,9 +832,13 @@ curl -X POST http://localhost:3000/auth/register \
 返回示例：
 ```json
 {
-  "user": { "id": "uuid...", "email": "alice@example.com", "name": "Alice" },
-  "accessToken": "eyJhbG...",
-  "refreshToken": "eyJhbG..."
+  "code": 1,
+  "data": {
+    "user": { "id": "uuid...", "email": "alice@example.com", "name": "Alice" },
+    "accessToken": "eyJhbG...",
+    "refreshToken": "eyJhbG..."
+  },
+  "msg": "ok"
 }
 ```
 
@@ -915,7 +919,7 @@ JWT 本身是无状态的，但"注销"这个需求天然需要状态——你�
 保证"查邮箱 → 写入用户"这两个操作的原子性。如果不用事务，在高并发下可能出现两个请求同时通过邮箱检查，都执行插入，导致数据不一致。
 
 ### Q：全局 HttpExceptionFilter 有什么用？
-如果没有 filter，未捕获的异常可能返回默认的 HTML 错误页面或不一致的 JSON 格式。`HttpExceptionFilter` 保证所有错误都返回统一的 JSON 格式：`{ statusCode, message, timestamp, path }`，同时自动记录 500 错误到日志。
+如果没有 filter，未捕获的异常可能返回默认的 HTML 错误页面或不一致的 JSON 格式。`HttpExceptionFilter` 保证所有错误都返回统一的 JSON 格式：`{ code: 0, data: null, msg: "错误信息" }`，同时自动记录 500 错误到日志。
 
 ---
 
