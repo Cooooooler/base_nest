@@ -10,6 +10,7 @@ describe('UsersService', () => {
     id: '550e8400-e29b-41d4-a716-446655440000',
     email: 'test@example.com',
     name: 'Test User',
+    password: 'hashed-password',
     isActive: true,
     createdAt: new Date(),
   };
@@ -53,6 +54,14 @@ describe('UsersService', () => {
       const result = await service.findOne(mockUser.id);
       expect(result).toEqual(mockUser);
       expect(mockFindOneBy).toHaveBeenCalledWith({ id: mockUser.id });
+    });
+  });
+
+  describe('findByEmail', () => {
+    it('should return a user by email', async () => {
+      const result = await service.findByEmail(mockUser.email);
+      expect(result).toEqual(mockUser);
+      expect(mockFindOneBy).toHaveBeenCalledWith({ email: mockUser.email });
     });
   });
 
