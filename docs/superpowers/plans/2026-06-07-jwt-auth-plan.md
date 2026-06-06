@@ -15,6 +15,7 @@
 ### 任务 1：安装依赖和环境变量
 
 **文件：**
+
 - 修改：`package.json`
 - 修改：`.env`
 - 修改：`.env.example`
@@ -30,6 +31,7 @@ pnpm add -D @types/bcrypt
 - [ ] **步骤 2：更新 `.env` 添加 JWT 相关变量**
 
 在 `.env` 末尾追加：
+
 ```
 # JWT
 JWT_SECRET=dev-secret-change-in-production
@@ -53,6 +55,7 @@ git commit -m "chore: add JWT and bcrypt dependencies"
 ### 任务 2：User 实体增加 password 字段 + findByEmail
 
 **文件：**
+
 - 修改：`src/users/user.entity.ts`
 - 修改：`src/users/users.service.ts`
 - 修改：`src/users/users.module.ts`
@@ -86,6 +89,7 @@ async findByEmail(email: string): Promise<User | null> {
 })
 export class UsersModule {}
 ```
+
 只需确认 exports 已有即可。
 
 - [ ] **步骤 4：更新 users.service.spec.ts 添加 findByEmail 测试**
@@ -113,6 +117,7 @@ git commit -m "feat: add password field to User and findByEmail method"
 ### 任务 3：创建 BlacklistedToken Entity
 
 **文件：**
+
 - 创建：`src/auth/entities/blacklisted-token.entity.ts`
 
 - [ ] **步骤 1：创建实体**
@@ -152,6 +157,7 @@ git commit -m "feat: add BlacklistedToken entity for JWT revocation"
 ### 任务 4：创建 Auth DTOs
 
 **文件：**
+
 - 创建：`src/auth/dto/register.dto.ts`
 - 创建：`src/auth/dto/login.dto.ts`
 
@@ -208,6 +214,7 @@ git commit -m "feat: add auth DTOs with class-validator"
 ### 任务 5：创建 Auth Guards + Decorators
 
 **文件：**
+
 - 创建：`src/auth/guards/jwt-auth.guard.ts`
 - 创建：`src/auth/decorators/current-user.decorator.ts`
 
@@ -248,12 +255,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 ```typescript
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
-export const CurrentUser = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest();
-    return request.user;
-  },
-);
+export const CurrentUser = createParamDecorator((data: unknown, ctx: ExecutionContext) => {
+  const request = ctx.switchToHttp().getRequest();
+  return request.user;
+});
 ```
 
 - [ ] **步骤 3：Commit**
@@ -268,6 +273,7 @@ git commit -m "feat: add JwtAuthGuard and CurrentUser decorator"
 ### 任务 6：创建 JWT Strategy + TokenBlacklistService
 
 **文件：**
+
 - 创建：`src/auth/strategies/jwt.strategy.ts`
 - 创建：`src/auth/token-blacklist.service.ts`
 
@@ -290,7 +296,7 @@ interface JwtPayload {
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     configService: ConfigService,
-    private readonly usersService: UsersService,
+    private readonly usersService: UsersService
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -325,7 +331,7 @@ import { BlacklistedToken } from './entities/blacklisted-token.entity';
 export class TokenBlacklistService {
   constructor(
     @InjectRepository(BlacklistedToken)
-    private readonly blacklistedTokenRepository: Repository<BlacklistedToken>,
+    private readonly blacklistedTokenRepository: Repository<BlacklistedToken>
   ) {}
 
   private hashToken(token: string): string {
@@ -371,16 +377,13 @@ git commit -m "feat: add JWT strategy and token blacklist service"
 ### 任务 7：创建 AuthService
 
 **文件：**
+
 - 创建：`src/auth/auth.service.ts`
 
 - [ ] **步骤 1：编写 AuthService**
 
 ```typescript
-import {
-  ConflictException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -399,7 +402,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly tokenBlacklistService: TokenBlacklistService,
+    private readonly tokenBlacklistService: TokenBlacklistService
   ) {}
 
   async register(dto: RegisterDto) {
@@ -449,10 +452,7 @@ export class AuthService {
       }
 
       // Blacklist the used refresh token (rotation)
-      await this.tokenBlacklistService.addToBlacklist(
-        refreshToken,
-        new Date(payload.exp * 1000),
-      );
+      await this.tokenBlacklistService.addToBlacklist(refreshToken, new Date(payload.exp * 1000));
 
       return this.generateTokens(payload.sub, payload.email);
     } catch (err) {
@@ -467,7 +467,7 @@ export class AuthService {
       if (accessPayload?.exp) {
         await this.tokenBlacklistService.addToBlacklist(
           accessToken,
-          new Date(accessPayload.exp * 1000),
+          new Date(accessPayload.exp * 1000)
         );
       }
     } catch {
@@ -480,7 +480,7 @@ export class AuthService {
         if (refreshPayload?.exp) {
           await this.tokenBlacklistService.addToBlacklist(
             refreshToken,
-            new Date(refreshPayload.exp * 1000),
+            new Date(refreshPayload.exp * 1000)
           );
         }
       } catch {
@@ -496,14 +496,14 @@ export class AuthService {
         {
           secret: this.configService.get<string>('JWT_SECRET'),
           expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRES', '15m'),
-        },
+        }
       ),
       this.jwtService.signAsync(
         { sub: userId, email, type: 'refresh', jti: uuidv4() },
         {
           secret: this.configService.get<string>('JWT_SECRET'),
           expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES', '7d'),
-        },
+        }
       ),
     ]);
 
@@ -538,6 +538,7 @@ git commit -m "feat: add AuthService with register, login, refresh, logout"
 ### 任务 8：创建 AuthController
 
 **文件：**
+
 - 创建：`src/auth/auth.controller.ts`
 - 创建：`src/auth/auth.controller.spec.ts`
 
@@ -587,7 +588,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   async logout(
     @Headers('authorization') auth: string,
-    @Body('refreshToken') refreshToken?: string,
+    @Body('refreshToken') refreshToken?: string
   ) {
     const accessToken = auth?.split(' ')[1];
     return this.authService.logout(accessToken, refreshToken);
@@ -677,6 +678,7 @@ git commit -m "feat: add AuthController with register/login/refresh/logout/profi
 ### 任务 9：创建 AuthModule + 更新 AppModule
 
 **文件：**
+
 - 创建：`src/auth/auth.module.ts`
 - 修改：`src/app.module.ts`
 
@@ -759,6 +761,7 @@ git commit -m "feat: add AuthModule and register global ValidationPipe"
 ```bash
 pnpm run build
 ```
+
 预期：编译成功，无错误。
 
 - [ ] **步骤 2：运行测试**
@@ -766,6 +769,7 @@ pnpm run build
 ```bash
 pnpm run test
 ```
+
 预期：所有测试通过（AppController + UsersService + AuthController）。
 
 - [ ] **步骤 3：Lint**
@@ -773,6 +777,7 @@ pnpm run test
 ```bash
 pnpm run lint
 ```
+
 预期：ESLint 零错误零警告。
 
 - [ ] **步骤 4：最终 Commit（如有修复）**
