@@ -20,7 +20,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "test:watch": "jest --watch",
     "migration:generate": "nest build && typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts src/database/migrations/",
-    "migration:create": "typeorm-ts-node-commonjs migration:create src/database/migrations/%npm_config_name%",
     "migration:run": "nest build && typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "migration:revert": "nest build && typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts"
   },
