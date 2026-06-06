@@ -1,8 +1,10 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectDataSource } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
+import { DataSource } from 'typeorm';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -22,7 +24,9 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly tokenBlacklistService: TokenBlacklistService
+    private readonly tokenBlacklistService: TokenBlacklistService,
+    @InjectDataSource()
+    private readonly dataSource: DataSource
   ) {}
 
   async register(dto: RegisterDto) {
@@ -31,18 +35,31 @@ export class AuthService {
       throw new ConflictException('Email already registered');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
-    const user = await this.usersService.create({
-      email: dto.email,
-      name: dto.name,
-      password: hashedPassword,
-    });
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const tokens = await this.generateTokens(user.id, user.email);
-    return {
-      user: { id: user.id, email: user.email, name: user.name },
-      ...tokens,
-    };
+    try {
+      const hashedPassword = await bcrypt.hash(dto.password, 10);
+      const user = await queryRunner.manager.save('users', {
+        email: dto.email,
+        name: dto.name,
+        password: hashedPassword,
+      });
+
+      await queryRunner.commitTransaction();
+
+      const tokens = await this.generateTokens((user as any).id, (user as any).email);
+      return {
+        user: { id: (user as any).id, email: (user as any).email, name: (user as any).name },
+        ...tokens,
+      };
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   async login(dto: LoginDto) {

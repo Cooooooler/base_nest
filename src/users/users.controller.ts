@@ -1,5 +1,16 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './user.entity';
 import { UsersService } from './users.service';
 
@@ -21,13 +32,15 @@ export class UsersController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '创建用户' })
-  async create(@Body() data: Partial<User>): Promise<User> {
-    return this.usersService.create(data);
+  async create(@Body() dto: CreateUserDto): Promise<User> {
+    return this.usersService.create(dto);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '删除用户' })
   async remove(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
