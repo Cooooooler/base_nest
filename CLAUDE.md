@@ -5,34 +5,73 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```sh
-pnpm run build       # Build with nest build
-pnpm run start:dev   # Start in watch mode
-pnpm run lint        # Lint with ESLint --fix
-pnpm run test        # Run unit tests (Jest, *.spec.ts)
-pnpm run test:cov    # Unit tests with coverage
-pnpm run test:e2e    # E2E tests (test/jest-e2e.json)
-pnpm run test:watch  # Unit tests in watch mode
+pnpm run build           # Build with nest build
+pnpm run start:dev       # Start in watch mode (hot-reload)
+pnpm run start:debug     # Start with debugger + watch
+pnpm run start:prod      # Run compiled dist/main.js
+pnpm run format          # Prettier: src/ test/ and *.json
+pnpm run lint            # ESLint with --fix
+pnpm run test            # Unit tests (Jest, *.spec.ts)
+pnpm run test:cov        # Unit tests with coverage
+pnpm run test:e2e        # E2E tests (test/jest-e2e.json)
+pnpm run test:watch      # Unit tests in watch mode
+pnpm run migration:run   # Run pending TypeORM migrations (needs DB)
+pnpm run migration:generate -- src/database/<name>  # Generate migration from entities
+pnpm run migration:revert # Revert last migration (needs DB)
 ```
 
 Single test file: `pnpm run test -- app.controller.spec.ts`
+Single E2E test: `pnpm run test:e2e -- app.e2e-spec.ts`
 
 ## Architecture
 
-NestJS 11 application using the standard modular architecture:
+NestJS 11 app with JWT auth, TypeORM + Postgres, and a unified response format.
 
-- **Modules** (`@Module()`) — root `AppModule` in `src/app.module.ts`. Feature modules live alongside `src/` following NestJS conventions.
-- **Controllers** (`@Controller()`) — handle HTTP routes in `src/*.controller.ts`.
-- **Providers** (`@Injectable()`) — business logic in `src/*.service.ts`.
-- **main.ts** bootstraps via `NestFactory.create(AppModule)` on `PORT ?? 3000`.
+### Modules
 
-Key config: `nest-cli.json` sets `sourceRoot: "src"` and `deleteOutDir: true`. `tsconfig.json` uses `nodenext` module resolution with decorator metadata (`experimentalDecorators`, `emitDecoratorMetadata`).
+- **AppModule** (`src/app.module.ts`) — root, imports ConfigModule, TypeOrmModule (entities: `User`, `BlacklistedToken`), UsersModule, AuthModule. Global `ValidationPipe` with `{ whitelist: true, forbidNonWhitelisted: true, transform: true }`.
+- **AuthModule** (`src/auth/`) — register (bcrypt + DB transaction), login, refresh (token rotation), logout (token blacklisting), `/auth/profile` (JWT-guarded). PassportStrategy with access token type validation + blacklist check.
+- **UsersModule** (`src/users/`) — CRUD on `User` entity (UUID PK, unique email, `@Exclude()` on password). Guarded write endpoints.
+
+### Global Response Format (code/data/msg)
+
+All responses go through a pipeline:
+- **ResponseInterceptor** — wraps 2xx as `{ code: 1, data: <body>, msg: "ok" }`
+- **HttpExceptionFilter** — wraps errors as `{ code: 0, data: null, msg: <message> }`
+- **ClassSerializerInterceptor** (in main.ts) — strips `@Exclude()` fields (e.g. `User.password`)
+
+### TypeORM with Migrations
+
+`synchronize: false` — all schema changes go through migration files. Config is via `registerAs('database', ...)` from `@nestjs/config`, reading `DB_*` env vars. Data source for CLI at `src/database/data-source.ts` reads compiled entities from `dist/`.
+
+### JWT Token Blacklisting
+
+Refresh tokens use rotation: each refresh blacklists the old refresh token (stored as SHA-256 hash in `BlacklistedToken` entity with expiration) and issues a new access + refresh pair. The `JwtAuthGuard` checks the blacklist before validating the token.
+
+### API Docs
+
+Swagger/Scalar UI at `/docs` route with purple theme and Bearer auth support. Decorated with Chinese-language descriptions.
+
+## Testing Patterns
+
+- **Controller unit tests**: mock the service layer via `{ provide: Service, useValue: mockObj }` with `jest.fn()` methods.
+- **Service unit tests**: mock TypeORM repositories via `{ provide: getRepositoryToken(Entity), useValue: mockRepo }`.
+- **E2E tests**: create `TestingModule` that imports `AppModule`, use `supertest` agent against the compiled module.
+
+## Pre-commit Hooks (Husky)
+
+- **pre-commit**: lint + prettier format + run all unit tests
+- **commit-msg**: `commitlint --edit` (Conventional Commits enforced)
 
 ## Stack
 
-- **Runtime**: Node.js, TypeScript (ES2023 target), NestJS 11
-- **Package manager**: pnpm 10 (pinned in `package.json` `packageManager` field)
+- **Runtime**: Node.js, TypeScript (ES2023 target, nodenext module), NestJS 11
+- **Package manager**: pnpm 10 (pinned in `package.json` `packageManager`)
+- **ORM**: TypeORM with Postgres (`pg` driver), migrations for schema management
+- **Auth**: Passport + passport-jwt, bcrypt hashing, refresh token rotation with blacklist
 - **Testing**: Jest + ts-jest, unit tests co-located (`*.spec.ts`), E2E in `test/`
 - **Linting**: ESLint flat config (`eslint.config.mjs`), Prettier via `.prettierrc`
+- **Config**: `@nestjs/config` with `registerAs` for typed env var loading, `dotenv` for migrations
 
 <!-- superpowers-zh:begin (do not edit between these markers) -->
 # Superpowers-ZH 中文增强版
@@ -66,7 +105,7 @@ Skills 位于 `.claude/skills/` 目录，每个 skill 有独立的 `SKILL.md` �
 - **test-driven-development**: 在实现任何功能或修复 bug 时使用，在编写实现代码之前
 - **using-git-worktrees**: 当需要开始与当前工作区隔离的功能开发，或在执行实现计划之前使用——通过原生工具或 git worktree 回退机制确保隔离工作区存在
 - **using-superpowers**: 在开始任何对话时使用——确立如何查找和使用技能，要求在任何响应（包括澄清性问题）之前调用 Skill 工具
-- **verification-before-completion**: 在宣称工作完成、已修复或测试通过之前使用，在提交或创建 PR 之前——必须运行验证命令并确认输出后才能声称成功；始终用证据支撑断言
+- **verification-before-completion**: 在宣称工作完成、已测试通过之前使用，在提交或创建 PR 之前——必须运行验证命令并确认输出后才能声称成功；始终用证据支撑断言
 - **workflow-runner**: 在 Claude Code / OpenClaw / Cursor 中直接运行 agency-orchestrator YAML 工作流——无需 API key，使用当前会话的 LLM 作为执行引擎。当用户提供 .yaml 工作流文件或要求多角色协作完成任务时触发。
 - **writing-plans**: 当你有规格说明或需求用于多步骤任务时使用，在动手写代码之前
 - **writing-skills**: 当创建新技能、编辑现有技能或在部署前验证技能是否有效时使用
