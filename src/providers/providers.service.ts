@@ -56,6 +56,16 @@ export class ProvidersService {
   }
 
   async deleteProvider(id: string): Promise<void> {
+    const provider = await this.providerRepo.findOne({
+      where: { id },
+      relations: { apiKeys: true, models: true },
+    });
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
+    // Delete related entities first to avoid FK constraints
+    await this.apiKeyRepo.delete({ providerId: id });
+    await this.modelRepo.delete({ providerId: id });
     await this.providerRepo.delete(id);
   }
 

@@ -1,11 +1,19 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { Observable, from, map } from 'rxjs';
-import { LlmProvider, ChatParams, ChatResponse, ChatChunk } from '../interfaces/llm-provider.interface';
+import {
+  ChatChunk,
+  ChatParams,
+  ChatResponse,
+  LlmProvider,
+} from '../interfaces/llm-provider.interface';
 
 export class ClaudeStrategy implements LlmProvider {
   private client: Anthropic;
 
-  constructor(private readonly apiKey: string, baseUrl?: string) {
+  constructor(
+    private readonly apiKey: string,
+    baseUrl?: string
+  ) {
     this.client = new Anthropic({
       apiKey,
       baseURL: baseUrl || undefined,

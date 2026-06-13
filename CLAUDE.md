@@ -16,12 +16,17 @@ pnpm run test:cov        # Unit tests with coverage
 pnpm run test:e2e        # E2E tests (test/jest-e2e.json)
 pnpm run test:watch      # Unit tests in watch mode
 pnpm run migration:run   # Run pending TypeORM migrations (needs DB)
-pnpm run migration:generate -- src/database/<name>  # Generate migration from entities
+pnpm run migration:generate -- src/database/migrations/<name>  # Generate migration from entities
 pnpm run migration:revert # Revert last migration (needs DB)
 ```
 
 Single test file: `pnpm run test -- app.controller.spec.ts`
 Single E2E test: `pnpm run test:e2e -- app.e2e-spec.ts`
+
+## Design Documents
+
+- [类 Dify AI 平台开发计划](docs/superpowers/specs/2026-06-13-dify-like-platform-design.md) — 6 阶段后端开发路线图（模型管理 → 知识库 → 对话应用 → 工作流引擎 → 应用发布 → 插件生态）
+- [前端开发计划](docs/superpowers/specs/2026-06-13-frontend-development-plan.md) — Next.js + Monorepo 前端配套方案，含 6 阶段页面设计、组件树、关键交互
 
 ## Architecture
 

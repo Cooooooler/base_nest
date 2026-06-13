@@ -1,5 +1,10 @@
 import { Observable } from 'rxjs';
-import { LlmProvider, ChatParams, ChatResponse, ChatChunk } from '../interfaces/llm-provider.interface';
+import {
+  ChatChunk,
+  ChatParams,
+  ChatResponse,
+  LlmProvider,
+} from '../interfaces/llm-provider.interface';
 
 export class OllamaStrategy implements LlmProvider {
   private baseUrl: string;

@@ -1,8 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { CreateApiKeyDto } from './dto/create-api-key.dto';
+import { CreateProviderDto } from './dto/create-provider.dto';
 import { ProvidersController } from './providers.controller';
 import { ProvidersService } from './providers.service';
-import { CreateProviderDto } from './dto/create-provider.dto';
-import { CreateApiKeyDto } from './dto/create-api-key.dto';
 
 describe('ProvidersController', () => {
   let controller: ProvidersController;

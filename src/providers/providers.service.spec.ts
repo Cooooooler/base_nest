@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { ModelProvider } from './entities/model-provider.entity';
+import * as cryptoUtil from '../common/crypto.util';
 import { ApiKey } from './entities/api-key.entity';
+import { ModelProvider } from './entities/model-provider.entity';
 import { Model } from './entities/model.entity';
 import { ProvidersService } from './providers.service';
-import * as cryptoUtil from '../common/crypto.util';
 
 jest.mock('../common/crypto.util');
 
@@ -52,9 +52,12 @@ describe('ProvidersService', () => {
   const mockRepo = {
     find: jest.fn().mockResolvedValue([mockProvider]),
     findOneBy: jest.fn().mockResolvedValue(mockProvider),
-    findOne: jest.fn().mockImplementation((opts) => {
+    findOne: jest.fn().mockImplementation((opts: any) => {
       if (opts?.where?.isEnabled) {
         return mockProviderWithKeys;
+      }
+      if (opts?.relations) {
+        return mockProvider;
       }
       return mockProvider;
     }),
@@ -75,6 +78,7 @@ describe('ProvidersService', () => {
     find: jest.fn().mockResolvedValue([]),
     create: jest.fn(),
     save: jest.fn(),
+    delete: jest.fn().mockResolvedValue({ affected: 0, raw: {} }),
   };
 
   beforeEach(async () => {
@@ -172,9 +176,9 @@ describe('ProvidersService', () => {
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
-      await expect(svc.createApiKey('nonexistent', { name: 'test', apiKey: 'key' })).rejects.toThrow(
-        'Provider not found'
-      );
+      await expect(
+        svc.createApiKey('nonexistent', { name: 'test', apiKey: 'key' })
+      ).rejects.toThrow('Provider not found');
     });
   });
 
