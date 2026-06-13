@@ -8,9 +8,9 @@ export class CreateProviderDto {
   @MaxLength(100)
   name: string;
 
-  @ApiProperty({ example: 'openai', enum: ['openai', 'anthropic', 'ollama', 'openai-compatible'] })
-  @IsEnum(['openai', 'anthropic', 'ollama', 'openai-compatible'] as const)
-  type: 'openai' | 'anthropic' | 'ollama' | 'openai-compatible';
+  @ApiProperty({ example: 'openai', enum: ['openai', 'anthropic', 'ollama', 'openai-compatible', 'langchain-ollama'] })
+  @IsEnum(['openai', 'anthropic', 'ollama', 'openai-compatible', 'langchain-ollama'] as const)
+  type: 'openai' | 'anthropic' | 'ollama' | 'openai-compatible' | 'langchain-ollama';
 
   @ApiProperty({ example: true, required: false })
   @IsOptional()

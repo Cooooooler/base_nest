@@ -10,6 +10,7 @@ import { ModelProvider } from './entities/model-provider.entity';
 import { Model } from './entities/model.entity';
 import { LlmProvider } from './interfaces/llm-provider.interface';
 import { ClaudeStrategy } from './strategies/claude.strategy';
+import { LangChainOllamaStrategy } from './strategies/langchain-ollama.strategy';
 import { OllamaStrategy } from './strategies/ollama.strategy';
 import { OpenAiCompatibleStrategy } from './strategies/openai-compatible.strategy';
 import { OpenAiStrategy } from './strategies/openai.strategy';
@@ -124,6 +125,8 @@ export class ProvidersService {
         return new OllamaStrategy(decryptedKey, provider.baseUrl ?? undefined);
       case 'openai-compatible':
         return new OpenAiCompatibleStrategy(decryptedKey, provider.baseUrl ?? '');
+      case 'langchain-ollama':
+        return new LangChainOllamaStrategy(decryptedKey, provider.baseUrl ?? undefined);
       default:
         throw new Error(`Unsupported provider type: ${provider.type as string}`);
     }

@@ -3,7 +3,7 @@ import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } f
 import { ApiKey } from './api-key.entity';
 import { Model } from './model.entity';
 
-export type ProviderType = 'openai' | 'anthropic' | 'ollama' | 'openai-compatible';
+export type ProviderType = 'openai' | 'anthropic' | 'ollama' | 'openai-compatible' | 'langchain-ollama';
 
 @Entity('model_providers')
 export class ModelProvider {
@@ -18,7 +18,7 @@ export class ModelProvider {
   @ApiProperty({
     example: 'openai',
     description: '提供商类型',
-    enum: ['openai', 'anthropic', 'ollama', 'openai-compatible'],
+    enum: ['openai', 'anthropic', 'ollama', 'openai-compatible', 'langchain-ollama'],
   })
   @Column({ length: 50 })
   type: ProviderType;

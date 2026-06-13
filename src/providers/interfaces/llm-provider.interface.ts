@@ -35,4 +35,4 @@ export interface LlmProvider {
   embed?(texts: string[]): Promise<number[][]>;
 }
 
-export type LlmProviderType = 'openai' | 'anthropic' | 'ollama' | 'openai-compatible';
+export type LlmProviderType = 'openai' | 'anthropic' | 'ollama' | 'openai-compatible' | 'langchain-ollama';
