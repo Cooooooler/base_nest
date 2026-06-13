@@ -10,6 +10,6 @@ export default new DataSource({
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'postgres',
   database: process.env.DB_DATABASE || 'nest_base',
-  entities: ['dist/**/*.entity.js'],
-  migrations: ['dist/database/migrations/*.js'],
+  entities: ['dist/src/**/*.entity.js'],
+  migrations: ['dist/src/database/migrations/*.js'],
 });
