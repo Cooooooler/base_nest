@@ -21,12 +21,13 @@
 
 | 类别 | 技术选型 | 用途 |
 |------|----------|------|
-| 数据库扩展 | `pgvector` | 向量检索 |
+| 向量库 | **Chroma**（本地开发）/ pgvector（生产） | 向量检索 |
 | 缓存/队列 | `Redis`（`@nestjs/bull` 或 `ioredis`） | 会话缓存、任务队列 |
 | 文件存储 | 本地磁盘 + S3 兼容（`@aws-sdk/client-s3`） | 文档、知识库文件 |
 | 流式响应 | SSE（Server-Sent Events） | LLM 流式输出 |
-| 向量嵌入 | 集成 OpenAI Embeddings / 本地模型 | 文档向量化 |
-| LLM SDK | `openai`, `@anthropic-ai/sdk` | 调用大模型 |
+| 嵌入模型 | **Ollama mxbai-embed-large**（LangChain `OllamaEmbeddings`） | 文档向量化 |
+| 生成模型 | **Ollama qwen2.5:7b**（LangChain `ChatOllama`） | 本地 LLM 推理 |
+| 框架 | **LangChain**（`@langchain/ollama`, `@langchain/community`） | LLM 调用、分块、链式编排 |
 | 文档解析 | `pdf-parse`, `tiktoken`, `langchain/text_splitter` | 文档解析与分块 |
 
 ### 现有项目可复用资产
