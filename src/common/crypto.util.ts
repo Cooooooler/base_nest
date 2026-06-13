@@ -1,14 +1,17 @@
 import * as crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-gcm';
-const IV_LENGTH = 16;
+const IV_LENGTH = 12;
 
 function getKey(): Buffer {
   const key = process.env.ENCRYPTION_KEY;
   if (!key) {
     throw new Error('ENCRYPTION_KEY is not set');
   }
-  return key.length === 64 ? Buffer.from(key, 'hex') : Buffer.from(key);
+  if (!/^[0-9a-f]{64}$/i.test(key)) {
+    throw new Error('ENCRYPTION_KEY must be a 64-character hex string');
+  }
+  return Buffer.from(key, 'hex');
 }
 
 export function encrypt(plaintext: string): string {

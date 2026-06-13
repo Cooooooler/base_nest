@@ -1,10 +1,10 @@
-import { encrypt, decrypt } from './crypto.util';
+import { decrypt, encrypt } from './crypto.util';
 
 describe('CryptoUtil', () => {
   const originalKey = process.env.ENCRYPTION_KEY;
 
   beforeEach(() => {
-    process.env.ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef';
+    process.env.ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
   });
 
   afterEach(() => {
@@ -30,6 +30,11 @@ describe('CryptoUtil', () => {
   it('should throw if ENCRYPTION_KEY is not set', () => {
     delete process.env.ENCRYPTION_KEY;
     expect(() => encrypt('test')).toThrow('ENCRYPTION_KEY is not set');
+  });
+
+  it('should throw if ENCRYPTION_KEY is not valid hex', () => {
+    process.env.ENCRYPTION_KEY = 'short-key';
+    expect(() => encrypt('test')).toThrow('ENCRYPTION_KEY must be a 64-character hex string');
   });
 
   it('should throw if encrypted format is invalid', () => {
