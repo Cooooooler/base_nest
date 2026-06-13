@@ -1,3 +1,144 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ChromaVectorStoreService } from '../common/vectore-store/chroma-vector-store.service';
+import { ChunkProcessorService } from './chunking/chunk-processor.service';
+import { DocumentSegment } from './entities/document-segment.entity';
+import { Document as DocEntity, DocumentStatus } from './entities/document.entity';
+import { KnowledgeBase } from './entities/knowledge-base.entity';
+import { FileStorageService } from './storage/file-storage.service';
+
 @Injectable()
-export class DocumentService {}
+export class DocumentService {
+  constructor(
+    @InjectRepository(DocEntity)
+    private readonly docRepo: Repository<DocEntity>,
+    @InjectRepository(DocumentSegment)
+    private readonly segmentRepo: Repository<DocumentSegment>,
+    @InjectRepository(KnowledgeBase)
+    private readonly kbRepo: Repository<KnowledgeBase>,
+    private readonly chunkProcessor: ChunkProcessorService,
+    private readonly fileStorage: FileStorageService,
+    private readonly vectorStore: ChromaVectorStoreService
+  ) {}
+
+  async findByKnowledgeBase(knowledgeBaseId: string): Promise<DocEntity[]> {
+    return this.docRepo.find({ where: { knowledgeBaseId }, order: { createdAt: 'DESC' } });
+  }
+
+  async findById(id: string): Promise<DocEntity | null> {
+    return this.docRepo.findOne({ where: { id }, relations: { segments: true } });
+  }
+
+  async upload(knowledgeBaseId: string, fileName: string, buffer: Buffer): Promise<DocEntity> {
+    const kb = await this.kbRepo.findOneBy({ id: knowledgeBaseId });
+    if (!kb) throw new NotFoundException('Knowledge base not found');
+
+    const ext = fileName.split('.').pop()?.toLowerCase() || 'txt';
+    const storagePath = await this.fileStorage.save(fileName, buffer);
+
+    const doc = this.docRepo.create({
+      knowledgeBaseId,
+      fileName,
+      fileType: ext,
+      fileSize: buffer.length,
+      storagePath,
+      status: 'pending' as DocumentStatus,
+    });
+
+    const saved = await this.docRepo.save(doc);
+
+    // Process asynchronously — do not await
+    this.processDocument(saved.id).catch((err) => {
+      console.error(`Document processing failed: ${err.message}`);
+    });
+
+    return saved;
+  }
+
+  async processDocument(docId: string): Promise<void> {
+    const doc = await this.docRepo.findOneBy({ id: docId });
+    if (!doc) throw new NotFoundException('Document not found');
+
+    await this.docRepo.update(docId, { status: 'processing' });
+
+    try {
+      const buffer = await this.fileStorage.read(doc.storagePath);
+      let text = '';
+
+      if (doc.fileType === 'pdf') {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const { PDFParse } = require('pdf-parse') as {
+          PDFParse: new (opts: { data: Buffer }) => {
+            getText(): Promise<{ text: string }>;
+            destroy(): Promise<void>;
+          };
+        };
+        const parser = new PDFParse({ data: buffer });
+        const result = await parser.getText();
+        text = result.text;
+        await parser.destroy();
+      } else {
+        text = buffer.toString('utf-8');
+      }
+
+      const kb = await this.kbRepo.findOneBy({ id: doc.knowledgeBaseId });
+      const chunks = await this.chunkProcessor.chunkText(text, {
+        chunkSize: kb?.chunkSize || 500,
+        chunkOverlap: kb?.chunkOverlap || 50,
+      });
+
+      // Save segments to DB
+      for (const chunk of chunks) {
+        const segment = this.segmentRepo.create({
+          documentId: docId,
+          knowledgeBaseId: doc.knowledgeBaseId,
+          index: chunk.index,
+          content: chunk.content,
+          charCount: chunk.charCount,
+          metadata: { ...chunk.metadata, fileName: doc.fileName },
+        });
+        await this.segmentRepo.save(segment);
+      }
+
+      // Store vectors in Chroma
+      await this.vectorStore.addDocuments(
+        chunks.map((c) => ({
+          pageContent: c.content,
+          metadata: {
+            documentId: docId,
+            knowledgeBaseId: doc.knowledgeBaseId,
+            index: c.index,
+            fileName: doc.fileName,
+          },
+        }))
+      );
+
+      await this.docRepo.update(docId, {
+        status: 'completed',
+        charCount: text.length,
+        processedAt: new Date(),
+      });
+    } catch (err) {
+      await this.docRepo.update(docId, {
+        status: 'failed',
+        errorMessage: (err as Error).message,
+      });
+    }
+  }
+
+  async delete(id: string): Promise<void> {
+    const doc = await this.docRepo.findOneBy({ id });
+    if (!doc) throw new NotFoundException('Document not found');
+    await this.fileStorage.delete(doc.storagePath);
+    await this.segmentRepo.delete({ documentId: id });
+    await this.docRepo.delete(id);
+  }
+
+  async getSegments(documentId: string): Promise<DocumentSegment[]> {
+    return this.segmentRepo.find({
+      where: { documentId },
+      order: { index: 'ASC' },
+    });
+  }
+}
