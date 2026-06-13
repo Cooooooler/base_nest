@@ -31,13 +31,13 @@ export class ProvidersService {
   ) {}
 
   async findAllProviders(): Promise<ModelProvider[]> {
-    return this.providerRepo.find({ relations: ['apiKeys', 'models'] });
+    return this.providerRepo.find({ relations: { apiKeys: true, models: true } });
   }
 
   async findProviderById(id: string): Promise<ModelProvider | null> {
     return this.providerRepo.findOne({
       where: { id },
-      relations: ['apiKeys', 'models'],
+      relations: { apiKeys: true, models: true },
     });
   }
 
@@ -91,7 +91,7 @@ export class ProvidersService {
   async getProviderClient(providerId: string): Promise<LlmProvider> {
     const provider = await this.providerRepo.findOne({
       where: { id: providerId, isEnabled: true },
-      relations: ['apiKeys'],
+      relations: { apiKeys: true },
     });
 
     if (!provider || provider.apiKeys.length === 0) {
