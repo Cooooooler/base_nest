@@ -45,6 +45,9 @@ Thumbs.db
 *.swo
 *~
 
+# Ignore dev docs
+docs/
+
 # Misc dev
 .mcp.json
 
