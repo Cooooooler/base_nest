@@ -171,7 +171,7 @@ export default function ProviderDetailPage() {
                     <p className='text-sm text-muted-foreground'>密钥已加密存储。显示值：</p>
                     <p className='font-mono text-lg'>{newKeyResult}</p>
                     <Button
-                      className='cursor-pointer'
+                      className='cursor-pointer w-full'
                       onClick={() => {
                         setNewKeyResult(null);
                         setDialogOpen(false);
@@ -219,10 +219,23 @@ export default function ProviderDetailPage() {
                         </Field>
                       )}
                     />
-                    <Button className='cursor-pointer' type='submit' disabled={isSubmitting}>
-                      {isSubmitting && <Spinner data-icon='inline-start' />}
-                      保存
-                    </Button>
+                    <div className='flex items-center justify-end gap-2'>
+                      <Button className='cursor-pointer' type='submit' disabled={isSubmitting}>
+                        {isSubmitting && <Spinner data-icon='inline-start' />}
+                        保存
+                      </Button>
+                      <Button
+                        className='cursor-pointer'
+                        type='button'
+                        variant='outline'
+                        onClick={() => {
+                          setDialogOpen(false);
+                          resetForm();
+                        }}
+                      >
+                        取消
+                      </Button>
+                    </div>
                   </form>
                 )}
               </DialogContent>

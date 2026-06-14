@@ -2,8 +2,15 @@
 
 import { AppSidebar } from '@/components/app/app-sidebar';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Monitor, Moon, Sun } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { usePathname, useRouter } from 'next/navigation';
 
 const routeTitles: Record<string, string> = {
@@ -17,6 +24,7 @@ const routeTitles: Record<string, string> = {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const title =
     routeTitles[pathname] ||
@@ -28,6 +36,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   );
   const showBack = !!parentRoute;
 
+  const ThemeIcon = resolvedTheme === 'dark' ? Moon : Sun;
+
   return (
     <>
       <AppSidebar />
@@ -36,6 +46,28 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <SidebarTrigger className='-ml-1 cursor-pointer' />
           <h1 className='text-lg font-semibold'>{title}</h1>
           <div className='ml-auto flex items-center gap-2'>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className='cursor-pointer'
+                render={<Button variant='ghost' size='icon' />}
+              >
+                <ThemeIcon className='size-4' />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='end'>
+                <DropdownMenuItem className='cursor-pointer' onClick={() => setTheme('light')}>
+                  <Sun className='size-4' />
+                  浅色
+                </DropdownMenuItem>
+                <DropdownMenuItem className='cursor-pointer' onClick={() => setTheme('dark')}>
+                  <Moon className='size-4' />
+                  深色
+                </DropdownMenuItem>
+                <DropdownMenuItem className='cursor-pointer' onClick={() => setTheme('system')}>
+                  <Monitor className='size-4' />
+                  系统
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             {showBack && (
               <Button
                 className='cursor-pointer'

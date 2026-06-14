@@ -34,6 +34,22 @@ export default function KnowledgePage() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className='space-y-6'>
+        <div className='flex items-center justify-between'>
+          <Skeleton className='h-9 w-32' />
+          <Skeleton className='h-10 w-28' />
+        </div>
+        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className='h-40 rounded-xl' />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
@@ -43,26 +59,15 @@ export default function KnowledgePage() {
         </Button>
       </div>
 
-      {isLoading ? (
-        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-          {[1, 2, 3].map((i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className='h-5 w-3/5' />
-              </CardHeader>
-              <CardContent className='flex flex-col gap-2'>
-                <Skeleton className='h-4 w-full' />
-                <Skeleton className='h-4 w-4/5' />
-                <Skeleton className='h-8 w-full rounded-md' />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      ) : knowledgeBases?.length === 0 ? (
-        <Card>
-          <CardContent className='flex flex-col items-center gap-3 py-16'>
-            <FileText className='size-12 text-muted-foreground' />
-            <p className='text-sm text-muted-foreground'>还没有创建知识库</p>
+      {!knowledgeBases || knowledgeBases.length === 0 ? (
+        <Card className='border-dashed'>
+          <CardContent className='flex flex-col items-center gap-4 py-16'>
+            <div className='flex size-12 items-center justify-center rounded-full bg-muted'>
+              <FileText className='size-6 text-muted-foreground' />
+            </div>
+            <div className='text-center'>
+              <p className='text-sm text-muted-foreground'>还没有创建知识库</p>
+            </div>
             <Button onClick={() => router.push('/knowledge/new')}>
               <Plus data-icon /> 创建知识库
             </Button>
@@ -70,37 +75,44 @@ export default function KnowledgePage() {
         </Card>
       ) : (
         <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
-          {knowledgeBases?.map((kb) => (
-            <Card key={kb.id}>
-              <CardHeader>
+          {knowledgeBases.map((kb) => (
+            <Card key={kb.id} className='transition-shadow hover:shadow-md'>
+              <CardHeader className='pb-3'>
                 <div className='flex items-start justify-between'>
-                  <div className='flex items-center gap-2'>
-                    <FileText className='size-5 text-muted-foreground' />
-                    <CardTitle className='text-lg'>{kb.name}</CardTitle>
+                  <div className='min-w-0 flex-1'>
+                    <CardTitle className='truncate text-base'>{kb.name}</CardTitle>
+                    {kb.description && (
+                      <p className='mt-1.5 line-clamp-2 text-sm text-muted-foreground'>
+                        {kb.description}
+                      </p>
+                    )}
                   </div>
                   <Button
                     className='cursor-pointer'
                     variant='ghost'
                     size='icon'
+                    aria-label={`删除 ${kb.name}`}
                     onClick={() => setDeleteTarget({ id: kb.id, name: kb.name })}
                   >
                     <Trash2 className='size-4' />
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className='flex flex-col gap-1'>
-                {kb.description && (
-                  <p className='line-clamp-2 text-sm text-muted-foreground'>{kb.description}</p>
-                )}
-                <p className='text-sm text-muted-foreground'>文档: {kb.documents?.length ?? 0}</p>
-                <p className='text-sm text-muted-foreground'>
-                  分块: {kb.chunkSize}字符 | 重叠: {kb.chunkOverlap}字符
-                </p>
+              <CardContent>
+                <div className='space-y-1 text-sm text-muted-foreground'>
+                  <p>
+                    文档:{' '}
+                    <span className='font-medium text-foreground'>{kb.documents?.length ?? 0}</span>
+                  </p>
+                  <p>
+                    分块: {kb.chunkSize}字符 | 重叠: {kb.chunkOverlap}字符
+                  </p>
+                </div>
                 <Button
+                  onClick={() => router.push(`/knowledge/${kb.id}`)}
                   variant='outline'
                   size='sm'
-                  className='cursor-pointer w-full'
-                  onClick={() => router.push(`/knowledge/${kb.id}`)}
+                  className='cursor-pointer mt-4 w-full'
                 >
                   管理
                 </Button>
