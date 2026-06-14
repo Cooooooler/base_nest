@@ -1,15 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuthStore } from '@/store/auth-store';
-import { apiClient } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { toast } from 'sonner';
+import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/store/auth-store';
 import type { LoginResponse } from '@base/shared';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -38,39 +38,39 @@ export default function LoginPage() {
   };
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl">登录</CardTitle>
+    <Card className='w-full max-w-sm'>
+      <CardHeader className='text-center'>
+        <CardTitle className='text-2xl'>登录</CardTitle>
         <CardDescription>登录到 Base Nest AI 平台</CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium">邮箱</label>
+        <form onSubmit={handleSubmit} className='space-y-4'>
+          <div className='space-y-2'>
+            <label className='text-sm font-medium'>邮箱</label>
             <Input
-              type="email"
+              type='email'
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="alice@example.com"
+              placeholder='alice@example.com'
               required
             />
           </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium">密码</label>
+          <div className='space-y-2'>
+            <label className='text-sm font-medium'>密码</label>
             <Input
-              type="password"
+              type='password'
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="******"
+              placeholder='******'
               required
             />
           </div>
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button type='submit' className='w-full' disabled={loading}>
             {loading ? '登录中...' : '登录'}
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
+          <p className='text-center text-sm text-muted-foreground'>
             还没有账号？{' '}
-            <Link href="/register" className="text-primary hover:underline">
+            <Link href='/register' className='text-primary hover:underline'>
               注册
             </Link>
           </p>

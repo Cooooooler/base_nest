@@ -1,12 +1,9 @@
 'use client';
 
-import { useKnowledgeBase, useDocuments, useDeleteDocument, useRetrieval } from '@/hooks/use-knowledge';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -15,11 +12,18 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { toast } from 'sonner';
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
-import { Trash2, Upload, Search, FileText } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  useDeleteDocument,
+  useDocuments,
+  useKnowledgeBase,
+  useRetrieval,
+} from '@/hooks/use-knowledge';
 import { apiUpload } from '@/lib/api-client';
+import { FileText, Search, Trash2, Upload } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function KnowledgeBaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -32,7 +36,9 @@ export default function KnowledgeBaseDetailPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [query, setQuery] = useState('');
-  const [retrievalResults, setRetrievalResults] = useState<{ content: string; metadata: Record<string, any>; score?: number }[] | null>(null);
+  const [retrievalResults, setRetrievalResults] = useState<
+    { content: string; metadata: Record<string, any>; score?: number }[] | null
+  >(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -86,35 +92,41 @@ export default function KnowledgeBaseDetailPage() {
     return <Badge variant={variants[status] || 'outline'}>{labels[status] || status}</Badge>;
   };
 
-  if (isLoading) return <Skeleton className="h-64 rounded-lg" />;
-  if (!kb) return <div className="text-muted-foreground">知识库未找到</div>;
+  if (isLoading) return <Skeleton className='h-64 rounded-lg' />;
+  if (!kb) return <div className='text-muted-foreground'>知识库未找到</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h2 className="text-2xl font-bold">{kb.name}</h2>
-          {kb.description && <p className="text-sm text-muted-foreground mt-1">{kb.description}</p>}
+          <h2 className='text-2xl font-bold'>{kb.name}</h2>
+          {kb.description && <p className='text-sm text-muted-foreground mt-1'>{kb.description}</p>}
         </div>
-        <Button variant="outline" onClick={() => router.push('/knowledge')}>返回</Button>
+        <Button variant='outline' onClick={() => router.push('/knowledge')}>
+          返回
+        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className='grid grid-cols-1 lg:grid-cols-3 gap-6'>
         {/* Documents section */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className='lg:col-span-2 space-y-4'>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">文档</CardTitle>
+              <div className='flex items-center justify-between'>
+                <CardTitle className='text-lg'>文档</CardTitle>
                 <div>
                   <input
-                    type="file"
+                    type='file'
                     ref={fileInputRef}
-                    className="hidden"
-                    accept=".pdf,.txt,.md,.html"
+                    className='hidden'
+                    accept='.pdf,.txt,.md,.html'
                     onChange={handleUpload}
                   />
-                  <Button size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+                  <Button
+                    size='sm'
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
                     <Upload /> {uploading ? '上传中...' : '上传文档'}
                   </Button>
                 </div>
@@ -122,7 +134,7 @@ export default function KnowledgeBaseDetailPage() {
             </CardHeader>
             <CardContent>
               {!documents || documents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">暂无文档</p>
+                <p className='text-sm text-muted-foreground'>暂无文档</p>
               ) : (
                 <Table>
                   <TableHeader>
@@ -137,9 +149,9 @@ export default function KnowledgeBaseDetailPage() {
                   <TableBody>
                     {documents.map((doc) => (
                       <TableRow key={doc.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <FileText className="size-4 text-muted-foreground" />
+                        <TableCell className='font-medium'>
+                          <div className='flex items-center gap-2'>
+                            <FileText className='size-4 text-muted-foreground' />
                             {doc.fileName}
                           </div>
                         </TableCell>
@@ -147,8 +159,12 @@ export default function KnowledgeBaseDetailPage() {
                         <TableCell>{(doc.fileSize / 1024).toFixed(1)} KB</TableCell>
                         <TableCell>{statusBadge(doc.status)}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteDoc(doc.id, doc.fileName)}>
-                            <Trash2 className="size-4" />
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            onClick={() => handleDeleteDoc(doc.id, doc.fileName)}
+                          >
+                            <Trash2 className='size-4' />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -161,33 +177,33 @@ export default function KnowledgeBaseDetailPage() {
         </div>
 
         {/* Retrieval section */}
-        <div className="space-y-4">
+        <div className='space-y-4'>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">检索测试</CardTitle>
+              <CardTitle className='text-lg'>检索测试</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className='space-y-3'>
               <Textarea
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="输入查询内容..."
+                placeholder='输入查询内容...'
                 rows={3}
               />
-              <Button className="w-full" onClick={handleSearch} disabled={retrieval.isPending}>
+              <Button className='w-full' onClick={handleSearch} disabled={retrieval.isPending}>
                 <Search /> {retrieval.isPending ? '检索中...' : '检索'}
               </Button>
 
               {retrievalResults && (
-                <div className="space-y-3 mt-4">
-                  <p className="text-sm font-medium">检索结果 ({retrievalResults.length})</p>
+                <div className='space-y-3 mt-4'>
+                  <p className='text-sm font-medium'>检索结果 ({retrievalResults.length})</p>
                   {retrievalResults.map((r, i) => (
-                    <div key={i} className="rounded-lg border p-3 text-sm">
+                    <div key={i} className='rounded-lg border p-3 text-sm'>
                       {r.score !== undefined && (
-                        <p className="text-xs text-muted-foreground mb-1">
+                        <p className='text-xs text-muted-foreground mb-1'>
                           相似度: {(r.score * 100).toFixed(1)}%
                         </p>
                       )}
-                      <p className="line-clamp-4">{r.content}</p>
+                      <p className='line-clamp-4'>{r.content}</p>
                     </div>
                   ))}
                 </div>

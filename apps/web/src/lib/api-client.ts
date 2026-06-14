@@ -78,10 +78,7 @@ async function refreshAccessToken(): Promise<string | null> {
   return null;
 }
 
-export async function apiClient<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
+export async function apiClient<T>(path: string, options: RequestInit = {}): Promise<T> {
   const { access } = getTokens();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -112,10 +109,7 @@ export async function apiClient<T>(
   return data.data as T;
 }
 
-export async function apiUpload<T>(
-  path: string,
-  file: File
-): Promise<T> {
+export async function apiUpload<T>(path: string, file: File): Promise<T> {
   const { access } = getTokens();
   const formData = new FormData();
   formData.append('file', file);

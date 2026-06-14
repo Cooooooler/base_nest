@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient, apiUpload } from '@/lib/api-client';
-import type { ModelProvider, CreateProviderDto, CreateApiKeyDto } from '@base/shared';
+import { apiClient } from '@/lib/api-client';
+import type { CreateApiKeyDto, CreateProviderDto, ModelProvider } from '@base/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useProviders() {
   return useQuery({
@@ -32,8 +32,7 @@ export function useCreateProvider() {
 export function useDeleteProvider() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) =>
-      apiClient<void>(`/providers/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => apiClient<void>(`/providers/${id}`, { method: 'DELETE' }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['providers'] }),
   });
 }
@@ -42,9 +41,9 @@ export function useProviderApiKeys(providerId: string) {
   return useQuery({
     queryKey: ['providers', providerId, 'keys'],
     queryFn: () =>
-      apiClient<{ id: string; name: string; maskedKey: string; isActive: boolean; createdAt: string }[]>(
-        `/providers/${providerId}/keys`
-      ),
+      apiClient<
+        { id: string; name: string; maskedKey: string; isActive: boolean; createdAt: string }[]
+      >(`/providers/${providerId}/keys`),
     enabled: !!providerId,
   });
 }

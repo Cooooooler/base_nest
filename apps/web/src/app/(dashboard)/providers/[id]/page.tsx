@@ -1,11 +1,17 @@
 'use client';
 
-import { useProvider, useProviderApiKeys, useCreateApiKey, useDeleteApiKey } from '@/hooks/use-providers';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -14,12 +20,16 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { toast } from 'sonner';
-import { useParams } from 'next/navigation';
+import {
+  useCreateApiKey,
+  useDeleteApiKey,
+  useProvider,
+  useProviderApiKeys,
+} from '@/hooks/use-providers';
+import { Plus, Trash2 } from 'lucide-react';
+import { useParams, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Trash2, Plus } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 export default function ProviderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,8 +44,8 @@ export default function ProviderDetailPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null);
 
-  if (isLoading) return <Skeleton className="h-64 rounded-lg" />;
-  if (!provider) return <div className="text-muted-foreground">提供商未找到</div>;
+  if (isLoading) return <Skeleton className='h-64 rounded-lg' />;
+  if (!provider) return <div className='text-muted-foreground'>提供商未找到</div>;
 
   const handleAddKey = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,43 +76,74 @@ export default function ProviderDetailPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
         <div>
-          <h2 className="text-2xl font-bold">{provider.name}</h2>
-          <div className="flex items-center gap-2 mt-1">
+          <h2 className='text-2xl font-bold'>{provider.name}</h2>
+          <div className='flex items-center gap-2 mt-1'>
             <Badge>{provider.type}</Badge>
-            {provider.isEnabled && <Badge variant="secondary">已启用</Badge>}
+            {provider.isEnabled && <Badge variant='secondary'>已启用</Badge>}
           </div>
         </div>
-        <Button variant="outline" onClick={() => router.push('/providers')}>返回</Button>
+        <Button variant='outline' onClick={() => router.push('/providers')}>
+          返回
+        </Button>
       </div>
 
       {provider.baseUrl && (
-        <p className="text-sm text-muted-foreground">端点: {provider.baseUrl}</p>
+        <p className='text-sm text-muted-foreground'>端点: {provider.baseUrl}</p>
       )}
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">API 密钥</CardTitle>
-            <Dialog open={dialogOpen} onOpenChange={(o) => { setDialogOpen(o); if (!o) { setNewKeyResult(null); setKeyName(''); setKeyValue(''); } }}>
-              <DialogTrigger render={<Button size="sm" />}><Plus />添加密钥</DialogTrigger>
+          <div className='flex items-center justify-between'>
+            <CardTitle className='text-lg'>API 密钥</CardTitle>
+            <Dialog
+              open={dialogOpen}
+              onOpenChange={(o) => {
+                setDialogOpen(o);
+                if (!o) {
+                  setNewKeyResult(null);
+                  setKeyName('');
+                  setKeyValue('');
+                }
+              }}
+            >
+              <DialogTrigger render={<Button size='sm' />}>
+                <Plus />
+                添加密钥
+              </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{newKeyResult ? '密钥已创建' : '添加 API 密钥'}</DialogTitle>
                 </DialogHeader>
                 {newKeyResult ? (
-                  <div className="space-y-4">
-                    <p className="text-sm text-muted-foreground">密钥已加密存储。显示值：</p>
-                    <p className="font-mono text-lg">{newKeyResult}</p>
-                    <Button onClick={() => { setNewKeyResult(null); setDialogOpen(false); }}>完成</Button>
+                  <div className='space-y-4'>
+                    <p className='text-sm text-muted-foreground'>密钥已加密存储。显示值：</p>
+                    <p className='font-mono text-lg'>{newKeyResult}</p>
+                    <Button
+                      onClick={() => {
+                        setNewKeyResult(null);
+                        setDialogOpen(false);
+                      }}
+                    >
+                      完成
+                    </Button>
                   </div>
                 ) : (
-                  <form onSubmit={handleAddKey} className="space-y-4">
-                    <Input value={keyName} onChange={(e) => setKeyName(e.target.value)} placeholder="密钥名称" />
-                    <Input value={keyValue} onChange={(e) => setKeyValue(e.target.value)} placeholder="sk-..." type="password" />
-                    <Button type="submit" disabled={createApiKey.isPending}>
+                  <form onSubmit={handleAddKey} className='space-y-4'>
+                    <Input
+                      value={keyName}
+                      onChange={(e) => setKeyName(e.target.value)}
+                      placeholder='密钥名称'
+                    />
+                    <Input
+                      value={keyValue}
+                      onChange={(e) => setKeyValue(e.target.value)}
+                      placeholder='sk-...'
+                      type='password'
+                    />
+                    <Button type='submit' disabled={createApiKey.isPending}>
                       {createApiKey.isPending ? '加密中...' : '保存'}
                     </Button>
                   </form>
@@ -113,7 +154,7 @@ export default function ProviderDetailPage() {
         </CardHeader>
         <CardContent>
           {!apiKeys || apiKeys.length === 0 ? (
-            <p className="text-sm text-muted-foreground">暂无 API 密钥</p>
+            <p className='text-sm text-muted-foreground'>暂无 API 密钥</p>
           ) : (
             <Table>
               <TableHeader>
@@ -128,11 +169,17 @@ export default function ProviderDetailPage() {
                 {apiKeys.map((k) => (
                   <TableRow key={k.id}>
                     <TableCell>{k.name}</TableCell>
-                    <TableCell className="font-mono">{k.maskedKey}</TableCell>
-                    <TableCell>{k.isActive ? <Badge variant="secondary">启用</Badge> : <Badge variant="outline">禁用</Badge>}</TableCell>
+                    <TableCell className='font-mono'>{k.maskedKey}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => handleDeleteKey(k.id)}>
-                        <Trash2 className="size-4" />
+                      {k.isActive ? (
+                        <Badge variant='secondary'>启用</Badge>
+                      ) : (
+                        <Badge variant='outline'>禁用</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Button variant='ghost' size='icon' onClick={() => handleDeleteKey(k.id)}>
+                        <Trash2 className='size-4' />
                       </Button>
                     </TableCell>
                   </TableRow>
