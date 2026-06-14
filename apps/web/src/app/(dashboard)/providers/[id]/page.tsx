@@ -12,8 +12,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Table,
   TableBody,
@@ -28,10 +30,20 @@ import {
   useProvider,
   useProviderApiKeys,
 } from '@/hooks/use-providers';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
+
+const keyFormSchema = z.object({
+  name: z.string().min(1, '请输入密钥名称'),
+  apiKey: z.string().min(1, '请输入 API 密钥'),
+});
+
+type KeyFormData = z.infer<typeof keyFormSchema>;
 
 export default function ProviderDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -40,23 +52,29 @@ export default function ProviderDetailPage() {
   const createApiKey = useCreateApiKey();
   const deleteApiKey = useDeleteApiKey();
 
-  const [keyName, setKeyName] = useState('');
-  const [keyValue, setKeyValue] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null);
   const [deleteKeyTarget, setDeleteKeyTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const handleAddKey = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    control,
+    handleSubmit,
+    reset: resetForm,
+    formState: { isSubmitting },
+  } = useForm<KeyFormData>({
+    resolver: zodResolver(keyFormSchema),
+    defaultValues: { name: '', apiKey: '' },
+  });
+
+  const onSubmit = async (data: KeyFormData) => {
     try {
       const result = await createApiKey.mutateAsync({
         providerId: id,
-        name: keyName,
-        apiKey: keyValue,
+        name: data.name,
+        apiKey: data.apiKey,
       });
       setNewKeyResult(result.maskedKey);
-      setKeyName('');
-      setKeyValue('');
+      resetForm();
       await refetchKeys();
     } catch {
       toast.error('添加密钥失败');
@@ -136,8 +154,7 @@ export default function ProviderDetailPage() {
                 setDialogOpen(o);
                 if (!o) {
                   setNewKeyResult(null);
-                  setKeyName('');
-                  setKeyValue('');
+                  resetForm();
                 }
               }}
             >
@@ -164,36 +181,47 @@ export default function ProviderDetailPage() {
                     </Button>
                   </div>
                 ) : (
-                  <form onSubmit={handleAddKey} className='space-y-4'>
-                    <div className='space-y-2'>
-                      <label className='text-sm font-medium' htmlFor='key-name'>
-                        密钥名称
-                      </label>
-                      <Input
-                        id='key-name'
-                        value={keyName}
-                        onChange={(e) => setKeyName(e.target.value)}
-                        placeholder='生产密钥'
-                      />
-                    </div>
-                    <div className='space-y-2'>
-                      <label className='text-sm font-medium' htmlFor='key-value'>
-                        API 密钥
-                      </label>
-                      <Input
-                        id='key-value'
-                        value={keyValue}
-                        onChange={(e) => setKeyValue(e.target.value)}
-                        placeholder='sk-...'
-                        type='password'
-                      />
-                    </div>
-                    <Button
-                      className='cursor-pointer'
-                      type='submit'
-                      disabled={createApiKey.isPending}
-                    >
-                      {createApiKey.isPending ? '加密中...' : '保存'}
+                  <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                    <Controller
+                      name='name'
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor='key-name'>密钥名称</FieldLabel>
+                          <Input
+                            {...field}
+                            id='key-name'
+                            placeholder='生产密钥'
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && (
+                            <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                          )}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name='apiKey'
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor='key-value'>API 密钥</FieldLabel>
+                          <Input
+                            {...field}
+                            id='key-value'
+                            placeholder='sk-...'
+                            type='password'
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && (
+                            <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                          )}
+                        </Field>
+                      )}
+                    />
+                    <Button className='cursor-pointer' type='submit' disabled={isSubmitting}>
+                      {isSubmitting && <Spinner data-icon='inline-start' />}
+                      保存
                     </Button>
                   </form>
                 )}
