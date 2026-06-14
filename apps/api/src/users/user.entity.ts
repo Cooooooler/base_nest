@@ -17,7 +17,7 @@ export class User {
   name: string;
 
   @Exclude()
-  @Column({ length: 255 })
+  @Column({ length: 255, select: false })
   password: string;
 
   @ApiProperty({ example: true, description: '是否激活' })

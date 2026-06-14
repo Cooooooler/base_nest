@@ -11,8 +11,10 @@ import { KnowledgeService } from './knowledge.service';
 import { RetrievalService } from './retrieval.service';
 import { FileStorageService } from './storage/file-storage.service';
 
+import { AuthGuardModule } from '../auth/auth-guard.module';
+
 @Module({
-  imports: [TypeOrmModule.forFeature([KnowledgeBase, Document, DocumentSegment])],
+  imports: [TypeOrmModule.forFeature([KnowledgeBase, Document, DocumentSegment]), AuthGuardModule],
   controllers: [KnowledgeController, DocumentController],
   providers: [
     KnowledgeService,

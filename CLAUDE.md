@@ -30,21 +30,32 @@ Single E2E test: `pnpm run test:e2e -- app.e2e-spec.ts`
 
 ## Architecture
 
-NestJS 11 app with JWT auth, TypeORM + Postgres, and a unified response format.
+This is a **pnpm + Turborepo monorepo** with three packages:
 
-### Modules
+| Package        | Path               | Tech                    |
+| -------------- | ------------------ | ----------------------- |
+| `@base/api`    | `apps/api/`        | NestJS 11 backend       |
+| `@base/web`    | `apps/web/`        | Next.js 15 frontend     |
+| `@base/shared` | `packages/shared/` | Shared TypeScript types |
 
-- **AppModule** (`src/app.module.ts`) — root, imports ConfigModule, TypeOrmModule (entities: `User`, `BlacklistedToken`), UsersModule, AuthModule. Global `ValidationPipe` with `{ whitelist: true, forbidNonWhitelisted: true, transform: true }`.
-- **AuthModule** (`src/auth/`) — register (bcrypt + DB transaction), login, refresh (token rotation), logout (token blacklisting), `/auth/profile` (JWT-guarded). PassportStrategy with access token type validation + blacklist check.
-- **UsersModule** (`src/users/`) — CRUD on `User` entity (UUID PK, unique email, `@Exclude()` on password). Guarded write endpoints.
+Root scripts proxy to packages via `pnpm --filter` and `turbo` (see root `package.json` and `turbo.json`).
 
-### Global Response Format (code/data/msg)
+### Backend Modules (`apps/api/src/`)
+
+- **AppModule** (`app.module.ts`) — root, imports ConfigModule, TypeOrmModule (entities: `User`, `BlacklistedToken`), UsersModule, AuthModule, ProvidersModule, KnowledgeModule, LocalAIModule. Global `ValidationPipe` with `{ whitelist: true, forbidNonWhitelisted: true, transform: true }`.
+- **AuthModule** (`auth/`) — register (bcrypt + DB transaction), login, refresh (token rotation), logout (token blacklisting), `/auth/profile` (JWT-guarded). PassportStrategy with access token type validation + blacklist check.
+- **UsersModule** (`users/`) — CRUD on `User` entity (UUID PK, unique email, `@Exclude()` on password). Guarded write endpoints.
+- **ProvidersModule** (`providers/`) — LLM provider management: CRUD for `ModelProvider`, `Model`, `ApiKey` entities. Uses a **strategy pattern** (`providers/strategies/`) with implementations for OpenAI, Anthropic (Claude), Ollama, OpenAI-compatible, and LangChain Ollama. API keys encrypted at rest via AES-256-GCM (`ENCRYPTION_KEY` env var).
+- **KnowledgeModule** (`knowledge/`) — RAG pipeline: knowledge bases, document management, document chunking (`chunk-processor.service.ts`), retrieval (`retrieval.service.ts`), file storage (`storage/`). Uses ChromaDB as vector store and Ollama embeddings via `LocalAIModule`.
+- **LocalAIModule** (`common/local-ai.module.ts`) — Global `@Global()` module providing `EmbeddingsService` and `ChromaVectorStoreService` wired to local Ollama + ChromaDB instances.
+
+### Global Response Format (`apps/api/src/common/`)
 
 All responses go through a pipeline:
 
-- **ResponseInterceptor** — wraps 2xx as `{ code: 1, data: <body>, msg: "ok" }`
-- **HttpExceptionFilter** — wraps errors as `{ code: 0, data: null, msg: <message> }`
-- **ClassSerializerInterceptor** (in main.ts) — strips `@Exclude()` fields (e.g. `User.password`)
+- **ResponseInterceptor** — wraps 2xx as `{ code: 1, data: <body>, msg: "ok" }`. Passes through if body already matches `{ code, data }`.
+- **HttpExceptionFilter** — wraps errors as `{ code: 0, data: null, msg: <message> }`. Logs 500s with stack trace.
+- **ClassSerializerInterceptor** (in `main.ts`) — strips `@Exclude()` fields (e.g. `User.password`).
 
 ### TypeORM with Migrations
 
@@ -52,11 +63,29 @@ All responses go through a pipeline:
 
 ### JWT Token Blacklisting
 
-Refresh tokens use rotation: each refresh blacklists the old refresh token (stored as SHA-256 hash in `BlacklistedToken` entity with expiration) and issues a new access + refresh pair. The `JwtAuthGuard` checks the blacklist before validating the token.
+Refresh tokens use rotation: each refresh blacklists the old refresh token (stored as SHA-256 hash in `BlacklistedToken` entity with expiration) and issues a new access + refresh pair. The `JwtAuthGuard` checks the blacklist before validating the token. Blacklist insert uses `orIgnore()` for idempotent inserts.
 
 ### API Docs
 
-Swagger/Scalar UI at `/docs` route with purple theme and Bearer auth support. Decorated with Chinese-language descriptions.
+Swagger/Scalar UI at `/docs` route with purple theme and Bearer auth support. Decorated with Chinese-language descriptions. Set up in `common/docs/setup.ts`.
+
+### Encryption Utility (`common/crypto.util.ts`)
+
+API keys are encrypted at rest using AES-256-GCM. Requires `ENCRYPTION_KEY` as a 64-character hex string. Format: `iv:tag:ciphertext`.
+
+### Frontend (`apps/web/`)
+
+Next.js 15 app with App Router, Tailwind CSS v4, and shadcn/ui components.
+
+- **Pages**: Login/Register under `(auth)/`, dashboard under `(dashboard)/` with knowledge base and provider management views.
+- **API Client** (`src/api/client.ts`) — ky-based HTTP client with automatic Bearer token injection and 401 → refresh token rotation via `afterResponse` hooks. All responses unwrapped from `{ code, data, msg }` envelope.
+- **State Management**: Zustand (`src/store/`) + React Query for server state.
+- **UI**: shadcn/ui components in `src/components/ui/`, app-level components (sidebar, auth guard, providers wrapper) in `src/components/app/`.
+- **Styling**: Tailwind CSS v4 (`tailwindcss`), `tw-animate-css`, `next-themes` for dark mode.
+
+### Shared Types (`packages/shared/src/types/`)
+
+TypeScript types shared between frontend and backend: `api.ts` (generic `ApiResponse<T>`), `auth.ts`, `knowledge.ts`, `provider.ts`.
 
 ## Testing Patterns
 
@@ -71,10 +100,12 @@ Swagger/Scalar UI at `/docs` route with purple theme and Bearer auth support. De
 
 ## Stack
 
-- **Runtime**: Node.js, TypeScript (ES2023 target, nodenext module), NestJS 11
-- **Package manager**: pnpm 10 (pinned in `package.json` `packageManager`)
+- **Runtime**: Node.js, TypeScript (ES2023 target, nodenext module), NestJS 11, Next.js 15
+- **Monorepo**: pnpm 10 workspaces + Turborepo
 - **ORM**: TypeORM with Postgres (`pg` driver), migrations for schema management
 - **Auth**: Passport + passport-jwt, bcrypt hashing, refresh token rotation with blacklist
+- **LLM**: Provider strategy pattern (OpenAI, Anthropic, Ollama, OpenAI-compatible, LangChain Ollama), ChromaDB vector store
+- **Frontend**: Next.js App Router, Tailwind CSS v4, shadcn/ui, Zustand, React Query, ky HTTP client
 - **Testing**: Jest + ts-jest, unit tests co-located (`*.spec.ts`), E2E in `test/`
 - **Linting**: ESLint flat config (`eslint.config.mjs`), Prettier via `.prettierrc`
 - **Config**: `@nestjs/config` with `registerAs` for typed env var loading, `dotenv` for migrations

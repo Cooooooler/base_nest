@@ -1,4 +1,6 @@
+import { CanActivate } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { CreateProviderDto } from './dto/create-provider.dto';
 import { ProvidersController } from './providers.controller';
@@ -19,11 +21,16 @@ describe('ProvidersController', () => {
     findModels: jest.fn().mockResolvedValue([]),
   };
 
+  const mockJwtAuthGuard: CanActivate = { canActivate: jest.fn(() => true) };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProvidersController],
       providers: [{ provide: ProvidersService, useValue: mockService }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue(mockJwtAuthGuard)
+      .compile();
 
     controller = module.get<ProvidersController>(ProvidersController);
   });

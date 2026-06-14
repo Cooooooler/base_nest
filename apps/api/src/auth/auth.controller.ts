@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { User } from '../users/user.entity';
 import { AuthService } from './auth.service';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -22,12 +23,14 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: '用户注册', description: '使用邮箱、用户名和密码注册新用户' })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
   @Post('login')
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: '用户登录',
@@ -69,6 +72,7 @@ export class AuthController {
     return this.authService.logout(accessToken, refreshToken);
   }
 
+  @SkipThrottle()
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

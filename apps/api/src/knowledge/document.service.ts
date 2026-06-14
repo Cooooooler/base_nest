@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChromaVectorStoreService } from '../common/vectore-store/chroma-vector-store.service';
@@ -10,6 +10,8 @@ import { FileStorageService } from './storage/file-storage.service';
 
 @Injectable()
 export class DocumentService {
+  private readonly logger = new Logger(DocumentService.name);
+
   constructor(
     @InjectRepository(DocEntity)
     private readonly docRepo: Repository<DocEntity>,
@@ -50,7 +52,10 @@ export class DocumentService {
 
     // Process asynchronously — do not await
     this.processDocument(saved.id).catch((err) => {
-      console.error(`Document processing failed: ${err.message}`);
+      this.logger.error(
+        `Document processing failed for ${saved.id}: ${(err as Error).message}`,
+        (err as Error).stack
+      );
     });
 
     return saved;
@@ -88,18 +93,18 @@ export class DocumentService {
         chunkOverlap: kb?.chunkOverlap || 50,
       });
 
-      // Save segments to DB
-      for (const chunk of chunks) {
-        const segment = this.segmentRepo.create({
+      // Save segments to DB in batch
+      const segments = chunks.map((chunk) =>
+        this.segmentRepo.create({
           documentId: docId,
           knowledgeBaseId: doc.knowledgeBaseId,
           index: chunk.index,
           content: chunk.content,
           charCount: chunk.charCount,
           metadata: { ...chunk.metadata, fileName: doc.fileName },
-        });
-        await this.segmentRepo.save(segment);
-      }
+        })
+      );
+      await this.segmentRepo.save(segments);
 
       // Store vectors in Chroma
       await this.vectorStore.addDocuments(
@@ -120,6 +125,10 @@ export class DocumentService {
         processedAt: new Date(),
       });
     } catch (err) {
+      this.logger.error(
+        `Document processing failed for ${docId}: ${(err as Error).message}`,
+        (err as Error).stack
+      );
       await this.docRepo.update(docId, {
         status: 'failed',
         errorMessage: (err as Error).message,

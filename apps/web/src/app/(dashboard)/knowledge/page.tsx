@@ -13,11 +13,12 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDeleteKnowledgeBase, useKnowledgeBases } from '@/hooks/use-knowledge';
 import { FileText, Plus, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function KnowledgePage() {
+  const router = useRouter();
   const { data: knowledgeBases, isLoading } = useKnowledgeBases();
   const deleteKb = useDeleteKnowledgeBase();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -37,7 +38,7 @@ export default function KnowledgePage() {
     <div className='flex flex-col gap-4'>
       <div className='flex items-center justify-between'>
         <h2 className='text-2xl font-bold'>知识库</h2>
-        <Button render={<Link href='/knowledge/new' />}>
+        <Button onClick={() => router.push('/knowledge/new')}>
           <Plus data-icon /> 创建知识库
         </Button>
       </div>
@@ -62,7 +63,7 @@ export default function KnowledgePage() {
           <CardContent className='flex flex-col items-center gap-3 py-16'>
             <FileText className='size-12 text-muted-foreground' />
             <p className='text-sm text-muted-foreground'>还没有创建知识库</p>
-            <Button render={<Link href='/knowledge/new' />}>
+            <Button onClick={() => router.push('/knowledge/new')}>
               <Plus data-icon /> 创建知识库
             </Button>
           </CardContent>
@@ -98,7 +99,7 @@ export default function KnowledgePage() {
                   variant='outline'
                   size='sm'
                   className='w-full'
-                  render={<Link href={`/knowledge/${kb.id}`} />}
+                  onClick={() => router.push(`/knowledge/${kb.id}`)}
                 >
                   管理
                 </Button>

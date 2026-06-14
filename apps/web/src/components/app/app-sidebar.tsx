@@ -21,8 +21,8 @@ import {
   Settings,
   Workflow,
 } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useCallback } from 'react';
 
 const navItems = [
   { href: '/', label: '仪表盘', icon: LayoutDashboard },
@@ -42,6 +42,11 @@ export function AppSidebar() {
     router.push('/login');
   };
 
+  const isActive = useCallback(
+    (href: string) => pathname === href || pathname.startsWith(href + '/'),
+    [pathname]
+  );
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -57,8 +62,8 @@ export function AppSidebar() {
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
-                  render={<Link href={item.href} />}
-                  isActive={pathname === item.href || pathname.startsWith(item.href + '/')}
+                  onClick={() => router.push(item.href)}
+                  isActive={isActive(item.href)}
                 >
                   <item.icon />
                   <span>{item.label}</span>
@@ -71,7 +76,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href='/settings' />}>
+            <SidebarMenuButton onClick={() => router.push('/settings')}>
               <Settings />
               <span>设置</span>
             </SidebarMenuButton>
