@@ -9,6 +9,14 @@ apps/*/dist/
 apps/*/.next/
 packages/*/dist/
 
+# TypeScript
+*.tsbuildinfo
+apps/*/tsconfig.tsbuildinfo
+
+# Next.js
+next-env.d.ts
+apps/*/next-env.d.ts
+
 # Logs
 logs
 *.log
@@ -36,6 +44,9 @@ Thumbs.db
 *.swp
 *.swo
 *~
+
+# Misc dev
+.mcp.json
 
 # Env
 .env
