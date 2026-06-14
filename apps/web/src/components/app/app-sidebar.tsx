@@ -64,7 +64,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>导航</SidebarGroupLabel>
-          <SidebarMenu>
+          <SidebarMenu className='gap-2'>
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton

@@ -24,7 +24,7 @@ const routeTitles: Record<string, string> = {
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { theme, setTheme, resolvedTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
 
   const title =
     routeTitles[pathname] ||
