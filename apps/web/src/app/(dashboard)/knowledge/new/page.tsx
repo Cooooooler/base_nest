@@ -91,7 +91,7 @@ export default function NewKnowledgeBasePage() {
                 />
               </div>
             </div>
-            <Button type='submit' disabled={createKb.isPending}>
+            <Button className='cursor-pointer' type='submit' disabled={createKb.isPending}>
               {createKb.isPending ? '创建中...' : '创建'}
             </Button>
           </form>

@@ -28,14 +28,13 @@ import {
   useProvider,
   useProviderApiKeys,
 } from '@/hooks/use-providers';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
+import { Plus, Trash2 } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ProviderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const { data: provider, isLoading } = useProvider(id);
   const { data: apiKeys, refetch: refetchKeys } = useProviderApiKeys(id);
   const createApiKey = useCreateApiKey();
@@ -58,7 +57,7 @@ export default function ProviderDetailPage() {
       setNewKeyResult(result.maskedKey);
       setKeyName('');
       setKeyValue('');
-      refetchKeys();
+      await refetchKeys();
     } catch {
       toast.error('添加密钥失败');
     }
@@ -70,7 +69,7 @@ export default function ProviderDetailPage() {
       await deleteApiKey.mutateAsync(deleteKeyTarget.id);
       toast.success('密钥已删除');
       setDeleteKeyTarget(null);
-      refetchKeys();
+      await refetchKeys();
     } catch {
       toast.error('删除失败');
     }
@@ -106,10 +105,6 @@ export default function ProviderDetailPage() {
     return (
       <div className='flex flex-col items-center gap-4 py-16 text-center'>
         <p className='text-muted-foreground'>提供商未找到</p>
-        <Button variant='outline' onClick={() => router.push('/providers')}>
-          <ArrowLeft data-icon='inline-start' />
-          返回列表
-        </Button>
       </div>
     );
   }
@@ -118,25 +113,15 @@ export default function ProviderDetailPage() {
     <div className='space-y-6'>
       {/* Header */}
       <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
-          <Button
-            variant='ghost'
-            size='icon'
-            aria-label='返回'
-            onClick={() => router.push('/providers')}
-          >
-            <ArrowLeft className='size-4' />
-          </Button>
-          <div>
-            <div className='flex items-center gap-2'>
-              <h1 className='text-2xl font-bold tracking-tight'>{provider.name}</h1>
-              <Badge variant='secondary'>{provider.type}</Badge>
-              {provider.isEnabled && <Badge variant='default'>已启用</Badge>}
-            </div>
-            {provider.baseUrl && (
-              <p className='mt-0.5 text-sm text-muted-foreground'>{provider.baseUrl}</p>
-            )}
+        <div>
+          <div className='flex items-center gap-2'>
+            <h1 className='text-2xl font-bold tracking-tight'>{provider.name}</h1>
+            <Badge variant='secondary'>{provider.type}</Badge>
+            {provider.isEnabled && <Badge variant='default'>已启用</Badge>}
           </div>
+          {provider.baseUrl && (
+            <p className='mt-0.5 text-sm text-muted-foreground'>{provider.baseUrl}</p>
+          )}
         </div>
       </div>
 
@@ -156,7 +141,7 @@ export default function ProviderDetailPage() {
                 }
               }}
             >
-              <DialogTrigger render={<Button size='sm' />}>
+              <DialogTrigger render={<Button className='cursor-pointer' size='sm' />}>
                 <Plus data-icon='inline-start' />
                 添加密钥
               </DialogTrigger>
@@ -169,6 +154,7 @@ export default function ProviderDetailPage() {
                     <p className='text-sm text-muted-foreground'>密钥已加密存储。显示值：</p>
                     <p className='font-mono text-lg'>{newKeyResult}</p>
                     <Button
+                      className='cursor-pointer'
                       onClick={() => {
                         setNewKeyResult(null);
                         setDialogOpen(false);
@@ -202,7 +188,11 @@ export default function ProviderDetailPage() {
                         type='password'
                       />
                     </div>
-                    <Button type='submit' disabled={createApiKey.isPending}>
+                    <Button
+                      className='cursor-pointer'
+                      type='submit'
+                      disabled={createApiKey.isPending}
+                    >
                       {createApiKey.isPending ? '加密中...' : '保存'}
                     </Button>
                   </form>
@@ -240,6 +230,7 @@ export default function ProviderDetailPage() {
                     </TableCell>
                     <TableCell>
                       <Button
+                        className='cursor-pointer'
                         variant='ghost'
                         size='icon'
                         aria-label={`删除密钥 ${k.name}`}
@@ -272,10 +263,15 @@ export default function ProviderDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDeleteKeyTarget(null)}>
+            <Button
+              className='cursor-pointer'
+              variant='outline'
+              onClick={() => setDeleteKeyTarget(null)}
+            >
               取消
             </Button>
             <Button
+              className='cursor-pointer'
               variant='destructive'
               onClick={handleDeleteKey}
               disabled={deleteApiKey.isPending}

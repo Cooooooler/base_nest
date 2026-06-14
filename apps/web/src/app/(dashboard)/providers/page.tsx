@@ -54,11 +54,8 @@ export default function ProvidersPage() {
   return (
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
-        <div>
-          <h1 className='text-3xl font-bold tracking-tight'>模型提供商</h1>
-          <p className='mt-1 text-sm text-muted-foreground'>管理 AI 模型提供商和 API 密钥</p>
-        </div>
-        <Button onClick={() => router.push('/providers/new')}>
+        <p className='mt-1 text-sm text-muted-foreground'>管理 AI 模型提供商和 API 密钥</p>
+        <Button className='cursor-pointer' onClick={() => router.push('/providers/new')}>
           <Plus data-icon='inline-start' />
           添加提供商
         </Button>
@@ -94,6 +91,7 @@ export default function ProvidersPage() {
                     </Badge>
                   </div>
                   <Button
+                    className='cursor-pointer'
                     variant='ghost'
                     size='icon'
                     aria-label={`删除 ${p.name}`}
@@ -123,7 +121,7 @@ export default function ProvidersPage() {
                   onClick={() => router.push(`/providers/${p.id}`)}
                   variant='outline'
                   size='sm'
-                  className='mt-4 w-full'
+                  className='cursor-pointer mt-4 w-full'
                 >
                   管理
                 </Button>

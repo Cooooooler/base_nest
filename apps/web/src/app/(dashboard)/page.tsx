@@ -4,13 +4,12 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useKnowledgeBases } from '@/hooks/use-knowledge';
 import { useProviders } from '@/hooks/use-providers';
-import { Activity, BookOpen, Bot, FileText } from 'lucide-react';
+import { BookOpen, Bot, FileText } from 'lucide-react';
 
 const statCards = [
   { key: 'providers', label: '模型提供商', icon: Bot },
   { key: 'knowledge', label: '知识库', icon: BookOpen },
   { key: 'documents', label: '文档', icon: FileText },
-  { key: 'status', label: '系统状态', icon: Activity },
 ] as const;
 
 export default function DashboardPage() {
@@ -24,17 +23,13 @@ export default function DashboardPage() {
     { value: String(providers?.length ?? '—'), description: '已配置的提供商' },
     { value: String(knowledgeBases?.length ?? '—'), description: '创建的知识库' },
     { value: String(totalDocs), description: '已处理的文档' },
-    { value: '运行中', description: '后端 API 已连接' },
   ];
 
   return (
     <div className='space-y-8'>
-      <div>
-        <h1 className='text-3xl font-bold tracking-tight'>仪表盘</h1>
-        <p className='mt-1 text-muted-foreground'>欢迎回来，查看你的 AI 平台概览</p>
-      </div>
+      <p className='mt-1 text-muted-foreground'>欢迎回来，查看你的 AI 平台概览</p>
 
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         {statCards.map((card, i) => (
           <Card key={card.key} className='transition-shadow hover:shadow-md'>
             <CardContent className='p-6'>

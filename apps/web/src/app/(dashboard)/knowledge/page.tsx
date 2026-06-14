@@ -35,10 +35,10 @@ export default function KnowledgePage() {
   };
 
   return (
-    <div className='flex flex-col gap-4'>
+    <div className='space-y-6'>
       <div className='flex items-center justify-between'>
-        <h2 className='text-2xl font-bold'>知识库</h2>
-        <Button onClick={() => router.push('/knowledge/new')}>
+        <p className='mt-1 text-sm text-muted-foreground'>管理知识库</p>
+        <Button className='cursor-pointer' onClick={() => router.push('/knowledge/new')}>
           <Plus data-icon /> 创建知识库
         </Button>
       </div>
@@ -79,6 +79,7 @@ export default function KnowledgePage() {
                     <CardTitle className='text-lg'>{kb.name}</CardTitle>
                   </div>
                   <Button
+                    className='cursor-pointer'
                     variant='ghost'
                     size='icon'
                     onClick={() => setDeleteTarget({ id: kb.id, name: kb.name })}
@@ -98,7 +99,7 @@ export default function KnowledgePage() {
                 <Button
                   variant='outline'
                   size='sm'
-                  className='w-full'
+                  className='cursor-pointer w-full'
                   onClick={() => router.push(`/knowledge/${kb.id}`)}
                 >
                   管理

@@ -13,7 +13,7 @@ export class ChromaVectorStoreService {
     this.store = new Chroma(embeddings, {
       collectionName: config.collectionName,
       url: config.url || 'http://localhost:8000',
-      numDimensions: config.numDimensions ?? 768,
+      numDimensions: config.numDimensions ?? 1024,
     });
   }
 

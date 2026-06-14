@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -10,10 +11,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Spinner } from '@/components/ui/spinner';
 import { useCreateProvider } from '@/hooks/use-providers';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
+
+const formSchema = z.object({
+  name: z.string().min(1, '请填写名称'),
+  type: z.string().min(1, '请选择类型'),
+  baseUrl: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 const providerTypes = [
   { value: 'openai', label: 'OpenAI' },
@@ -26,21 +38,22 @@ const providerTypes = [
 export default function NewProviderPage() {
   const router = useRouter();
   const createProvider = useCreateProvider();
-  const [name, setName] = useState('');
-  const [type, setType] = useState<string | null>(null);
-  const [baseUrl, setBaseUrl] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !type) {
-      toast.error('请填写名称和类型');
-      return;
-    }
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { name: '', type: '', baseUrl: '' },
+  });
+
+  const onSubmit = async (data: FormData) => {
     try {
       await createProvider.mutateAsync({
-        name,
-        type: type as any,
-        baseUrl: baseUrl || undefined,
+        name: data.name,
+        type: data.type as any,
+        baseUrl: data.baseUrl || undefined,
       });
       toast.success('提供商已创建');
       router.push('/providers');
@@ -56,48 +69,70 @@ export default function NewProviderPage() {
           <CardTitle>添加模型提供商</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='space-y-2'>
-              <label className='text-sm font-medium' htmlFor='provider-name'>
-                名称
-              </label>
-              <Input
-                id='provider-name'
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder='OpenAI'
-              />
-            </div>
-            <div className='space-y-2'>
-              <label className='text-sm font-medium' htmlFor='provider-type'>
-                类型
-              </label>
-              <Select value={type} onValueChange={setType}>
-                <SelectTrigger id='provider-type'>
-                  <SelectValue placeholder='选择类型' />
-                </SelectTrigger>
-                <SelectContent>
-                  {providerTypes.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className='space-y-2'>
-              <label className='text-sm font-medium' htmlFor='provider-base-url'>
-                API 端点（可选）
-              </label>
-              <Input
-                id='provider-base-url'
-                value={baseUrl}
-                onChange={(e) => setBaseUrl(e.target.value)}
-                placeholder='https://api.openai.com/v1'
-              />
-            </div>
-            <Button type='submit' disabled={createProvider.isPending}>
-              {createProvider.isPending ? '创建中...' : '创建'}
+          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+            <Controller
+              name='name'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor='provider-name'>名称</FieldLabel>
+                  <Input
+                    {...field}
+                    id='provider-name'
+                    placeholder='OpenAI'
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name='type'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor='provider-type'>类型</FieldLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id='provider-type' aria-invalid={fieldState.invalid}>
+                      <SelectValue placeholder='选择类型' />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {providerTypes.map((t) => (
+                        <SelectItem key={t.value} value={t.value}>
+                          {t.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && (
+                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name='baseUrl'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor='provider-base-url'>API 端点（可选）</FieldLabel>
+                  <Input
+                    {...field}
+                    id='provider-base-url'
+                    placeholder='https://api.openai.com/v1'
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                  )}
+                </Field>
+              )}
+            />
+            <Button type='submit' className='cursor-pointer' disabled={isSubmitting}>
+              {isSubmitting && <Spinner data-icon='inline-start' />}
+              创建
             </Button>
           </form>
         </CardContent>
