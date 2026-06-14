@@ -1,7 +1,5 @@
 'use client';
 
-import { useState } from 'react';
-import { useCreateApiKey, useDeleteApiKey, useProvider, useProviderApiKeys } from '@/hooks/use-providers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,9 +14,23 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  useCreateApiKey,
+  useDeleteApiKey,
+  useProvider,
+  useProviderApiKeys,
+} from '@/hooks/use-providers';
 import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ProviderDetailPage() {
@@ -107,7 +119,12 @@ export default function ProviderDetailPage() {
       {/* Header */}
       <div className='flex items-center justify-between'>
         <div className='flex items-center gap-3'>
-          <Button variant='ghost' size='icon' aria-label='返回' onClick={() => router.push('/providers')}>
+          <Button
+            variant='ghost'
+            size='icon'
+            aria-label='返回'
+            onClick={() => router.push('/providers')}
+          >
             <ArrowLeft className='size-4' />
           </Button>
           <div>
@@ -250,7 +267,8 @@ export default function ProviderDetailPage() {
           <DialogHeader>
             <DialogTitle>删除 API 密钥</DialogTitle>
             <DialogDescription>
-              确定要删除密钥 &ldquo;{deleteKeyTarget?.name}&rdquo; 吗？此操作不可撤销，使用该密钥的应用将立即失效。
+              确定要删除密钥 &ldquo;{deleteKeyTarget?.name}&rdquo;
+              吗？此操作不可撤销，使用该密钥的应用将立即失效。
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

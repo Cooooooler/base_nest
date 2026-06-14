@@ -1,7 +1,5 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { useDeleteProvider, useProviders } from '@/hooks/use-providers';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,8 +12,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDeleteProvider, useProviders } from '@/hooks/use-providers';
 import { Plus, Server, Trash2 } from 'lucide-react';
 import Link from 'next/link';
+import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ProvidersPage() {

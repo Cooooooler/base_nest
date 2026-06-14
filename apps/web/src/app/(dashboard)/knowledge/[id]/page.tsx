@@ -104,28 +104,28 @@ export default function KnowledgeBaseDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col gap-6">
-        <Skeleton className="h-8 w-48" />
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="flex flex-col gap-4 lg:col-span-2">
+      <div className='flex flex-col gap-6'>
+        <Skeleton className='h-8 w-48' />
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+          <div className='flex flex-col gap-4 lg:col-span-2'>
             <Card>
               <CardHeader>
-                <Skeleton className="h-5 w-24" />
+                <Skeleton className='h-5 w-24' />
               </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
-                <Skeleton className="h-10 w-full" />
+              <CardContent className='flex flex-col gap-3'>
+                <Skeleton className='h-10 w-full' />
+                <Skeleton className='h-10 w-full' />
+                <Skeleton className='h-10 w-full' />
               </CardContent>
             </Card>
           </div>
           <Card>
             <CardHeader>
-              <Skeleton className="h-5 w-24" />
+              <Skeleton className='h-5 w-24' />
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <Skeleton className="h-20 w-full" />
-              <Skeleton className="h-8 w-full" />
+            <CardContent className='flex flex-col gap-3'>
+              <Skeleton className='h-20 w-full' />
+              <Skeleton className='h-8 w-full' />
             </CardContent>
           </Card>
         </div>
@@ -134,38 +134,38 @@ export default function KnowledgeBaseDetailPage() {
   }
 
   if (!kb) {
-    return <p className="text-muted-foreground">知识库未找到</p>;
+    return <p className='text-muted-foreground'>知识库未找到</p>;
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-2xl font-bold">{kb.name}</h2>
-          {kb.description && <p className="text-sm text-muted-foreground">{kb.description}</p>}
+    <div className='flex flex-col gap-6'>
+      <div className='flex items-center justify-between'>
+        <div className='flex flex-col gap-1'>
+          <h2 className='text-2xl font-bold'>{kb.name}</h2>
+          {kb.description && <p className='text-sm text-muted-foreground'>{kb.description}</p>}
         </div>
-        <Button variant="outline" onClick={() => router.push('/knowledge')}>
+        <Button variant='outline' onClick={() => router.push('/knowledge')}>
           返回
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
         {/* Documents section */}
-        <div className="flex flex-col gap-4 lg:col-span-2">
+        <div className='flex flex-col gap-4 lg:col-span-2'>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">文档</CardTitle>
+              <div className='flex items-center justify-between'>
+                <CardTitle className='text-lg'>文档</CardTitle>
                 <div>
                   <input
-                    type="file"
+                    type='file'
                     ref={fileInputRef}
-                    className="hidden"
-                    accept=".pdf,.txt,.md,.html"
+                    className='hidden'
+                    accept='.pdf,.txt,.md,.html'
                     onChange={handleUpload}
                   />
                   <Button
-                    size="sm"
+                    size='sm'
                     disabled={uploading}
                     onClick={() => fileInputRef.current?.click()}
                   >
@@ -177,7 +177,7 @@ export default function KnowledgeBaseDetailPage() {
             </CardHeader>
             <CardContent>
               {!documents || documents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">暂无文档</p>
+                <p className='text-sm text-muted-foreground'>暂无文档</p>
               ) : (
                 <Table>
                   <TableHeader>
@@ -192,9 +192,9 @@ export default function KnowledgeBaseDetailPage() {
                   <TableBody>
                     {documents.map((doc) => (
                       <TableRow key={doc.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <FileText className="size-4 text-muted-foreground" />
+                        <TableCell className='font-medium'>
+                          <div className='flex items-center gap-2'>
+                            <FileText className='size-4 text-muted-foreground' />
                             {doc.fileName}
                           </div>
                         </TableCell>
@@ -203,13 +203,11 @@ export default function KnowledgeBaseDetailPage() {
                         <TableCell>{statusBadge(doc.status)}</TableCell>
                         <TableCell>
                           <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() =>
-                              setDeleteTarget({ id: doc.id, fileName: doc.fileName })
-                            }
+                            variant='ghost'
+                            size='icon'
+                            onClick={() => setDeleteTarget({ id: doc.id, fileName: doc.fileName })}
                           >
-                            <Trash2 className="size-4" />
+                            <Trash2 className='size-4' />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -222,38 +220,38 @@ export default function KnowledgeBaseDetailPage() {
         </div>
 
         {/* Retrieval section */}
-        <div className="flex flex-col gap-4">
+        <div className='flex flex-col gap-4'>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">检索测试</CardTitle>
+              <CardTitle className='text-lg'>检索测试</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col gap-3">
-              <label htmlFor="retrieval-query" className="sr-only">
+            <CardContent className='flex flex-col gap-3'>
+              <label htmlFor='retrieval-query' className='sr-only'>
                 检索查询
               </label>
               <Textarea
-                id="retrieval-query"
+                id='retrieval-query'
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="输入查询内容..."
+                placeholder='输入查询内容...'
                 rows={3}
               />
-              <Button className="w-full" onClick={handleSearch} disabled={retrieval.isPending}>
+              <Button className='w-full' onClick={handleSearch} disabled={retrieval.isPending}>
                 <Search data-icon />
                 {retrieval.isPending ? '检索中...' : '检索'}
               </Button>
 
               {retrievalResults && (
-                <div className="flex flex-col gap-3">
-                  <p className="text-sm font-medium">检索结果 ({retrievalResults.length})</p>
+                <div className='flex flex-col gap-3'>
+                  <p className='text-sm font-medium'>检索结果 ({retrievalResults.length})</p>
                   {retrievalResults.map((r, i) => (
-                    <div key={i} className="rounded-lg border p-3 text-sm">
+                    <div key={i} className='rounded-lg border p-3 text-sm'>
                       {r.score !== undefined && (
-                        <p className="mb-1 text-xs text-muted-foreground">
+                        <p className='mb-1 text-xs text-muted-foreground'>
                           相似度: {(r.score * 100).toFixed(1)}%
                         </p>
                       )}
-                      <p className="line-clamp-4">{r.content}</p>
+                      <p className='line-clamp-4'>{r.content}</p>
                     </div>
                   ))}
                 </div>
@@ -264,10 +262,7 @@ export default function KnowledgeBaseDetailPage() {
       </div>
 
       {/* Delete document dialog */}
-      <Dialog
-        open={!!deleteTarget}
-        onOpenChange={(open) => !open && setDeleteTarget(null)}
-      >
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>确认删除</DialogTitle>
@@ -276,10 +271,10 @@ export default function KnowledgeBaseDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
               取消
             </Button>
-            <Button variant="destructive" disabled={deleteDoc.isPending} onClick={handleDeleteDoc}>
+            <Button variant='destructive' disabled={deleteDoc.isPending} onClick={handleDeleteDoc}>
               {deleteDoc.isPending ? '删除中...' : '确认删除'}
             </Button>
           </DialogFooter>

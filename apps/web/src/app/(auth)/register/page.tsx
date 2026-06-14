@@ -1,12 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { apiClient } from '@/lib/api-client';
-import { useAuthStore } from '@/store/auth-store';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
@@ -15,9 +9,15 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Bot } from 'lucide-react';
-import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { apiClient } from '@/lib/api-client';
+import { useAuthStore } from '@/store/auth-store';
 import type { RegisterResponse } from '@base/shared';
+import { Bot } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useCallback, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function RegisterPage() {
   const router = useRouter();

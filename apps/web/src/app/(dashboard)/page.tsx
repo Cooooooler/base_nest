@@ -1,11 +1,11 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
-import { Bot, BookOpen, FileText, Activity } from 'lucide-react';
-import type { ModelProvider, KnowledgeBase } from '@base/shared';
+import { Skeleton } from '@/components/ui/skeleton';
+import { apiClient } from '@/lib/api-client';
+import type { KnowledgeBase, ModelProvider } from '@base/shared';
+import { useQuery } from '@tanstack/react-query';
+import { Activity, BookOpen, Bot, FileText } from 'lucide-react';
 
 const statCards = [
   { key: 'providers', label: '模型提供商', icon: Bot },
@@ -25,8 +25,7 @@ export default function DashboardPage() {
     queryFn: () => apiClient<KnowledgeBase[]>('/knowledge'),
   });
 
-  const totalDocs =
-    knowledgeBases?.reduce((sum, kb) => sum + (kb.documents?.length ?? 0), 0) ?? 0;
+  const totalDocs = knowledgeBases?.reduce((sum, kb) => sum + (kb.documents?.length ?? 0), 0) ?? 0;
   const isLoading = loadingProviders || loadingKnowledge;
 
   const stats = [
@@ -40,9 +39,7 @@ export default function DashboardPage() {
     <div className='space-y-8'>
       <div>
         <h1 className='text-3xl font-bold tracking-tight'>仪表盘</h1>
-        <p className='mt-1 text-muted-foreground'>
-          欢迎回来，查看你的 AI 平台概览
-        </p>
+        <p className='mt-1 text-muted-foreground'>欢迎回来，查看你的 AI 平台概览</p>
       </div>
 
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
@@ -53,20 +50,14 @@ export default function DashboardPage() {
                 <div className='flex size-8 items-center justify-center rounded-md bg-primary/10'>
                   <card.icon className='size-4 text-primary' />
                 </div>
-                <span className='text-sm font-medium text-muted-foreground'>
-                  {card.label}
-                </span>
+                <span className='text-sm font-medium text-muted-foreground'>{card.label}</span>
               </div>
               {isLoading ? (
                 <Skeleton className='mt-3 h-8 w-16' />
               ) : (
-                <p className='mt-3 text-3xl font-bold tracking-tight'>
-                  {stats[i].value}
-                </p>
+                <p className='mt-3 text-3xl font-bold tracking-tight'>{stats[i].value}</p>
               )}
-              <p className='mt-1 text-xs text-muted-foreground'>
-                {stats[i].description}
-              </p>
+              <p className='mt-1 text-xs text-muted-foreground'>{stats[i].description}</p>
             </CardContent>
           </Card>
         ))}

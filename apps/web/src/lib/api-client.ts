@@ -1,5 +1,5 @@
-import ky from 'ky';
 import type { ApiResponse } from '@base/shared';
+import ky from 'ky';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
@@ -73,9 +73,11 @@ const client = ky.create({
           const refreshToken = getRefreshToken();
           if (refreshToken) {
             try {
-              const refreshRes = await ky.post(`${API_BASE}/auth/refresh`, {
-                json: { refreshToken },
-              }).json<ApiResponse<{ accessToken: string; refreshToken: string }>>();
+              const refreshRes = await ky
+                .post(`${API_BASE}/auth/refresh`, {
+                  json: { refreshToken },
+                })
+                .json<ApiResponse<{ accessToken: string; refreshToken: string }>>();
 
               if (refreshRes.code === 1 && refreshRes.data) {
                 setTokens(refreshRes.data.accessToken, refreshRes.data.refreshToken);
@@ -143,16 +145,19 @@ export async function apiUpload<T>(path: string, file: File): Promise<T> {
   if (response.status === 401) {
     const refreshToken = getRefreshToken();
     if (refreshToken) {
-      const refreshRes = await ky.post(`${API_BASE}/auth/refresh`, {
-        json: { refreshToken },
-      }).json<ApiResponse<{ accessToken: string; refreshToken: string }>>();
+      const refreshRes = await ky
+        .post(`${API_BASE}/auth/refresh`, {
+          json: { refreshToken },
+        })
+        .json<ApiResponse<{ accessToken: string; refreshToken: string }>>();
 
       if (refreshRes.code === 1 && refreshRes.data) {
         setTokens(refreshRes.data.accessToken, refreshRes.data.refreshToken);
         headers['Authorization'] = `Bearer ${refreshRes.data.accessToken}`;
         const retryRes = await ky.post(`${API_BASE}${path}`, { body: formData, headers });
         const retryData: ApiResponse<T> = await retryRes.json();
-        if (retryData.code !== 1) throw new ApiError(retryRes.status, retryData.code, retryData.msg || 'Upload failed');
+        if (retryData.code !== 1)
+          throw new ApiError(retryRes.status, retryData.code, retryData.msg || 'Upload failed');
         return retryData.data as T;
       }
     }
