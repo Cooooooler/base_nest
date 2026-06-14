@@ -1,6 +1,5 @@
 'use client';
 
-import { Providers } from '@/components/app/providers';
 import { AppSidebar } from '@/components/app/app-sidebar';
 import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
@@ -21,7 +20,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   )?.[1] || 'Base Nest AI';
 
   return (
-    <Providers>
+    <>
       <AppSidebar />
       <SidebarInset>
         <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -33,6 +32,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </SidebarInset>
-    </Providers>
+    </>
   );
 }

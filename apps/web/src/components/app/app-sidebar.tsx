@@ -7,6 +7,7 @@ import {
   Workflow,
   LayoutDashboard,
   Settings,
+  LogOut,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -20,7 +21,8 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/auth-store';
 
 const navItems = [
   { href: '/', label: '仪表盘', icon: LayoutDashboard },
@@ -32,6 +34,13 @@ const navItems = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
+
+  const handleLogout = () => {
+    logout();
+    router.push('/login');
+  };
 
   return (
     <Sidebar>
@@ -65,6 +74,12 @@ export function AppSidebar() {
             <SidebarMenuButton render={<Link href="/settings" />}>
               <Settings />
               <span>设置</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout}>
+              <LogOut />
+              <span>退出登录</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
