@@ -22,6 +22,15 @@ export class UsersService {
     return this.usersRepository.findOneBy({ email });
   }
 
+  /** Only for login — includes the password column which is excluded by default. */
+  async findByEmailWithPassword(email: string): Promise<User | null> {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.password')
+      .where('user.email = :email', { email })
+      .getOne();
+  }
+
   async create(data: Partial<User>): Promise<User> {
     const user = this.usersRepository.create(data);
     return this.usersRepository.save(user);

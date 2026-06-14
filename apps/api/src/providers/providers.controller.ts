@@ -1,5 +1,16 @@
-import { Body, Controller, Delete, Get, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { CreateProviderDto } from './dto/create-provider.dto';
 import { UpdateProviderDto } from './dto/update-provider.dto';
@@ -23,6 +34,7 @@ export class ProvidersController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '创建模型提供商' })
   async create(@Body() dto: CreateProviderDto) {
@@ -30,6 +42,7 @@ export class ProvidersController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新模型提供商' })
   async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProviderDto) {
@@ -37,6 +50,7 @@ export class ProvidersController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '删除模型提供商' })
   async remove(@Param('id', ParseUUIDPipe) id: string) {
@@ -50,6 +64,7 @@ export class ProvidersController {
   }
 
   @Post(':id/keys')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '添加 API 密钥' })
   async createApiKey(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateApiKeyDto) {
@@ -57,6 +72,7 @@ export class ProvidersController {
   }
 
   @Delete('keys/:keyId')
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '删除 API 密钥' })
   async removeApiKey(@Param('keyId', ParseUUIDPipe) keyId: string) {

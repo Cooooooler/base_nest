@@ -14,11 +14,12 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDeleteProvider, useProviders } from '@/hooks/use-providers';
 import { Plus, Server, Trash2 } from 'lucide-react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ProvidersPage() {
+  const router = useRouter();
   const { data: providers, isLoading } = useProviders();
   const deleteProvider = useDeleteProvider();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -57,7 +58,7 @@ export default function ProvidersPage() {
           <h1 className='text-3xl font-bold tracking-tight'>模型提供商</h1>
           <p className='mt-1 text-sm text-muted-foreground'>管理 AI 模型提供商和 API 密钥</p>
         </div>
-        <Button render={<Link href='/providers/new' />}>
+        <Button onClick={() => router.push('/providers/new')}>
           <Plus data-icon='inline-start' />
           添加提供商
         </Button>
@@ -74,7 +75,7 @@ export default function ProvidersPage() {
                 还没有配置模型提供商。点击下方按钮开始。
               </p>
             </div>
-            <Button render={<Link href='/providers/new' />}>
+            <Button onClick={() => router.push('/providers/new')}>
               <Plus data-icon='inline-start' />
               添加提供商
             </Button>
@@ -119,7 +120,7 @@ export default function ProvidersPage() {
                   )}
                 </div>
                 <Button
-                  render={<Link href={`/providers/${p.id}`} />}
+                  onClick={() => router.push(`/providers/${p.id}`)}
                   variant='outline'
                   size='sm'
                   className='mt-4 w-full'

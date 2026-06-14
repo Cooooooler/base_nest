@@ -1,4 +1,4 @@
-import { ClassSerializerInterceptor } from '@nestjs/common';
+import { ClassSerializerInterceptor, Logger } from '@nestjs/common';
 import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { setupApiDocs } from './common/docs/setup';
@@ -7,6 +7,9 @@ import { ResponseInterceptor } from './common/interceptors/response.interceptor'
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+
+  app.enableShutdownHooks();
 
   app.enableCors({
     origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
@@ -23,5 +26,6 @@ async function bootstrap() {
   setupApiDocs(app);
 
   await app.listen(process.env.PORT ?? 3000);
+  logger.log(`Application listening on port ${process.env.PORT ?? 3000}`);
 }
 void bootstrap();

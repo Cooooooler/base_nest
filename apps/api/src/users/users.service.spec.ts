@@ -20,6 +20,7 @@ describe('UsersService', () => {
   const mockCreate = jest.fn().mockReturnValue(mockUser);
   const mockSave = jest.fn().mockResolvedValue(mockUser);
   const mockDelete = jest.fn().mockResolvedValue({ affected: 1, raw: {} });
+  const mockGetOne = jest.fn().mockResolvedValue(mockUser);
 
   const mockRepository = {
     find: mockFind,
@@ -27,6 +28,11 @@ describe('UsersService', () => {
     create: mockCreate,
     save: mockSave,
     delete: mockDelete,
+    createQueryBuilder: jest.fn(() => ({
+      addSelect: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      getOne: mockGetOne,
+    })),
   };
 
   beforeEach(async () => {
@@ -62,6 +68,14 @@ describe('UsersService', () => {
       const result = await service.findByEmail(mockUser.email);
       expect(result).toEqual(mockUser);
       expect(mockFindOneBy).toHaveBeenCalledWith({ email: mockUser.email });
+    });
+  });
+
+  describe('findByEmailWithPassword', () => {
+    it('should return a user with password column', async () => {
+      const result = await service.findByEmailWithPassword(mockUser.email);
+      expect(result).toEqual(mockUser);
+      expect(mockGetOne).toHaveBeenCalled();
     });
   });
 
