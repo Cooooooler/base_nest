@@ -1,15 +1,6 @@
 'use client';
 
 import {
-  Bot,
-  BookOpen,
-  MessageSquare,
-  Workflow,
-  LayoutDashboard,
-  Settings,
-  LogOut,
-} from 'lucide-react';
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -20,9 +11,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { useAuthStore } from '@/store/auth-store';
+import {
+  BookOpen,
+  Bot,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  Settings,
+  Workflow,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/auth-store';
 
 const navItems = [
   { href: '/', label: '仪表盘', icon: LayoutDashboard },
@@ -45,9 +45,9 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="flex items-center gap-2 px-2 py-1">
-          <Bot className="size-6" />
-          <span className="font-semibold text-base">Base Nest AI</span>
+        <div className='flex items-center gap-2 px-2 py-1'>
+          <Bot className='size-6' />
+          <span className='font-semibold text-base'>Base Nest AI</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -71,7 +71,7 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton render={<Link href="/settings" />}>
+            <SidebarMenuButton render={<Link href='/settings' />}>
               <Settings />
               <span>设置</span>
             </SidebarMenuButton>

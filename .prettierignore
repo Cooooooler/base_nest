@@ -1,0 +1,20 @@
+# 依赖
+node_modules
+pnpm-lock.yaml
+
+# 构建输出
+dist
+build
+out
+
+# 缓存
+.turbo
+*.tsbuildinfo
+
+# 日志、环境文件
+*.log
+.env
+.env.local
+
+# 其他按需添加
+coverage

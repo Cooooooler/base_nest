@@ -1,18 +1,26 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient, apiUpload } from '@/lib/api-client';
-import type { ModelProvider, CreateProviderDto, CreateApiKeyDto } from '@base/shared';
+import {
+  createApiKey,
+  createProvider,
+  deleteApiKey,
+  deleteProvider,
+  getProvider,
+  getProviderApiKeys,
+  getProviders,
+} from '@/api/providers';
+import type { CreateApiKeyDto, CreateProviderDto } from '@base/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useProviders() {
   return useQuery({
     queryKey: ['providers'],
-    queryFn: () => apiClient<ModelProvider[]>('/providers'),
+    queryFn: getProviders,
   });
 }
 
 export function useProvider(id: string) {
   return useQuery({
     queryKey: ['providers', id],
-    queryFn: () => apiClient<ModelProvider>(`/providers/${id}`),
+    queryFn: () => getProvider(id),
     enabled: !!id,
   });
 }
@@ -20,11 +28,7 @@ export function useProvider(id: string) {
 export function useCreateProvider() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (dto: CreateProviderDto) =>
-      apiClient<ModelProvider>('/providers', {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      }),
+    mutationFn: (dto: CreateProviderDto) => createProvider(dto),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['providers'] }),
   });
 }
@@ -32,8 +36,7 @@ export function useCreateProvider() {
 export function useDeleteProvider() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) =>
-      apiClient<void>(`/providers/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => deleteProvider(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['providers'] }),
   });
 }
@@ -41,10 +44,7 @@ export function useDeleteProvider() {
 export function useProviderApiKeys(providerId: string) {
   return useQuery({
     queryKey: ['providers', providerId, 'keys'],
-    queryFn: () =>
-      apiClient<{ id: string; name: string; maskedKey: string; isActive: boolean; createdAt: string }[]>(
-        `/providers/${providerId}/keys`
-      ),
+    queryFn: () => getProviderApiKeys(providerId),
     enabled: !!providerId,
   });
 }
@@ -53,10 +53,7 @@ export function useCreateApiKey() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ providerId, ...dto }: CreateApiKeyDto & { providerId: string }) =>
-      apiClient<{ id: string; maskedKey: string }>(`/providers/${providerId}/keys`, {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      }),
+      createApiKey(providerId, dto),
     onSuccess: (_data, variables) =>
       qc.invalidateQueries({ queryKey: ['providers', variables.providerId, 'keys'] }),
   });
@@ -65,8 +62,7 @@ export function useCreateApiKey() {
 export function useDeleteApiKey() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (keyId: string) =>
-      apiClient<void>(`/providers/keys/${keyId}`, { method: 'DELETE' }),
+    mutationFn: (keyId: string) => deleteApiKey(keyId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['providers'] }),
   });
 }

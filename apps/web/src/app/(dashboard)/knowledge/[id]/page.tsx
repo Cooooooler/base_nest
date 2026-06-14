@@ -1,12 +1,18 @@
 'use client';
 
-import { useKnowledgeBase, useDocuments, useDeleteDocument, useRetrieval } from '@/hooks/use-knowledge';
+import { apiUpload } from '@/api/client';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
@@ -15,11 +21,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { toast } from 'sonner';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  useDeleteDocument,
+  useDocuments,
+  useKnowledgeBase,
+  useRetrieval,
+} from '@/hooks/use-knowledge';
+import { FileText, Search, Trash2, Upload } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useState, useRef } from 'react';
-import { Trash2, Upload, Search, FileText } from 'lucide-react';
-import { apiUpload } from '@/lib/api-client';
+import { useRef, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function KnowledgeBaseDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -32,7 +44,10 @@ export default function KnowledgeBaseDetailPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [query, setQuery] = useState('');
-  const [retrievalResults, setRetrievalResults] = useState<{ content: string; metadata: Record<string, any>; score?: number }[] | null>(null);
+  const [retrievalResults, setRetrievalResults] = useState<
+    { content: string; metadata: Record<string, any>; score?: number }[] | null
+  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; fileName: string } | null>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -49,12 +64,13 @@ export default function KnowledgeBaseDetailPage() {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleDeleteDoc = async (docId: string, fileName: string) => {
-    if (!confirm(`确定删除 "${fileName}"？`)) return;
+  const handleDeleteDoc = async () => {
+    if (!deleteTarget) return;
     try {
-      await deleteDoc.mutateAsync({ knowledgeBaseId: id, documentId: docId });
+      await deleteDoc.mutateAsync({ knowledgeBaseId: id, documentId: deleteTarget.id });
       toast.success('文档已删除');
       refetchDocs();
+      setDeleteTarget(null);
     } catch {
       toast.error('删除失败');
     }
@@ -86,43 +102,82 @@ export default function KnowledgeBaseDetailPage() {
     return <Badge variant={variants[status] || 'outline'}>{labels[status] || status}</Badge>;
   };
 
-  if (isLoading) return <Skeleton className="h-64 rounded-lg" />;
-  if (!kb) return <div className="text-muted-foreground">知识库未找到</div>;
-
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">{kb.name}</h2>
-          {kb.description && <p className="text-sm text-muted-foreground mt-1">{kb.description}</p>}
-        </div>
-        <Button variant="outline" onClick={() => router.push('/knowledge')}>返回</Button>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Documents section */}
-        <div className="lg:col-span-2 space-y-4">
+  if (isLoading) {
+    return (
+      <div className='flex flex-col gap-6'>
+        <Skeleton className='h-8 w-48' />
+        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+          <div className='flex flex-col gap-4 lg:col-span-2'>
+            <Card>
+              <CardHeader>
+                <Skeleton className='h-5 w-24' />
+              </CardHeader>
+              <CardContent className='flex flex-col gap-3'>
+                <Skeleton className='h-10 w-full' />
+                <Skeleton className='h-10 w-full' />
+                <Skeleton className='h-10 w-full' />
+              </CardContent>
+            </Card>
+          </div>
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">文档</CardTitle>
+              <Skeleton className='h-5 w-24' />
+            </CardHeader>
+            <CardContent className='flex flex-col gap-3'>
+              <Skeleton className='h-20 w-full' />
+              <Skeleton className='h-8 w-full' />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!kb) {
+    return <p className='text-muted-foreground'>知识库未找到</p>;
+  }
+
+  return (
+    <div className='flex flex-col gap-6'>
+      <div className='flex items-center justify-between'>
+        <div className='flex flex-col gap-1'>
+          <h2 className='text-2xl font-bold'>{kb.name}</h2>
+          {kb.description && <p className='text-sm text-muted-foreground'>{kb.description}</p>}
+        </div>
+        <Button variant='outline' onClick={() => router.push('/knowledge')}>
+          返回
+        </Button>
+      </div>
+
+      <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
+        {/* Documents section */}
+        <div className='flex flex-col gap-4 lg:col-span-2'>
+          <Card>
+            <CardHeader>
+              <div className='flex items-center justify-between'>
+                <CardTitle className='text-lg'>文档</CardTitle>
                 <div>
                   <input
-                    type="file"
+                    type='file'
                     ref={fileInputRef}
-                    className="hidden"
-                    accept=".pdf,.txt,.md,.html"
+                    className='hidden'
+                    accept='.pdf,.txt,.md,.html'
                     onChange={handleUpload}
                   />
-                  <Button size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
-                    <Upload /> {uploading ? '上传中...' : '上传文档'}
+                  <Button
+                    size='sm'
+                    disabled={uploading}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload data-icon />
+                    {uploading ? '上传中...' : '上传文档'}
                   </Button>
                 </div>
               </div>
             </CardHeader>
             <CardContent>
               {!documents || documents.length === 0 ? (
-                <p className="text-sm text-muted-foreground">暂无文档</p>
+                <p className='text-sm text-muted-foreground'>暂无文档</p>
               ) : (
                 <Table>
                   <TableHeader>
@@ -137,9 +192,9 @@ export default function KnowledgeBaseDetailPage() {
                   <TableBody>
                     {documents.map((doc) => (
                       <TableRow key={doc.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <FileText className="size-4 text-muted-foreground" />
+                        <TableCell className='font-medium'>
+                          <div className='flex items-center gap-2'>
+                            <FileText className='size-4 text-muted-foreground' />
                             {doc.fileName}
                           </div>
                         </TableCell>
@@ -147,8 +202,12 @@ export default function KnowledgeBaseDetailPage() {
                         <TableCell>{(doc.fileSize / 1024).toFixed(1)} KB</TableCell>
                         <TableCell>{statusBadge(doc.status)}</TableCell>
                         <TableCell>
-                          <Button variant="ghost" size="icon" onClick={() => handleDeleteDoc(doc.id, doc.fileName)}>
-                            <Trash2 className="size-4" />
+                          <Button
+                            variant='ghost'
+                            size='icon'
+                            onClick={() => setDeleteTarget({ id: doc.id, fileName: doc.fileName })}
+                          >
+                            <Trash2 className='size-4' />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -161,33 +220,38 @@ export default function KnowledgeBaseDetailPage() {
         </div>
 
         {/* Retrieval section */}
-        <div className="space-y-4">
+        <div className='flex flex-col gap-4'>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">检索测试</CardTitle>
+              <CardTitle className='text-lg'>检索测试</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className='flex flex-col gap-3'>
+              <label htmlFor='retrieval-query' className='sr-only'>
+                检索查询
+              </label>
               <Textarea
+                id='retrieval-query'
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="输入查询内容..."
+                placeholder='输入查询内容...'
                 rows={3}
               />
-              <Button className="w-full" onClick={handleSearch} disabled={retrieval.isPending}>
-                <Search /> {retrieval.isPending ? '检索中...' : '检索'}
+              <Button className='w-full' onClick={handleSearch} disabled={retrieval.isPending}>
+                <Search data-icon />
+                {retrieval.isPending ? '检索中...' : '检索'}
               </Button>
 
               {retrievalResults && (
-                <div className="space-y-3 mt-4">
-                  <p className="text-sm font-medium">检索结果 ({retrievalResults.length})</p>
+                <div className='flex flex-col gap-3'>
+                  <p className='text-sm font-medium'>检索结果 ({retrievalResults.length})</p>
                   {retrievalResults.map((r, i) => (
-                    <div key={i} className="rounded-lg border p-3 text-sm">
+                    <div key={i} className='rounded-lg border p-3 text-sm'>
                       {r.score !== undefined && (
-                        <p className="text-xs text-muted-foreground mb-1">
+                        <p className='mb-1 text-xs text-muted-foreground'>
                           相似度: {(r.score * 100).toFixed(1)}%
                         </p>
                       )}
-                      <p className="line-clamp-4">{r.content}</p>
+                      <p className='line-clamp-4'>{r.content}</p>
                     </div>
                   ))}
                 </div>
@@ -196,6 +260,26 @@ export default function KnowledgeBaseDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* Delete document dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认删除</DialogTitle>
+            <DialogDescription>
+              确定要删除文档 &ldquo;{deleteTarget?.fileName}&rdquo; 吗？此操作不可撤销。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
+              取消
+            </Button>
+            <Button variant='destructive' disabled={deleteDoc.isPending} onClick={handleDeleteDoc}>
+              {deleteDoc.isPending ? '删除中...' : '确认删除'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

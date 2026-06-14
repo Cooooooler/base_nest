@@ -1,0 +1,168 @@
+import type { ApiResponse } from '@base/shared';
+import ky from 'ky';
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+export class ApiError extends Error {
+  constructor(
+    public status: number,
+    public code: number,
+    message: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+function getAccessToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem('auth-storage');
+    if (!stored) return null;
+    return JSON.parse(stored).state?.accessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function getRefreshToken(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem('auth-storage');
+    if (!stored) return null;
+    return JSON.parse(stored).state?.refreshToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function setTokens(access: string, refresh: string) {
+  try {
+    const stored = localStorage.getItem('auth-storage');
+    if (!stored) return;
+    const state = JSON.parse(stored);
+    state.state.accessToken = access;
+    state.state.refreshToken = refresh;
+    localStorage.setItem('auth-storage', JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
+
+function clearTokens() {
+  try {
+    const stored = localStorage.getItem('auth-storage');
+    if (!stored) return;
+    const state = JSON.parse(stored);
+    state.state.accessToken = null;
+    state.state.refreshToken = null;
+    state.state.user = null;
+    localStorage.setItem('auth-storage', JSON.stringify(state));
+  } catch {
+    // ignore
+  }
+}
+
+const client = ky.create({
+  prefix: API_BASE,
+  headers: { 'Content-Type': 'application/json' },
+  hooks: {
+    beforeRequest: [
+      ({ request }) => {
+        const token = getAccessToken();
+        if (token) {
+          request.headers.set('Authorization', `Bearer ${token}`);
+        }
+      },
+    ],
+    afterResponse: [
+      async ({ request, response }) => {
+        if (response.status !== 401) return;
+
+        const refreshToken = getRefreshToken();
+        if (!refreshToken) {
+          clearTokens();
+          return;
+        }
+
+        try {
+          const refreshRes = await ky
+            .post(`${API_BASE}/auth/refresh`, {
+              json: { refreshToken },
+            })
+            .json<ApiResponse<{ accessToken: string; refreshToken: string }>>();
+
+          if (refreshRes.code === 1 && refreshRes.data) {
+            setTokens(refreshRes.data.accessToken, refreshRes.data.refreshToken);
+            const headers = new Headers(request.headers);
+            headers.set('Authorization', `Bearer ${refreshRes.data.accessToken}`);
+            return ky.retry({ request: new Request(request, { headers }) });
+          }
+        } catch {
+          // refresh failed
+        }
+
+        clearTokens();
+      },
+    ],
+  },
+});
+
+type KyOptions = Parameters<typeof ky.get>[1] & { json?: unknown };
+
+export async function apiClient<T>(path: string, options: KyOptions = {}): Promise<T> {
+  const response = await client(path, options);
+  const data: ApiResponse<T> = await response.json();
+
+  if (data.code !== 1) {
+    throw new ApiError(response.status, data.code, data.msg || 'Request failed');
+  }
+
+  return data.data as T;
+}
+
+export async function apiUpload<T>(path: string, file: File): Promise<T> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const token = getAccessToken();
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  const response = await ky.post(`${API_BASE}${path}`, {
+    body: formData,
+    headers,
+  });
+
+  if (response.status === 401) {
+    const refreshToken = getRefreshToken();
+    if (refreshToken) {
+      try {
+        const refreshRes = await ky
+          .post(`${API_BASE}/auth/refresh`, {
+            json: { refreshToken },
+          })
+          .json<ApiResponse<{ accessToken: string; refreshToken: string }>>();
+
+        if (refreshRes.code === 1 && refreshRes.data) {
+          setTokens(refreshRes.data.accessToken, refreshRes.data.refreshToken);
+          headers['Authorization'] = `Bearer ${refreshRes.data.accessToken}`;
+          const retryRes = await ky.post(`${API_BASE}${path}`, { body: formData, headers });
+          const retryData: ApiResponse<T> = await retryRes.json();
+          if (retryData.code !== 1)
+            throw new ApiError(retryRes.status, retryData.code, retryData.msg || 'Upload failed');
+          return retryData.data as T;
+        }
+      } catch {
+        // retry failed
+      }
+    }
+    clearTokens();
+  }
+
+  const data: ApiResponse<T> = await response.json();
+  if (data.code !== 1) throw new ApiError(response.status, data.code, data.msg || 'Upload failed');
+  return data.data as T;
+}

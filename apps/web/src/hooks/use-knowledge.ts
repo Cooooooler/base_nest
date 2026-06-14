@@ -1,18 +1,27 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api-client';
-import type { KnowledgeBase, Document, DocumentSegment, RetrievalResult } from '@base/shared';
+import {
+  createKnowledgeBase,
+  deleteDocument,
+  deleteKnowledgeBase,
+  getDocument,
+  getDocumentSegments,
+  getDocuments,
+  getKnowledgeBase,
+  getKnowledgeBases,
+  retrieve,
+} from '@/api/knowledge';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useKnowledgeBases() {
   return useQuery({
     queryKey: ['knowledge-bases'],
-    queryFn: () => apiClient<KnowledgeBase[]>('/knowledge'),
+    queryFn: getKnowledgeBases,
   });
 }
 
 export function useKnowledgeBase(id: string) {
   return useQuery({
     queryKey: ['knowledge-bases', id],
-    queryFn: () => apiClient<KnowledgeBase>(`/knowledge/${id}`),
+    queryFn: () => getKnowledgeBase(id),
     enabled: !!id,
   });
 }
@@ -20,11 +29,12 @@ export function useKnowledgeBase(id: string) {
 export function useCreateKnowledgeBase() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (dto: { name: string; description?: string; chunkSize?: number; chunkOverlap?: number }) =>
-      apiClient<KnowledgeBase>('/knowledge', {
-        method: 'POST',
-        body: JSON.stringify(dto),
-      }),
+    mutationFn: (dto: {
+      name: string;
+      description?: string;
+      chunkSize?: number;
+      chunkOverlap?: number;
+    }) => createKnowledgeBase(dto),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['knowledge-bases'] }),
   });
 }
@@ -32,7 +42,7 @@ export function useCreateKnowledgeBase() {
 export function useDeleteKnowledgeBase() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => apiClient<void>(`/knowledge/${id}`, { method: 'DELETE' }),
+    mutationFn: (id: string) => deleteKnowledgeBase(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['knowledge-bases'] }),
   });
 }
@@ -40,7 +50,7 @@ export function useDeleteKnowledgeBase() {
 export function useDocuments(knowledgeBaseId: string) {
   return useQuery({
     queryKey: ['knowledge-bases', knowledgeBaseId, 'documents'],
-    queryFn: () => apiClient<Document[]>(`/knowledge/${knowledgeBaseId}/documents`),
+    queryFn: () => getDocuments(knowledgeBaseId),
     enabled: !!knowledgeBaseId,
   });
 }
@@ -48,7 +58,7 @@ export function useDocuments(knowledgeBaseId: string) {
 export function useDocument(knowledgeBaseId: string, documentId: string) {
   return useQuery({
     queryKey: ['documents', documentId],
-    queryFn: () => apiClient<Document>(`/knowledge/${knowledgeBaseId}/documents/${documentId}`),
+    queryFn: () => getDocument(knowledgeBaseId, documentId),
     enabled: !!knowledgeBaseId && !!documentId,
   });
 }
@@ -56,27 +66,38 @@ export function useDocument(knowledgeBaseId: string, documentId: string) {
 export function useDeleteDocument() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ knowledgeBaseId, documentId }: { knowledgeBaseId: string; documentId: string }) =>
-      apiClient<void>(`/knowledge/${knowledgeBaseId}/documents/${documentId}`, { method: 'DELETE' }),
+    mutationFn: ({
+      knowledgeBaseId,
+      documentId,
+    }: {
+      knowledgeBaseId: string;
+      documentId: string;
+    }) => deleteDocument(knowledgeBaseId, documentId),
     onSuccess: (_data, variables) =>
-      qc.invalidateQueries({ queryKey: ['knowledge-bases', variables.knowledgeBaseId, 'documents'] }),
+      qc.invalidateQueries({
+        queryKey: ['knowledge-bases', variables.knowledgeBaseId, 'documents'],
+      }),
   });
 }
 
 export function useDocumentSegments(knowledgeBaseId: string, documentId: string) {
   return useQuery({
     queryKey: ['documents', documentId, 'segments'],
-    queryFn: () => apiClient<DocumentSegment[]>(`/knowledge/${knowledgeBaseId}/documents/${documentId}/segments`),
+    queryFn: () => getDocumentSegments(knowledgeBaseId, documentId),
     enabled: !!knowledgeBaseId && !!documentId,
   });
 }
 
 export function useRetrieval() {
   return useMutation({
-    mutationFn: ({ knowledgeBaseId, query, topK }: { knowledgeBaseId: string; query: string; topK?: number }) =>
-      apiClient<RetrievalResult[]>(`/knowledge/${knowledgeBaseId}/retrieval`, {
-        method: 'POST',
-        body: JSON.stringify({ query, topK }),
-      }),
+    mutationFn: ({
+      knowledgeBaseId,
+      query,
+      topK,
+    }: {
+      knowledgeBaseId: string;
+      query: string;
+      topK?: number;
+    }) => retrieve(knowledgeBaseId, query, topK),
   });
 }
