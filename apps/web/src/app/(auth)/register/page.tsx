@@ -26,7 +26,7 @@ export default function RegisterPage() {
     try {
       const data = await apiClient<RegisterResponse>('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ email, name, password }),
+        json: { email, name, password },
       });
       setTokens(data.accessToken, data.refreshToken);
       setUser(data.user);

@@ -28,7 +28,7 @@ export function useCreateKnowledgeBase() {
     }) =>
       apiClient<KnowledgeBase>('/knowledge', {
         method: 'POST',
-        body: JSON.stringify(dto),
+        json: dto,
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['knowledge-bases'] }),
   });
@@ -102,7 +102,7 @@ export function useRetrieval() {
     }) =>
       apiClient<RetrievalResult[]>(`/knowledge/${knowledgeBaseId}/retrieval`, {
         method: 'POST',
-        body: JSON.stringify({ query, topK }),
+        json: { query, topK },
       }),
   });
 }

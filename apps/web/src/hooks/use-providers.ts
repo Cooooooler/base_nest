@@ -23,7 +23,7 @@ export function useCreateProvider() {
     mutationFn: (dto: CreateProviderDto) =>
       apiClient<ModelProvider>('/providers', {
         method: 'POST',
-        body: JSON.stringify(dto),
+        json: dto,
       }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['providers'] }),
   });
@@ -54,7 +54,7 @@ export function useCreateApiKey() {
     mutationFn: ({ providerId, ...dto }: CreateApiKeyDto & { providerId: string }) =>
       apiClient<{ id: string; maskedKey: string }>(`/providers/${providerId}/keys`, {
         method: 'POST',
-        body: JSON.stringify(dto),
+        json: dto,
       }),
     onSuccess: (_data, variables) =>
       qc.invalidateQueries({ queryKey: ['providers', variables.providerId, 'keys'] }),

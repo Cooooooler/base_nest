@@ -25,7 +25,7 @@ export default function LoginPage() {
     try {
       const data = await apiClient<LoginResponse>('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password }),
+        json: { email, password },
       });
       setTokens(data.accessToken, data.refreshToken);
       setUser(data.user);
