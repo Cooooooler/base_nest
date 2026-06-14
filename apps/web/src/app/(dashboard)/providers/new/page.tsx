@@ -50,7 +50,7 @@ export default function NewProviderPage() {
   };
 
   return (
-    <div className='max-w-lg mx-auto'>
+    <div className='mx-auto max-w-lg'>
       <Card>
         <CardHeader>
           <CardTitle>添加模型提供商</CardTitle>
@@ -58,13 +58,22 @@ export default function NewProviderPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className='space-y-4'>
             <div className='space-y-2'>
-              <label className='text-sm font-medium'>名称</label>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder='OpenAI' />
+              <label className='text-sm font-medium' htmlFor='provider-name'>
+                名称
+              </label>
+              <Input
+                id='provider-name'
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder='OpenAI'
+              />
             </div>
             <div className='space-y-2'>
-              <label className='text-sm font-medium'>类型</label>
+              <label className='text-sm font-medium' htmlFor='provider-type'>
+                类型
+              </label>
               <Select value={type} onValueChange={setType}>
-                <SelectTrigger>
+                <SelectTrigger id='provider-type'>
                   <SelectValue placeholder='选择类型' />
                 </SelectTrigger>
                 <SelectContent>
@@ -77,8 +86,11 @@ export default function NewProviderPage() {
               </Select>
             </div>
             <div className='space-y-2'>
-              <label className='text-sm font-medium'>API 端点（可选）</label>
+              <label className='text-sm font-medium' htmlFor='provider-base-url'>
+                API 端点（可选）
+              </label>
               <Input
+                id='provider-base-url'
                 value={baseUrl}
                 onChange={(e) => setBaseUrl(e.target.value)}
                 placeholder='https://api.openai.com/v1'

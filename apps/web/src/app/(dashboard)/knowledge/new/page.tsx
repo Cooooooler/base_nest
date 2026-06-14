@@ -38,48 +38,60 @@ export default function NewKnowledgeBasePage() {
   };
 
   return (
-    <div className='max-w-lg mx-auto'>
+    <div className="mx-auto max-w-lg">
       <Card>
         <CardHeader>
           <CardTitle>创建知识库</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <div className='space-y-2'>
-              <label className='text-sm font-medium'>名称</label>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <label htmlFor="kb-name" className="text-sm font-medium">
+                名称
+              </label>
               <Input
+                id="kb-name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder='产品文档库'
+                placeholder="产品文档库"
               />
             </div>
-            <div className='space-y-2'>
-              <label className='text-sm font-medium'>描述（可选）</label>
+            <div className="flex flex-col gap-2">
+              <label htmlFor="kb-description" className="text-sm font-medium">
+                描述
+              </label>
               <Textarea
+                id="kb-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder='知识库用途说明'
+                placeholder="知识库用途说明"
               />
             </div>
-            <div className='grid grid-cols-2 gap-4'>
-              <div className='space-y-2'>
-                <label className='text-sm font-medium'>分块大小</label>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-2">
+                <label htmlFor="kb-chunk-size" className="text-sm font-medium">
+                  分块大小
+                </label>
                 <Input
-                  type='number'
+                  id="kb-chunk-size"
+                  type="number"
                   value={chunkSize}
                   onChange={(e) => setChunkSize(e.target.value)}
                 />
               </div>
-              <div className='space-y-2'>
-                <label className='text-sm font-medium'>分块重叠</label>
+              <div className="flex flex-col gap-2">
+                <label htmlFor="kb-chunk-overlap" className="text-sm font-medium">
+                  分块重叠
+                </label>
                 <Input
-                  type='number'
+                  id="kb-chunk-overlap"
+                  type="number"
                   value={chunkOverlap}
                   onChange={(e) => setChunkOverlap(e.target.value)}
                 />
               </div>
             </div>
-            <Button type='submit' disabled={createKb.isPending}>
+            <Button type="submit" disabled={createKb.isPending}>
               {createKb.isPending ? '创建中...' : '创建'}
             </Button>
           </form>
