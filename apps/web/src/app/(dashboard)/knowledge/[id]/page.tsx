@@ -1,5 +1,6 @@
 'use client';
 
+import { apiUpload } from '@/api/client';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +28,6 @@ import {
   useKnowledgeBase,
   useRetrieval,
 } from '@/hooks/use-knowledge';
-import { apiUpload } from '@/lib/api-client';
 import { FileText, Search, Trash2, Upload } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';

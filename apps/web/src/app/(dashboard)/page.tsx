@@ -2,9 +2,8 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { apiClient } from '@/lib/api-client';
-import type { KnowledgeBase, ModelProvider } from '@base/shared';
-import { useQuery } from '@tanstack/react-query';
+import { useKnowledgeBases } from '@/hooks/use-knowledge';
+import { useProviders } from '@/hooks/use-providers';
 import { Activity, BookOpen, Bot, FileText } from 'lucide-react';
 
 const statCards = [
@@ -15,15 +14,8 @@ const statCards = [
 ] as const;
 
 export default function DashboardPage() {
-  const { data: providers, isLoading: loadingProviders } = useQuery({
-    queryKey: ['providers'],
-    queryFn: () => apiClient<ModelProvider[]>('/providers'),
-  });
-
-  const { data: knowledgeBases, isLoading: loadingKnowledge } = useQuery({
-    queryKey: ['knowledge-bases'],
-    queryFn: () => apiClient<KnowledgeBase[]>('/knowledge'),
-  });
+  const { data: providers, isLoading: loadingProviders } = useProviders();
+  const { data: knowledgeBases, isLoading: loadingKnowledge } = useKnowledgeBases();
 
   const totalDocs = knowledgeBases?.reduce((sum, kb) => sum + (kb.documents?.length ?? 0), 0) ?? 0;
   const isLoading = loadingProviders || loadingKnowledge;

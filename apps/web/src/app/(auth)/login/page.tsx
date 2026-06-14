@@ -1,5 +1,6 @@
 'use client';
 
+import { login } from '@/api/auth';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -9,48 +10,50 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { apiClient } from '@/lib/api-client';
+import { Spinner } from '@/components/ui/spinner';
 import { useAuthStore } from '@/store/auth-store';
-import type { LoginResponse } from '@base/shared';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
+
+const formSchema = z.object({
+  email: z.string().min(1, '请填写邮箱').email('邮箱格式不正确'),
+  password: z.string().min(1, '请填写密码').min(6, '密码至少需要6个字符'),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
   const setTokens = useAuthStore((s) => s.setTokens);
   const setUser = useAuthStore((s) => s.setUser);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isPending, setIsPending] = useState(false);
 
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-      if (!email || !password) {
-        toast.error('请填写邮箱和密码');
-        return;
-      }
-      setIsPending(true);
-      try {
-        const data = await apiClient<LoginResponse>('/auth/login', {
-          method: 'POST',
-          json: { email, password },
-        });
-        setTokens(data.accessToken, data.refreshToken);
-        setUser(data.user);
-        toast.success('登录成功');
-        router.push('/');
-      } catch {
-        toast.error('邮箱或密码错误');
-      }
-      setIsPending(false);
-    },
-    [email, password, router, setTokens, setUser]
-  );
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: { email: '', password: '' },
+  });
+
+  const onSubmit = async (data: FormData) => {
+    try {
+      const result = await login(data.email, data.password);
+      setTokens(result.accessToken, result.refreshToken);
+      setUser(result.user);
+      toast.success('登录成功');
+      router.push('/');
+    } catch {
+      toast.error('邮箱或密码错误');
+    }
+  };
 
   return (
     <div className='flex min-h-screen items-center justify-center p-4'>
@@ -65,39 +68,50 @@ export default function LoginPage() {
           <CardDescription>登录到 Base Nest AI 平台</CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <fieldset className='space-y-2' disabled={isPending}>
-              <label className='text-sm font-medium' htmlFor='email'>
-                邮箱
-              </label>
-              <Input
-                id='email'
-                type='email'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder='alice@example.com'
-                autoComplete='email'
-                required
-              />
-            </fieldset>
-            <fieldset className='space-y-2' disabled={isPending}>
-              <div className='flex items-center justify-between'>
-                <label className='text-sm font-medium' htmlFor='password'>
-                  密码
-                </label>
-              </div>
-              <Input
-                id='password'
-                type='password'
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder='输入密码'
-                autoComplete='current-password'
-                required
-              />
-            </fieldset>
-            <Button type='submit' className='w-full' disabled={isPending}>
-              {isPending ? '登录中…' : '登录'}
+          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+            <Controller
+              name='email'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor='email'>邮箱</FieldLabel>
+                  <Input
+                    {...field}
+                    id='email'
+                    type='email'
+                    placeholder='alice@example.com'
+                    autoComplete='email'
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name='password'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor='password'>密码</FieldLabel>
+                  <Input
+                    {...field}
+                    id='password'
+                    type='password'
+                    placeholder='输入密码'
+                    autoComplete='current-password'
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                  )}
+                </Field>
+              )}
+            />
+            <Button type='submit' className='w-full cursor-pointer' disabled={isSubmitting}>
+              {isSubmitting && <Spinner data-icon='inline-start' />}
+              登录
             </Button>
           </form>
         </CardContent>
