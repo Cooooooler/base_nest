@@ -14,3 +14,10 @@ export function register(email: string, name: string, password: string) {
     json: { email, name, password },
   });
 }
+
+export function logout(refreshToken: string) {
+  return apiClient<void>('/auth/logout', {
+    method: 'POST',
+    json: { refreshToken },
+  });
+}

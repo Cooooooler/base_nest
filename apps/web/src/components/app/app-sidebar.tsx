@@ -1,5 +1,6 @@
 'use client';
 
+import { logout as logoutApi } from '@/api/auth';
 import {
   Sidebar,
   SidebarContent,
@@ -35,10 +36,15 @@ const navItems = [
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const logout = useAuthStore((s) => s.logout);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    const refreshToken = useAuthStore.getState().refreshToken;
+    try {
+      if (refreshToken) await logoutApi(refreshToken);
+    } catch {
+      // ignore logout API error
+    }
+    useAuthStore.getState().reset();
     router.push('/login');
   };
 
@@ -62,6 +68,7 @@ export function AppSidebar() {
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
+                  className='cursor-pointer'
                   onClick={() => router.push(item.href)}
                   isActive={isActive(item.href)}
                 >
@@ -76,13 +83,13 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => router.push('/settings')}>
+            <SidebarMenuButton className='cursor-pointer' onClick={() => router.push('/settings')}>
               <Settings />
               <span>设置</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout}>
+            <SidebarMenuButton className='cursor-pointer' onClick={handleLogout}>
               <LogOut />
               <span>退出登录</span>
             </SidebarMenuButton>
