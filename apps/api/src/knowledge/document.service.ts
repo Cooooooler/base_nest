@@ -141,6 +141,7 @@ export class DocumentService {
     if (!doc) throw new NotFoundException('Document not found');
     await this.fileStorage.delete(doc.storagePath);
     await this.segmentRepo.delete({ documentId: id });
+    await this.vectorStore.deleteByFilter({ documentId: id });
     await this.docRepo.delete(id);
   }
 

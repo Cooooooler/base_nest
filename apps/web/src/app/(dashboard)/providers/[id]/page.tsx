@@ -12,8 +12,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 import {
   Table,
   TableBody,
@@ -28,37 +30,52 @@ import {
   useProvider,
   useProviderApiKeys,
 } from '@/hooks/use-providers';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Trash2 } from 'lucide-react';
+import { useParams } from 'next/navigation';
 import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
+
+const keyFormSchema = z.object({
+  name: z.string().min(1, '请输入密钥名称'),
+  apiKey: z.string().min(1, '请输入 API 密钥'),
+});
+
+type KeyFormData = z.infer<typeof keyFormSchema>;
 
 export default function ProviderDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const router = useRouter();
   const { data: provider, isLoading } = useProvider(id);
   const { data: apiKeys, refetch: refetchKeys } = useProviderApiKeys(id);
   const createApiKey = useCreateApiKey();
   const deleteApiKey = useDeleteApiKey();
 
-  const [keyName, setKeyName] = useState('');
-  const [keyValue, setKeyValue] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null);
   const [deleteKeyTarget, setDeleteKeyTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const handleAddKey = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    control,
+    handleSubmit,
+    reset: resetForm,
+    formState: { isSubmitting },
+  } = useForm<KeyFormData>({
+    resolver: zodResolver(keyFormSchema),
+    defaultValues: { name: '', apiKey: '' },
+  });
+
+  const onSubmit = async (data: KeyFormData) => {
     try {
       const result = await createApiKey.mutateAsync({
         providerId: id,
-        name: keyName,
-        apiKey: keyValue,
+        name: data.name,
+        apiKey: data.apiKey,
       });
       setNewKeyResult(result.maskedKey);
-      setKeyName('');
-      setKeyValue('');
-      refetchKeys();
+      resetForm();
+      await refetchKeys();
     } catch {
       toast.error('添加密钥失败');
     }
@@ -70,7 +87,7 @@ export default function ProviderDetailPage() {
       await deleteApiKey.mutateAsync(deleteKeyTarget.id);
       toast.success('密钥已删除');
       setDeleteKeyTarget(null);
-      refetchKeys();
+      await refetchKeys();
     } catch {
       toast.error('删除失败');
     }
@@ -106,10 +123,6 @@ export default function ProviderDetailPage() {
     return (
       <div className='flex flex-col items-center gap-4 py-16 text-center'>
         <p className='text-muted-foreground'>提供商未找到</p>
-        <Button variant='outline' onClick={() => router.push('/providers')}>
-          <ArrowLeft data-icon='inline-start' />
-          返回列表
-        </Button>
       </div>
     );
   }
@@ -118,25 +131,15 @@ export default function ProviderDetailPage() {
     <div className='space-y-6'>
       {/* Header */}
       <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-3'>
-          <Button
-            variant='ghost'
-            size='icon'
-            aria-label='返回'
-            onClick={() => router.push('/providers')}
-          >
-            <ArrowLeft className='size-4' />
-          </Button>
-          <div>
-            <div className='flex items-center gap-2'>
-              <h1 className='text-2xl font-bold tracking-tight'>{provider.name}</h1>
-              <Badge variant='secondary'>{provider.type}</Badge>
-              {provider.isEnabled && <Badge variant='default'>已启用</Badge>}
-            </div>
-            {provider.baseUrl && (
-              <p className='mt-0.5 text-sm text-muted-foreground'>{provider.baseUrl}</p>
-            )}
+        <div>
+          <div className='flex items-center gap-2'>
+            <h1 className='text-2xl font-bold tracking-tight'>{provider.name}</h1>
+            <Badge variant='secondary'>{provider.type}</Badge>
+            {provider.isEnabled && <Badge variant='default'>已启用</Badge>}
           </div>
+          {provider.baseUrl && (
+            <p className='mt-0.5 text-sm text-muted-foreground'>{provider.baseUrl}</p>
+          )}
         </div>
       </div>
 
@@ -151,12 +154,11 @@ export default function ProviderDetailPage() {
                 setDialogOpen(o);
                 if (!o) {
                   setNewKeyResult(null);
-                  setKeyName('');
-                  setKeyValue('');
+                  resetForm();
                 }
               }}
             >
-              <DialogTrigger render={<Button size='sm' />}>
+              <DialogTrigger render={<Button className='cursor-pointer' size='sm' />}>
                 <Plus data-icon='inline-start' />
                 添加密钥
               </DialogTrigger>
@@ -169,6 +171,7 @@ export default function ProviderDetailPage() {
                     <p className='text-sm text-muted-foreground'>密钥已加密存储。显示值：</p>
                     <p className='font-mono text-lg'>{newKeyResult}</p>
                     <Button
+                      className='cursor-pointer w-full'
                       onClick={() => {
                         setNewKeyResult(null);
                         setDialogOpen(false);
@@ -178,33 +181,61 @@ export default function ProviderDetailPage() {
                     </Button>
                   </div>
                 ) : (
-                  <form onSubmit={handleAddKey} className='space-y-4'>
-                    <div className='space-y-2'>
-                      <label className='text-sm font-medium' htmlFor='key-name'>
-                        密钥名称
-                      </label>
-                      <Input
-                        id='key-name'
-                        value={keyName}
-                        onChange={(e) => setKeyName(e.target.value)}
-                        placeholder='生产密钥'
-                      />
+                  <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                    <Controller
+                      name='name'
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor='key-name'>密钥名称</FieldLabel>
+                          <Input
+                            {...field}
+                            id='key-name'
+                            placeholder='生产密钥'
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && (
+                            <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                          )}
+                        </Field>
+                      )}
+                    />
+                    <Controller
+                      name='apiKey'
+                      control={control}
+                      render={({ field, fieldState }) => (
+                        <Field>
+                          <FieldLabel htmlFor='key-value'>API 密钥</FieldLabel>
+                          <Input
+                            {...field}
+                            id='key-value'
+                            placeholder='sk-...'
+                            type='password'
+                            aria-invalid={fieldState.invalid}
+                          />
+                          {fieldState.invalid && (
+                            <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                          )}
+                        </Field>
+                      )}
+                    />
+                    <div className='flex items-center justify-end gap-2'>
+                      <Button className='cursor-pointer' type='submit' disabled={isSubmitting}>
+                        {isSubmitting && <Spinner data-icon='inline-start' />}
+                        保存
+                      </Button>
+                      <Button
+                        className='cursor-pointer'
+                        type='button'
+                        variant='outline'
+                        onClick={() => {
+                          setDialogOpen(false);
+                          resetForm();
+                        }}
+                      >
+                        取消
+                      </Button>
                     </div>
-                    <div className='space-y-2'>
-                      <label className='text-sm font-medium' htmlFor='key-value'>
-                        API 密钥
-                      </label>
-                      <Input
-                        id='key-value'
-                        value={keyValue}
-                        onChange={(e) => setKeyValue(e.target.value)}
-                        placeholder='sk-...'
-                        type='password'
-                      />
-                    </div>
-                    <Button type='submit' disabled={createApiKey.isPending}>
-                      {createApiKey.isPending ? '加密中...' : '保存'}
-                    </Button>
                   </form>
                 )}
               </DialogContent>
@@ -240,6 +271,7 @@ export default function ProviderDetailPage() {
                     </TableCell>
                     <TableCell>
                       <Button
+                        className='cursor-pointer'
                         variant='ghost'
                         size='icon'
                         aria-label={`删除密钥 ${k.name}`}
@@ -272,10 +304,15 @@ export default function ProviderDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDeleteKeyTarget(null)}>
+            <Button
+              className='cursor-pointer'
+              variant='outline'
+              onClick={() => setDeleteKeyTarget(null)}
+            >
               取消
             </Button>
             <Button
+              className='cursor-pointer'
               variant='destructive'
               onClick={handleDeleteKey}
               disabled={deleteApiKey.isPending}

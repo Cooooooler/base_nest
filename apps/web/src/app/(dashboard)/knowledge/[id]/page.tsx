@@ -50,16 +50,32 @@ export default function KnowledgeBaseDetailPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; fileName: string } | null>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
     setUploading(true);
-    try {
-      await apiUpload(`/knowledge/${id}/documents/upload`, file);
-      toast.success('文档已上传，开始处理');
-      refetchDocs();
-    } catch {
-      toast.error('上传失败');
+    const fileArray = Array.from(files);
+    let successCount = 0;
+    let failCount = 0;
+
+    await Promise.all(
+      fileArray.map(async (file) => {
+        try {
+          await apiUpload(`/knowledge/${id}/documents/upload`, file);
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      })
+    );
+
+    if (failCount === 0) {
+      toast.success(`${successCount} 个文档已上传，开始处理`);
+    } else {
+      toast.error(`${successCount} 个上传成功，${failCount} 个失败`);
     }
+
+    await refetchDocs();
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -69,7 +85,7 @@ export default function KnowledgeBaseDetailPage() {
     try {
       await deleteDoc.mutateAsync({ knowledgeBaseId: id, documentId: deleteTarget.id });
       toast.success('文档已删除');
-      refetchDocs();
+      await refetchDocs();
       setDeleteTarget(null);
     } catch {
       toast.error('删除失败');
@@ -139,14 +155,9 @@ export default function KnowledgeBaseDetailPage() {
 
   return (
     <div className='flex flex-col gap-6'>
-      <div className='flex items-center justify-between'>
-        <div className='flex flex-col gap-1'>
-          <h2 className='text-2xl font-bold'>{kb.name}</h2>
-          {kb.description && <p className='text-sm text-muted-foreground'>{kb.description}</p>}
-        </div>
-        <Button variant='outline' onClick={() => router.push('/knowledge')}>
-          返回
-        </Button>
+      <div>
+        <h2 className='text-2xl font-bold'>{kb.name}</h2>
+        {kb.description && <p className='text-sm text-muted-foreground'>{kb.description}</p>}
       </div>
 
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
@@ -162,9 +173,11 @@ export default function KnowledgeBaseDetailPage() {
                     ref={fileInputRef}
                     className='hidden'
                     accept='.pdf,.txt,.md,.html'
+                    multiple
                     onChange={handleUpload}
                   />
                   <Button
+                    className='cursor-pointer'
                     size='sm'
                     disabled={uploading}
                     onClick={() => fileInputRef.current?.click()}
@@ -203,6 +216,7 @@ export default function KnowledgeBaseDetailPage() {
                         <TableCell>{statusBadge(doc.status)}</TableCell>
                         <TableCell>
                           <Button
+                            className='cursor-pointer'
                             variant='ghost'
                             size='icon'
                             onClick={() => setDeleteTarget({ id: doc.id, fileName: doc.fileName })}
@@ -236,7 +250,11 @@ export default function KnowledgeBaseDetailPage() {
                 placeholder='输入查询内容...'
                 rows={3}
               />
-              <Button className='w-full' onClick={handleSearch} disabled={retrieval.isPending}>
+              <Button
+                className='cursor-pointer w-full'
+                onClick={handleSearch}
+                disabled={retrieval.isPending}
+              >
                 <Search data-icon />
                 {retrieval.isPending ? '检索中...' : '检索'}
               </Button>
@@ -271,10 +289,19 @@ export default function KnowledgeBaseDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
+            <Button
+              className='cursor-pointer'
+              variant='outline'
+              onClick={() => setDeleteTarget(null)}
+            >
               取消
             </Button>
-            <Button variant='destructive' disabled={deleteDoc.isPending} onClick={handleDeleteDoc}>
+            <Button
+              className='cursor-pointer'
+              variant='destructive'
+              disabled={deleteDoc.isPending}
+              onClick={handleDeleteDoc}
+            >
               {deleteDoc.isPending ? '删除中...' : '确认删除'}
             </Button>
           </DialogFooter>

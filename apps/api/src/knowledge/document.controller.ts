@@ -53,7 +53,8 @@ export class DocumentController {
     @Param('knowledgeBaseId', ParseUUIDPipe) knowledgeBaseId: string,
     @UploadedFile() file: Express.Multer.File
   ) {
-    return this.documentService.upload(knowledgeBaseId, file.originalname, file.buffer);
+    const fileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+    return this.documentService.upload(knowledgeBaseId, fileName, file.buffer);
   }
 
   @Delete(':id')
