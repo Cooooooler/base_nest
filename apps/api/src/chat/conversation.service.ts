@@ -28,8 +28,8 @@ export class ConversationService {
     const conv = this.convRepo.create({
       appId,
       userId,
-      title: dto.title ?? null,
-    });
+      title: dto.title,
+    } as Partial<Conversation>);
     return this.convRepo.save(conv);
   }
 
