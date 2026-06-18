@@ -11,6 +11,7 @@ import { ApiKey } from './entities/api-key.entity';
 import { ModelProvider } from './entities/model-provider.entity';
 import { Model } from './entities/model.entity';
 import { LlmProvider } from './interfaces/llm-provider.interface';
+import { getPresetModelsByType } from './preset-models';
 import { ClaudeStrategy } from './strategies/claude.strategy';
 import { LangChainOllamaStrategy } from './strategies/langchain-ollama.strategy';
 import { OllamaStrategy } from './strategies/ollama.strategy';
@@ -70,6 +71,10 @@ export class ProvidersService {
     await this.apiKeyRepo.delete({ providerId: id });
     await this.modelRepo.delete({ providerId: id });
     await this.providerRepo.delete(id);
+  }
+
+  getPresetModels(type: string) {
+    return getPresetModelsByType(type as any);
   }
 
   async findApiKeys(providerId: string): Promise<ApiKey[]> {

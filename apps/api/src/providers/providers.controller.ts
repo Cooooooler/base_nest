@@ -7,12 +7,15 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
+import { CreateModelDto } from './dto/create-model.dto';
 import { CreateProviderDto } from './dto/create-provider.dto';
+import { UpdateModelDto } from './dto/update-model.dto';
 import { UpdateProviderDto } from './dto/update-provider.dto';
 import { ProvidersService } from './providers.service';
 
@@ -25,6 +28,12 @@ export class ProvidersController {
   @ApiOperation({ summary: '获取所有模型提供商' })
   async findAll() {
     return this.providersService.findAllProviders();
+  }
+
+  @Get('preset-models')
+  @ApiOperation({ summary: '获取预设模型列表' })
+  async getPresetModels(@Query('type') type: string) {
+    return this.providersService.getPresetModels(type);
   }
 
   @Get(':id')
@@ -77,6 +86,30 @@ export class ProvidersController {
   @ApiOperation({ summary: '删除 API 密钥' })
   async removeApiKey(@Param('keyId', ParseUUIDPipe) keyId: string) {
     return this.providersService.deleteApiKey(keyId);
+  }
+
+  @Post(':id/models')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '添加模型' })
+  async createModel(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateModelDto) {
+    return this.providersService.createModel(id, dto);
+  }
+
+  @Patch(':id/models/:modelId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '更新模型' })
+  async updateModel(@Param('modelId', ParseUUIDPipe) modelId: string, @Body() dto: UpdateModelDto) {
+    return this.providersService.updateModel(modelId, dto);
+  }
+
+  @Delete(':id/models/:modelId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '删除模型' })
+  async removeModel(@Param('modelId', ParseUUIDPipe) modelId: string) {
+    return this.providersService.deleteModel(modelId);
   }
 
   @Get(':id/models')
