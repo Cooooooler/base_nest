@@ -1,6 +1,7 @@
 import { Chroma } from '@langchain/community/vectorstores/chroma';
 import { Embeddings } from '@langchain/core/embeddings';
 import { Injectable } from '@nestjs/common';
+import type { Where } from 'chromadb';
 
 @Injectable()
 export class ChromaVectorStoreService {
@@ -38,6 +39,16 @@ export class ChromaVectorStoreService {
 
   async deleteDocuments(ids: string[]): Promise<void> {
     await this.store.delete({ ids });
+  }
+
+  /**
+   * Delete vectors matching a metadata filter.
+   * Uses the underlying ChromaDB collection's native filter delete.
+   */
+  async deleteByFilter(filter: Where): Promise<void> {
+    if (this.store.collection) {
+      await this.store.collection.delete({ where: filter });
+    }
   }
 
   getCollectionName(): string {

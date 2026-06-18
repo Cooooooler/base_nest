@@ -50,16 +50,32 @@ export default function KnowledgeBaseDetailPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; fileName: string } | null>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
     setUploading(true);
-    try {
-      await apiUpload(`/knowledge/${id}/documents/upload`, file);
-      toast.success('文档已上传，开始处理');
-      await refetchDocs();
-    } catch {
-      toast.error('上传失败');
+    const fileArray = Array.from(files);
+    let successCount = 0;
+    let failCount = 0;
+
+    await Promise.all(
+      fileArray.map(async (file) => {
+        try {
+          await apiUpload(`/knowledge/${id}/documents/upload`, file);
+          successCount++;
+        } catch {
+          failCount++;
+        }
+      })
+    );
+
+    if (failCount === 0) {
+      toast.success(`${successCount} 个文档已上传，开始处理`);
+    } else {
+      toast.error(`${successCount} 个上传成功，${failCount} 个失败`);
     }
+
+    await refetchDocs();
     setUploading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -157,6 +173,7 @@ export default function KnowledgeBaseDetailPage() {
                     ref={fileInputRef}
                     className='hidden'
                     accept='.pdf,.txt,.md,.html'
+                    multiple
                     onChange={handleUpload}
                   />
                   <Button
