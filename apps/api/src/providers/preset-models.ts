@@ -1,3 +1,5 @@
+import type { ProviderType } from './entities/model-provider.entity';
+
 export interface PresetModel {
   name: string;
   displayName: string;
@@ -6,7 +8,7 @@ export interface PresetModel {
   capabilities: Record<string, boolean>;
 }
 
-export const PRESET_MODELS: Record<string, PresetModel[]> = {
+export const PRESET_MODELS: Record<ProviderType, PresetModel[]> = {
   openai: [
     {
       name: 'gpt-4o',
@@ -87,6 +89,6 @@ export const PRESET_MODELS: Record<string, PresetModel[]> = {
   'langchain-ollama': [],
 };
 
-export function getPresetModelsByType(type: string): PresetModel[] {
+export function getPresetModelsByType(type: ProviderType): PresetModel[] {
   return PRESET_MODELS[type] ?? [];
 }
