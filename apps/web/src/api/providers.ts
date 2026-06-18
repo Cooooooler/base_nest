@@ -1,4 +1,11 @@
-import type { CreateApiKeyDto, CreateProviderDto, ModelProvider } from '@base/shared';
+import type {
+  CreateApiKeyDto,
+  CreateModelDto,
+  CreateProviderDto,
+  Model,
+  ModelProvider,
+  PresetModel,
+} from '@base/shared';
 import { apiClient } from './client';
 
 export function getProviders() {
@@ -35,4 +42,28 @@ export function createApiKey(providerId: string, dto: CreateApiKeyDto) {
 
 export function deleteApiKey(keyId: string) {
   return apiClient<void>(`/providers/keys/${keyId}`, { method: 'DELETE' });
+}
+
+export function getPresetModels(type: string) {
+  return apiClient<PresetModel[]>(`/providers/preset-models?type=${encodeURIComponent(type)}`);
+}
+
+export function createModel(providerId: string, dto: CreateModelDto) {
+  return apiClient<Model>(`/providers/${providerId}/models`, {
+    method: 'POST',
+    json: dto,
+  });
+}
+
+export function updateModel(providerId: string, modelId: string, dto: Partial<CreateModelDto>) {
+  return apiClient<Model>(`/providers/${providerId}/models/${modelId}`, {
+    method: 'PATCH',
+    json: dto,
+  });
+}
+
+export function deleteModel(providerId: string, modelId: string) {
+  return apiClient<void>(`/providers/${providerId}/models/${modelId}`, {
+    method: 'DELETE',
+  });
 }
