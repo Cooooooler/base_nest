@@ -41,3 +41,19 @@ export interface CreateApiKeyDto {
   name: string;
   apiKey: string;
 }
+
+export interface CreateModelDto {
+  name: string;
+  displayName: string;
+  contextWindow?: number;
+  maxOutput?: number;
+  capabilities?: Record<string, boolean>;
+}
+
+export interface PresetModel {
+  name: string;
+  displayName: string;
+  contextWindow: number;
+  maxOutput: number;
+  capabilities: Record<string, boolean>;
+}

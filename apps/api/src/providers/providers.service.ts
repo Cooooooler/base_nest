@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { decrypt, encrypt } from '../common/crypto.util';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
+import { CreateModelDto } from './dto/create-model.dto';
 import { CreateProviderDto } from './dto/create-provider.dto';
+import { UpdateModelDto } from './dto/update-model.dto';
 import { UpdateProviderDto } from './dto/update-provider.dto';
 import { ApiKey } from './entities/api-key.entity';
 import { ModelProvider } from './entities/model-provider.entity';
 import { Model } from './entities/model.entity';
 import { LlmProvider } from './interfaces/llm-provider.interface';
+import { getPresetModelsByType } from './preset-models';
 import { ClaudeStrategy } from './strategies/claude.strategy';
 import { LangChainOllamaStrategy } from './strategies/langchain-ollama.strategy';
 import { OllamaStrategy } from './strategies/ollama.strategy';
@@ -70,6 +73,10 @@ export class ProvidersService {
     await this.providerRepo.delete(id);
   }
 
+  getPresetModels(type: string) {
+    return getPresetModelsByType(type as any);
+  }
+
   async findApiKeys(providerId: string): Promise<ApiKey[]> {
     return this.apiKeyRepo.find({ where: { providerId } });
   }
@@ -93,6 +100,42 @@ export class ProvidersService {
 
   async deleteApiKey(id: string): Promise<void> {
     await this.apiKeyRepo.delete(id);
+  }
+
+  async createModel(providerId: string, dto: CreateModelDto): Promise<Model> {
+    const provider = await this.providerRepo.findOneBy({ id: providerId });
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
+
+    const model = this.modelRepo.create({
+      providerId,
+      name: dto.name,
+      displayName: dto.displayName,
+      contextWindow: dto.contextWindow ?? 0,
+      maxOutput: dto.maxOutput ?? 0,
+      capabilities: dto.capabilities ?? {},
+      isBuiltin: false,
+    });
+
+    return this.modelRepo.save(model);
+  }
+
+  async updateModel(modelId: string, dto: UpdateModelDto): Promise<Model> {
+    const model = await this.modelRepo.findOneBy({ id: modelId });
+    if (!model) {
+      throw new NotFoundException('Model not found');
+    }
+
+    Object.assign(model, dto);
+    return this.modelRepo.save(model);
+  }
+
+  async deleteModel(modelId: string): Promise<void> {
+    const result = await this.modelRepo.delete(modelId);
+    if (result.affected === 0) {
+      throw new NotFoundException('Model not found');
+    }
   }
 
   async findModels(providerId: string): Promise<Model[]> {

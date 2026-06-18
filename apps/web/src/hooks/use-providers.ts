@@ -1,14 +1,18 @@
 import {
   createApiKey,
+  createModel,
   createProvider,
   deleteApiKey,
+  deleteModel,
   deleteProvider,
+  getPresetModels,
   getProvider,
   getProviderApiKeys,
   getProviderModels,
   getProviders,
+  updateModel,
 } from '@/api/providers';
-import type { CreateApiKeyDto, CreateProviderDto } from '@base/shared';
+import type { CreateApiKeyDto, CreateModelDto, CreateProviderDto } from '@base/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useProviders() {
@@ -73,5 +77,47 @@ export function useProviderModels(providerId: string) {
     queryKey: ['providers', providerId, 'models'],
     queryFn: () => getProviderModels(providerId),
     enabled: !!providerId,
+  });
+}
+
+export function usePresetModels(type: string) {
+  return useQuery({
+    queryKey: ['preset-models', type],
+    queryFn: () => getPresetModels(type),
+    enabled: !!type,
+  });
+}
+
+export function useCreateModel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ providerId, ...dto }: CreateModelDto & { providerId: string }) =>
+      createModel(providerId, dto),
+    onSuccess: (_data, variables) =>
+      qc.invalidateQueries({ queryKey: ['providers', variables.providerId, 'models'] }),
+  });
+}
+
+export function useUpdateModel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      providerId,
+      modelId,
+      ...dto
+    }: { providerId: string; modelId: string } & Partial<CreateModelDto>) =>
+      updateModel(providerId, modelId, dto),
+    onSuccess: (_data, variables) =>
+      qc.invalidateQueries({ queryKey: ['providers', variables.providerId, 'models'] }),
+  });
+}
+
+export function useDeleteModel() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ providerId, modelId }: { providerId: string; modelId: string }) =>
+      deleteModel(providerId, modelId),
+    onSuccess: (_data, variables) =>
+      qc.invalidateQueries({ queryKey: ['providers', variables.providerId, 'models'] }),
   });
 }
