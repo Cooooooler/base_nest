@@ -48,6 +48,10 @@ export function getPresetModels(type: string) {
   return apiClient<PresetModel[]>(`/providers/preset-models?type=${encodeURIComponent(type)}`);
 }
 
+export function getProviderModels(providerId: string) {
+  return apiClient<Model[]>(`/providers/${providerId}/models`);
+}
+
 export function createModel(providerId: string, dto: CreateModelDto) {
   return apiClient<Model>(`/providers/${providerId}/models`, {
     method: 'POST',

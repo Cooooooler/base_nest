@@ -8,6 +8,7 @@ import {
   getPresetModels,
   getProvider,
   getProviderApiKeys,
+  getProviderModels,
   getProviders,
   updateModel,
 } from '@/api/providers';
@@ -68,6 +69,14 @@ export function useDeleteApiKey() {
   return useMutation({
     mutationFn: (keyId: string) => deleteApiKey(keyId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['providers'] }),
+  });
+}
+
+export function useProviderModels(providerId: string) {
+  return useQuery({
+    queryKey: ['providers', providerId, 'models'],
+    queryFn: () => getProviderModels(providerId),
+    enabled: !!providerId,
   });
 }
 
