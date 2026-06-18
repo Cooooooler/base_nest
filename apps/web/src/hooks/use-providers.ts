@@ -5,6 +5,7 @@ import {
   deleteProvider,
   getProvider,
   getProviderApiKeys,
+  getProviderModels,
   getProviders,
 } from '@/api/providers';
 import type { CreateApiKeyDto, CreateProviderDto } from '@base/shared';
@@ -64,5 +65,13 @@ export function useDeleteApiKey() {
   return useMutation({
     mutationFn: (keyId: string) => deleteApiKey(keyId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['providers'] }),
+  });
+}
+
+export function useProviderModels(providerId: string) {
+  return useQuery({
+    queryKey: ['providers', providerId, 'models'],
+    queryFn: () => getProviderModels(providerId),
+    enabled: !!providerId,
   });
 }

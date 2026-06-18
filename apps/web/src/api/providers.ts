@@ -1,4 +1,4 @@
-import type { CreateApiKeyDto, CreateProviderDto, ModelProvider } from '@base/shared';
+import type { CreateApiKeyDto, CreateProviderDto, Model, ModelProvider } from '@base/shared';
 import { apiClient } from './client';
 
 export function getProviders() {
@@ -35,4 +35,8 @@ export function createApiKey(providerId: string, dto: CreateApiKeyDto) {
 
 export function deleteApiKey(keyId: string) {
   return apiClient<void>(`/providers/keys/${keyId}`, { method: 'DELETE' });
+}
+
+export function getProviderModels(providerId: string) {
+  return apiClient<Model[]>(`/providers/${providerId}/models`);
 }
