@@ -46,6 +46,14 @@ export class ChatService {
     const conv = await this.convService.findOne(convId);
     if (conv.appId !== appId) throw new NotFoundException('Conversation not found');
 
+    const app = await this.appService.findOne(appId);
+
+    // 先查历史（排除本次消息），再保存用户消息，避免 buildMessages 中重复
+    const history = await this.msgRepo.find({
+      where: { conversationId: convId },
+      order: { createdAt: 'ASC' },
+    });
+
     await this.msgRepo.save(
       this.msgRepo.create({
         conversationId: convId,
@@ -53,13 +61,6 @@ export class ChatService {
         content,
       })
     );
-
-    const app = await this.appService.findOne(appId);
-
-    const history = await this.msgRepo.find({
-      where: { conversationId: convId },
-      order: { createdAt: 'ASC' },
-    });
 
     const messages = this.buildMessages(app.systemPrompt, history, content, app.maxTokens);
     const client = await this.providersService.getProviderClient(app.providerId);
@@ -136,13 +137,16 @@ export class ChatService {
     const result: ChatMessage[] = [systemMsg];
 
     const reversed = [...history].reverse();
+    const selected: ChatMessage[] = [];
     for (const msg of reversed) {
       const tokens = estimated(msg.content);
       if (total + tokens > maxTokens) break;
       total += tokens;
-      result.push({ role: msg.role as 'user' | 'assistant', content: msg.content });
+      selected.push({ role: msg.role as 'user' | 'assistant', content: msg.content });
     }
 
+    // 恢复时间顺序（最早的在前），再追加当前消息
+    result.push(...selected.reverse());
     result.push(userMsg);
     return result;
   }

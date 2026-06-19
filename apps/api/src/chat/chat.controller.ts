@@ -42,13 +42,14 @@ export class ChatController {
     @Req() req: { user: { id: string } },
     @Res() res: Response
   ) {
+    // 先执行验证（可能抛出异常），再设置 SSE headers
+    const observable = await this.chatService.sendMessage(appId, convId, dto.content, req.user.id);
+
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
-
-    const observable = await this.chatService.sendMessage(appId, convId, dto.content, req.user.id);
 
     observable.subscribe({
       next: (chunk) => {

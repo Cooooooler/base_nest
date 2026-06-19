@@ -10,12 +10,9 @@ import {
 export class OpenAiStrategy implements LlmProvider {
   private client: OpenAI;
 
-  constructor(
-    private readonly apiKey: string,
-    baseUrl?: string
-  ) {
+  constructor(apiKey: string, baseUrl?: string) {
     this.client = new OpenAI({
-      apiKey,
+      apiKey: apiKey || 'sk-no-key-required',
       baseURL: baseUrl || 'https://api.openai.com/v1',
     });
   }

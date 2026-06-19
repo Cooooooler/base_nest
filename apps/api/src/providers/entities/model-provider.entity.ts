@@ -10,6 +10,13 @@ export type ProviderType =
   | 'openai-compatible'
   | 'langchain-ollama';
 
+/** 本地部署的 provider 类型，不需要 API key */
+export const LOCAL_PROVIDER_TYPES: ProviderType[] = ['ollama', 'langchain-ollama'];
+
+export function needsApiKey(type: ProviderType): boolean {
+  return !LOCAL_PROVIDER_TYPES.includes(type);
+}
+
 @Entity('model_providers')
 export class ModelProvider {
   @ApiProperty({ format: 'uuid', description: '提供商唯一标识' })

@@ -37,29 +37,33 @@ export default function ChatPage() {
   const deleteConv = useDeleteConversation();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [streamingContent, setStreamingContent] = useState('');
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load messages when conversation changes
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  // Load messages when conversation changes — 只在切换会话时加载，不覆盖流式更新的消息
   useEffect(() => {
-    if (loadedMessages) {
+    if (loadedMessages && initialLoad) {
       setMessages(
         loadedMessages.map((m) => ({
           role: m.role as 'user' | 'assistant',
           content: m.content,
         }))
       );
-    } else {
-      setMessages([]);
+      setInitialLoad(false);
     }
-  }, [loadedMessages]);
+    if (!loadedMessages) {
+      setMessages([]);
+      setInitialLoad(true);
+    }
+  }, [loadedMessages, initialLoad]);
 
   // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, streamingContent]);
+  }, [messages]);
 
   const handleSend = useCallback(async () => {
     const content = input.trim();
@@ -80,10 +84,11 @@ export default function ChatPage() {
 
     setSending(true);
     setInput('');
-    setMessages((prev) => [...prev, { role: 'user', content }]);
+    // 在 messages 中占位，AI 回复时直接更新这个占位内容，避免闪动
+    const aiIdx = messages.length + 1; // 当前 user msg + 即将插入的 assistant
+    setMessages((prev) => [...prev, { role: 'user', content }, { role: 'assistant', content: '' }]);
 
     let fullContent = '';
-    setStreamingContent('');
     try {
       for await (const chunk of streamChat(appId, convId, content)) {
         if (chunk.error) {
@@ -92,17 +97,20 @@ export default function ChatPage() {
         }
         if (chunk.isEnd) break;
         fullContent += chunk.content;
-        setStreamingContent(fullContent);
+        // 实时更新占位消息内容
+        setMessages((prev) => {
+          const next = [...prev];
+          if (next[aiIdx]) next[aiIdx] = { role: 'assistant', content: fullContent };
+          return next;
+        });
       }
     } catch {
       toast.error('发送失败');
     }
 
-    setMessages((prev) => [...prev, { role: 'assistant', content: fullContent }]);
-    setStreamingContent('');
     setSending(false);
-    await refetchMsgs();
-  }, [appId, input, sending, activeConvId, createConv, refetchConvs, refetchMsgs]);
+    // 不触发 refetchMsgs 来避免覆盖本地流式更新的状态
+  }, [appId, input, sending, activeConvId, createConv, refetchConvs, messages.length]);
 
   const handleNewConversation = async () => {
     setActiveConvId(null);
@@ -188,7 +196,7 @@ export default function ChatPage() {
         <CardContent className='flex flex-1 flex-col p-0'>
           {/* Messages */}
           <div className='flex-1 overflow-y-auto p-4'>
-            {messages.length === 0 && !streamingContent ? (
+            {messages.length === 0 ? (
               <div className='flex h-full flex-col items-center justify-center gap-3 text-muted-foreground'>
                 <MessageSquare className='size-12' />
                 <p>开始与 {app.name} 对话</p>
@@ -198,7 +206,9 @@ export default function ChatPage() {
                 {messages.map((msg, i) => (
                   <div
                     key={i}
-                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${
+                      msg.role === 'assistant' && !msg.content ? 'opacity-50' : ''
+                    }`}
                   >
                     <div
                       className={`max-w-[80%] rounded-lg px-4 py-2 ${
@@ -206,9 +216,26 @@ export default function ChatPage() {
                       }`}
                     >
                       {msg.role === 'assistant' ? (
-                        <div className='prose prose-sm dark:prose-invert max-w-none'>
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
-                        </div>
+                        msg.content ? (
+                          <div className='prose prose-sm dark:prose-invert max-w-none'>
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                          </div>
+                        ) : (
+                          <div className='flex items-center gap-1.5 py-1'>
+                            <span
+                              className='size-1.5 animate-bounce rounded-full bg-current'
+                              style={{ animationDelay: '0ms' }}
+                            />
+                            <span
+                              className='size-1.5 animate-bounce rounded-full bg-current'
+                              style={{ animationDelay: '150ms' }}
+                            />
+                            <span
+                              className='size-1.5 animate-bounce rounded-full bg-current'
+                              style={{ animationDelay: '300ms' }}
+                            />
+                          </div>
+                        )
                       ) : (
                         <p className='whitespace-pre-wrap text-sm'>{msg.content}</p>
                       )}
@@ -216,17 +243,6 @@ export default function ChatPage() {
                   </div>
                 ))}
 
-                {streamingContent && (
-                  <div className='flex justify-start'>
-                    <div className='max-w-[80%] rounded-lg bg-muted px-4 py-2'>
-                      <div className='prose prose-sm dark:prose-invert max-w-none'>
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {streamingContent}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  </div>
-                )}
                 <div ref={messagesEndRef} />
               </div>
             )}

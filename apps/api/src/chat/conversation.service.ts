@@ -3,12 +3,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { Conversation } from './entities/conversation.entity';
+import { Message } from './entities/message.entity';
 
 @Injectable()
 export class ConversationService {
   constructor(
     @InjectRepository(Conversation)
-    private readonly convRepo: Repository<Conversation>
+    private readonly convRepo: Repository<Conversation>,
+    @InjectRepository(Message)
+    private readonly messageRepo: Repository<Message>
   ) {}
 
   async findByApp(appId: string, userId: string): Promise<Conversation[]> {
@@ -34,6 +37,7 @@ export class ConversationService {
   }
 
   async delete(id: string): Promise<void> {
+    await this.messageRepo.delete({ conversationId: id });
     const result = await this.convRepo.delete(id);
     if (result.affected === 0) throw new NotFoundException('Conversation not found');
   }
