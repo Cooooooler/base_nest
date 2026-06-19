@@ -13,8 +13,8 @@ import {
   useMessages,
 } from '@/hooks/use-chat';
 import { MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
-import { useParams, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
@@ -26,12 +26,11 @@ interface ChatMessage {
 
 export default function ChatPage() {
   const { id: appId } = useParams<{ id: string }>();
-  const router = useRouter();
   const { data: app, isLoading: appLoading } = useApp(appId);
 
   const [activeConvId, setActiveConvId] = useState<string | null>(null);
   const { data: conversations, refetch: refetchConvs } = useConversations(appId);
-  const { data: loadedMessages, refetch: refetchMsgs } = useMessages(appId, activeConvId || '');
+  const { data: loadedMessages } = useMessages(appId, activeConvId || '');
 
   const createConv = useCreateConversation();
   const deleteConv = useDeleteConversation();
@@ -41,31 +40,46 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const [initialLoad, setInitialLoad] = useState(true);
+  // 防止 React Query 请求在流式对话中覆盖本地消息
+  const streamingRef = useRef(false);
+  // 跟踪本地 messages 对应哪个会话
+  const localConvIdRef = useRef<string | null>(null);
 
-  // Load messages when conversation changes — 只在切换会话时加载，不覆盖流式更新的消息
+  // Sync loadedMessages → local messages when conversation changes
   useEffect(() => {
-    if (loadedMessages && initialLoad) {
-      setMessages(
-        loadedMessages.map((m) => ({
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        }))
-      );
-      setInitialLoad(false);
-    }
-    if (!loadedMessages) {
+    if (streamingRef.current) return;
+
+    if (!activeConvId) {
       setMessages([]);
-      setInitialLoad(true);
+      localConvIdRef.current = null;
+      return;
     }
-  }, [loadedMessages, initialLoad]);
+
+    const convChanged = activeConvId !== localConvIdRef.current;
+    const dataArrived =
+      loadedMessages && localConvIdRef.current === activeConvId && messages.length === 0;
+
+    if (convChanged || dataArrived) {
+      if (loadedMessages) {
+        setMessages(
+          loadedMessages.map((m) => ({
+            role: m.role as 'user' | 'assistant',
+            content: m.content,
+          }))
+        );
+      } else {
+        setMessages([]);
+      }
+      localConvIdRef.current = activeConvId;
+    }
+  }, [activeConvId, loadedMessages, messages.length]);
 
   // Auto scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = useCallback(async () => {
+  const handleSend = async () => {
     const content = input.trim();
     if (!content || sending) return;
 
@@ -75,6 +89,7 @@ export default function ChatPage() {
         const conv = await createConv.mutateAsync({ appId });
         convId = conv.id;
         setActiveConvId(convId);
+        localConvIdRef.current = convId;
         await refetchConvs();
       } catch {
         toast.error('创建会话失败');
@@ -84,8 +99,8 @@ export default function ChatPage() {
 
     setSending(true);
     setInput('');
-    // 在 messages 中占位，AI 回复时直接更新这个占位内容，避免闪动
-    const aiIdx = messages.length + 1; // 当前 user msg + 即将插入的 assistant
+    streamingRef.current = true;
+    const aiIdx = messages.length + 1;
     setMessages((prev) => [...prev, { role: 'user', content }, { role: 'assistant', content: '' }]);
 
     let fullContent = '';
@@ -97,7 +112,6 @@ export default function ChatPage() {
         }
         if (chunk.isEnd) break;
         fullContent += chunk.content;
-        // 实时更新占位消息内容
         setMessages((prev) => {
           const next = [...prev];
           if (next[aiIdx]) next[aiIdx] = { role: 'assistant', content: fullContent };
@@ -108,9 +122,9 @@ export default function ChatPage() {
       toast.error('发送失败');
     }
 
+    streamingRef.current = false;
     setSending(false);
-    // 不触发 refetchMsgs 来避免覆盖本地流式更新的状态
-  }, [appId, input, sending, activeConvId, createConv, refetchConvs, messages.length]);
+  };
 
   const handleNewConversation = async () => {
     setActiveConvId(null);
@@ -130,10 +144,10 @@ export default function ChatPage() {
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = async (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      await handleSend();
     }
   };
 
@@ -175,9 +189,9 @@ export default function ChatPage() {
                   className='cursor-pointer size-6 shrink-0'
                   variant='ghost'
                   size='icon'
-                  onClick={(e) => {
+                  onClick={async (e) => {
                     e.stopPropagation();
-                    handleDeleteConv(conv.id);
+                    await handleDeleteConv(conv.id);
                   }}
                 >
                   <Trash2 className='size-3' />
@@ -193,9 +207,9 @@ export default function ChatPage() {
 
       {/* Main chat area */}
       <Card className='flex flex-1 flex-col'>
-        <CardContent className='flex flex-1 flex-col p-0'>
+        <CardContent className='flex flex-1 flex-col p-0 h-full'>
           {/* Messages */}
-          <div className='flex-1 overflow-y-auto p-4'>
+          <div className='flex-1 overflow-y-auto p-4 h-full'>
             {messages.length === 0 ? (
               <div className='flex h-full flex-col items-center justify-center gap-3 text-muted-foreground'>
                 <MessageSquare className='size-12' />
