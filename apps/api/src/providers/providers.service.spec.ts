@@ -188,6 +188,159 @@ describe('ProvidersService', () => {
     });
   });
 
+  describe('createModel', () => {
+    it('should create and return a model', async () => {
+      const localModelRepo = {
+        ...mockModelRepo,
+        create: jest.fn().mockReturnValue({
+          id: '770e8400-e29b-41d4-a716-446655440002',
+          providerId: mockProvider.id,
+          name: 'gpt-4o',
+          displayName: 'GPT-4o',
+          contextWindow: 128000,
+          maxOutput: 16384,
+          capabilities: { streaming: true },
+          isBuiltin: false,
+        }),
+        save: jest.fn().mockResolvedValue({
+          id: '770e8400-e29b-41d4-a716-446655440002',
+          providerId: mockProvider.id,
+          name: 'gpt-4o',
+          displayName: 'GPT-4o',
+          contextWindow: 128000,
+          maxOutput: 16384,
+          capabilities: { streaming: true },
+          isBuiltin: false,
+        }),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: mockRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: localModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+
+      const dto = {
+        name: 'gpt-4o',
+        displayName: 'GPT-4o',
+        contextWindow: 128000,
+        maxOutput: 16384,
+        capabilities: { streaming: true },
+      };
+      const result = await svc.createModel(mockProvider.id, dto);
+      expect(result).toBeDefined();
+      expect(result.name).toBe('gpt-4o');
+      expect(result.isBuiltin).toBe(false);
+    });
+
+    it('should throw if provider not found', async () => {
+      const localRepo = { ...mockRepo, findOneBy: jest.fn().mockResolvedValue(null) };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: localRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: mockModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+      await expect(
+        svc.createModel('nonexistent', { name: 'test', displayName: 'Test' })
+      ).rejects.toThrow('Provider not found');
+    });
+  });
+
+  describe('updateModel', () => {
+    it('should update and return a model', async () => {
+      const mockModel = {
+        id: '770e8400-e29b-41d4-a716-446655440002',
+        providerId: mockProvider.id,
+        name: 'gpt-4o',
+        displayName: 'GPT-4o',
+        contextWindow: 128000,
+        maxOutput: 16384,
+        capabilities: { streaming: true },
+        isBuiltin: false,
+      };
+      const localModelRepo = {
+        ...mockModelRepo,
+        findOneBy: jest.fn().mockResolvedValue(mockModel),
+        save: jest.fn().mockResolvedValue({ ...mockModel, displayName: 'GPT-4o Updated' }),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: mockRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: localModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+
+      const result = await svc.updateModel('770e8400', { displayName: 'GPT-4o Updated' });
+      expect(result.displayName).toBe('GPT-4o Updated');
+    });
+
+    it('should throw NotFoundException if model not found', async () => {
+      const localModelRepo = {
+        ...mockModelRepo,
+        findOneBy: jest.fn().mockResolvedValue(null),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: mockRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: localModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+      await expect(svc.updateModel('nonexistent', { name: 'new' })).rejects.toThrow(
+        'Model not found'
+      );
+    });
+  });
+
+  describe('deleteModel', () => {
+    it('should delete a model', async () => {
+      const localModelRepo = {
+        ...mockModelRepo,
+        delete: jest.fn().mockResolvedValue({ affected: 1, raw: {} }),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: mockRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: localModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+
+      await expect(svc.deleteModel('770e8400')).resolves.not.toThrow();
+    });
+
+    it('should throw NotFoundException if model not found', async () => {
+      const localModelRepo = {
+        ...mockModelRepo,
+        delete: jest.fn().mockResolvedValue({ affected: 0, raw: {} }),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: mockRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: localModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+      await expect(svc.deleteModel('nonexistent')).rejects.toThrow('Model not found');
+    });
+  });
+
   describe('findModels', () => {
     it('should return models for a provider', async () => {
       const result = await service.findModels(mockProvider.id);

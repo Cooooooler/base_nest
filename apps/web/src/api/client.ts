@@ -14,7 +14,7 @@ export class ApiError extends Error {
   }
 }
 
-function getAccessToken(): string | null {
+export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
     const stored = localStorage.getItem('auth-storage');

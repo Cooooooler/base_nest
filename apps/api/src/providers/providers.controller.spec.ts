@@ -2,6 +2,7 @@ import { CanActivate } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
+import { CreateModelDto } from './dto/create-model.dto';
 import { CreateProviderDto } from './dto/create-provider.dto';
 import { ProvidersController } from './providers.controller';
 import { ProvidersService } from './providers.service';
@@ -19,6 +20,10 @@ describe('ProvidersController', () => {
     createApiKey: jest.fn().mockResolvedValue({ id: 'key-id', maskedKey: 'sk-***' }),
     deleteApiKey: jest.fn().mockResolvedValue(undefined),
     findModels: jest.fn().mockResolvedValue([]),
+    getPresetModels: jest.fn().mockResolvedValue([{ name: 'gpt-4o', displayName: 'GPT-4o' }]),
+    createModel: jest.fn().mockResolvedValue({ id: 'model-id', name: 'gpt-4o' }),
+    updateModel: jest.fn().mockResolvedValue({ id: 'model-id', name: 'gpt-4o-updated' }),
+    deleteModel: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockJwtAuthGuard: CanActivate = { canActivate: jest.fn(() => true) };
@@ -92,5 +97,38 @@ describe('ProvidersController', () => {
     const result = await controller.findModels('provider-id');
     expect(result).toEqual([]);
     expect(mockService.findModels).toHaveBeenCalledWith('provider-id');
+  });
+
+  describe('getPresetModels', () => {
+    it('should return preset models by type', async () => {
+      const result = await controller.getPresetModels('openai');
+      expect(result).toHaveLength(1);
+      expect(mockService.getPresetModels).toHaveBeenCalledWith('openai');
+    });
+  });
+
+  describe('createModel', () => {
+    it('should create a model', async () => {
+      const dto: CreateModelDto = { name: 'gpt-4o', displayName: 'GPT-4o' };
+      const result = await controller.createModel('provider-id', dto);
+      expect(result).toEqual({ id: 'model-id', name: 'gpt-4o' });
+      expect(mockService.createModel).toHaveBeenCalledWith('provider-id', dto);
+    });
+  });
+
+  describe('updateModel', () => {
+    it('should update a model', async () => {
+      const dto = { displayName: 'GPT-4o Updated' };
+      const result = await controller.updateModel('model-id', dto);
+      expect(result).toEqual({ id: 'model-id', name: 'gpt-4o-updated' });
+      expect(mockService.updateModel).toHaveBeenCalledWith('model-id', dto);
+    });
+  });
+
+  describe('removeModel', () => {
+    it('should delete a model', async () => {
+      await controller.removeModel('model-id');
+      expect(mockService.deleteModel).toHaveBeenCalledWith('model-id');
+    });
   });
 });
