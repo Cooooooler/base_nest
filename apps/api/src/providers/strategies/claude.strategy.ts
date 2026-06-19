@@ -10,12 +10,9 @@ import {
 export class ClaudeStrategy implements LlmProvider {
   private client: Anthropic;
 
-  constructor(
-    private readonly apiKey: string,
-    baseUrl?: string
-  ) {
+  constructor(apiKey: string, baseUrl?: string) {
     this.client = new Anthropic({
-      apiKey,
+      apiKey: apiKey || 'sk-no-key-required',
       baseURL: baseUrl || undefined,
     });
   }

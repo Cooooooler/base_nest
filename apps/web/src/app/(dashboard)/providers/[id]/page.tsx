@@ -43,6 +43,7 @@ import {
   useUpdateModel,
 } from '@/hooks/use-providers';
 import type { PresetModel } from '@base/shared';
+import { LOCAL_PROVIDER_TYPES } from '@base/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
@@ -241,6 +242,8 @@ export default function ProviderDetailPage() {
     );
   }
 
+  const isLocalProvider = LOCAL_PROVIDER_TYPES.includes(provider.type as any);
+
   return (
     <div className='space-y-6'>
       {/* Header */}
@@ -254,110 +257,123 @@ export default function ProviderDetailPage() {
           {provider.baseUrl && (
             <p className='mt-0.5 text-sm text-muted-foreground'>{provider.baseUrl}</p>
           )}
+          {isLocalProvider && (
+            <p className='mt-1 text-xs text-muted-foreground'>本地部署提供商，无需 API 密钥</p>
+          )}
         </div>
       </div>
 
-      {/* API Keys Section */}
+      {/* API Keys Section — 本地 provider 隐藏密钥管理功能 */}
       <Card>
         <CardHeader>
           <div className='flex items-center justify-between'>
             <CardTitle className='text-lg'>API 密钥</CardTitle>
-            <Dialog
-              open={dialogOpen}
-              onOpenChange={(o) => {
-                setDialogOpen(o);
-                if (!o) {
-                  setNewKeyResult(null);
-                  resetForm();
-                }
-              }}
-            >
-              <DialogTrigger render={<Button className='cursor-pointer' size='sm' />}>
-                <Plus data-icon='inline-start' />
-                添加密钥
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{newKeyResult ? '密钥已创建' : '添加 API 密钥'}</DialogTitle>
-                </DialogHeader>
-                {newKeyResult ? (
-                  <div className='space-y-4'>
-                    <p className='text-sm text-muted-foreground'>密钥已加密存储。显示值：</p>
-                    <p className='font-mono text-lg'>{newKeyResult}</p>
-                    <Button
-                      className='cursor-pointer w-full'
-                      onClick={() => {
-                        setNewKeyResult(null);
-                        setDialogOpen(false);
-                      }}
-                    >
-                      完成
-                    </Button>
-                  </div>
-                ) : (
-                  <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-                    <Controller
-                      name='name'
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field>
-                          <FieldLabel htmlFor='key-name'>密钥名称</FieldLabel>
-                          <Input
-                            {...field}
-                            id='key-name'
-                            placeholder='生产密钥'
-                            aria-invalid={fieldState.invalid}
-                          />
-                          {fieldState.invalid && (
-                            <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                          )}
-                        </Field>
-                      )}
-                    />
-                    <Controller
-                      name='apiKey'
-                      control={control}
-                      render={({ field, fieldState }) => (
-                        <Field>
-                          <FieldLabel htmlFor='key-value'>API 密钥</FieldLabel>
-                          <Input
-                            {...field}
-                            id='key-value'
-                            placeholder='sk-...'
-                            type='password'
-                            aria-invalid={fieldState.invalid}
-                          />
-                          {fieldState.invalid && (
-                            <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                          )}
-                        </Field>
-                      )}
-                    />
-                    <div className='flex items-center justify-end gap-2'>
-                      <Button className='cursor-pointer' type='submit' disabled={isSubmitting}>
-                        {isSubmitting && <Spinner data-icon='inline-start' />}
-                        保存
-                      </Button>
+            {!isLocalProvider && (
+              <Dialog
+                open={dialogOpen}
+                onOpenChange={(o) => {
+                  setDialogOpen(o);
+                  if (!o) {
+                    setNewKeyResult(null);
+                    resetForm();
+                  }
+                }}
+              >
+                <DialogTrigger render={<Button className='cursor-pointer' size='sm' />}>
+                  <Plus data-icon='inline-start' />
+                  添加密钥
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{newKeyResult ? '密钥已创建' : '添加 API 密钥'}</DialogTitle>
+                  </DialogHeader>
+                  {newKeyResult ? (
+                    <div className='space-y-4'>
+                      <p className='text-sm text-muted-foreground'>密钥已加密存储。显示值：</p>
+                      <p className='font-mono text-lg'>{newKeyResult}</p>
                       <Button
-                        className='cursor-pointer'
-                        type='button'
-                        variant='outline'
+                        className='cursor-pointer w-full'
                         onClick={() => {
+                          setNewKeyResult(null);
                           setDialogOpen(false);
-                          resetForm();
                         }}
                       >
-                        取消
+                        完成
                       </Button>
                     </div>
-                  </form>
-                )}
-              </DialogContent>
-            </Dialog>
+                  ) : (
+                    <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+                      <Controller
+                        name='name'
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field>
+                            <FieldLabel htmlFor='key-name'>密钥名称</FieldLabel>
+                            <Input
+                              {...field}
+                              id='key-name'
+                              placeholder='生产密钥'
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && (
+                              <p className='text-sm text-destructive'>
+                                {fieldState.error?.message}
+                              </p>
+                            )}
+                          </Field>
+                        )}
+                      />
+                      <Controller
+                        name='apiKey'
+                        control={control}
+                        render={({ field, fieldState }) => (
+                          <Field>
+                            <FieldLabel htmlFor='key-value'>API 密钥</FieldLabel>
+                            <Input
+                              {...field}
+                              id='key-value'
+                              placeholder='sk-...'
+                              type='password'
+                              aria-invalid={fieldState.invalid}
+                            />
+                            {fieldState.invalid && (
+                              <p className='text-sm text-destructive'>
+                                {fieldState.error?.message}
+                              </p>
+                            )}
+                          </Field>
+                        )}
+                      />
+                      <div className='flex items-center justify-end gap-2'>
+                        <Button className='cursor-pointer' type='submit' disabled={isSubmitting}>
+                          {isSubmitting && <Spinner data-icon='inline-start' />}
+                          保存
+                        </Button>
+                        <Button
+                          className='cursor-pointer'
+                          type='button'
+                          variant='outline'
+                          onClick={() => {
+                            setDialogOpen(false);
+                            resetForm();
+                          }}
+                        >
+                          取消
+                        </Button>
+                      </div>
+                    </form>
+                  )}
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </CardHeader>
         <CardContent>
-          {!apiKeys || apiKeys.length === 0 ? (
+          {isLocalProvider ? (
+            <p className='py-4 text-center text-sm text-muted-foreground'>
+              本地提供商无需 API 密钥即可使用。
+            </p>
+          ) : !apiKeys || apiKeys.length === 0 ? (
             <p className='py-4 text-center text-sm text-muted-foreground'>
               暂无 API 密钥。点击上方按钮添加。
             </p>

@@ -354,5 +354,95 @@ describe('ProvidersService', () => {
       const result = await service.getProviderClient(mockProvider.id);
       expect(result).toBeDefined();
     });
+
+    it('should throw if provider is disabled', async () => {
+      const localRepo = {
+        ...mockRepo,
+        findOne: jest.fn().mockResolvedValue(null),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: localRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: mockModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+      await expect(svc.getProviderClient('nonexistent')).rejects.toThrow(
+        'No enabled provider found'
+      );
+    });
+
+    it('should throw for non-local provider without API keys', async () => {
+      const noKeyProvider = {
+        ...mockProvider,
+        apiKeys: [],
+      };
+      const localRepo = {
+        ...mockRepo,
+        findOne: jest.fn().mockResolvedValue(noKeyProvider),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: localRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: mockModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+      await expect(svc.getProviderClient(mockProvider.id)).rejects.toThrow('No API key found');
+    });
+
+    it('should allow local provider (ollama) without API keys', async () => {
+      const ollamaProvider = {
+        ...mockProvider,
+        id: 'ollama-provider-id',
+        name: 'Ollama',
+        type: 'ollama' as const,
+        apiKeys: [],
+      };
+      const localRepo = {
+        ...mockRepo,
+        findOne: jest.fn().mockResolvedValue(ollamaProvider),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: localRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: mockModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+      const result = await svc.getProviderClient('ollama-provider-id');
+      expect(result).toBeDefined();
+    });
+
+    it('should allow local provider (langchain-ollama) without API keys', async () => {
+      const langchainOllamaProvider = {
+        ...mockProvider,
+        id: 'langchain-ollama-provider-id',
+        name: 'LangChain Ollama',
+        type: 'langchain-ollama' as const,
+        apiKeys: [],
+      };
+      const localRepo = {
+        ...mockRepo,
+        findOne: jest.fn().mockResolvedValue(langchainOllamaProvider),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: localRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: mockModelRepo },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+      const result = await svc.getProviderClient('langchain-ollama-provider-id');
+      expect(result).toBeDefined();
+    });
   });
 });

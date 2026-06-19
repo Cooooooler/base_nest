@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDeleteProvider, useProviders } from '@/hooks/use-providers';
+import { LOCAL_PROVIDER_TYPES } from '@base/shared';
 import { Plus, Server, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState } from 'react';
@@ -110,6 +111,9 @@ export default function ProvidersPage() {
                   <p>
                     密钥:{' '}
                     <span className='font-medium text-foreground'>{p.apiKeys?.length ?? 0}</span>
+                    {LOCAL_PROVIDER_TYPES.includes(p.type as any) && (
+                      <span className='ml-1.5 text-xs text-muted-foreground'>(本地无需)</span>
+                    )}
                   </p>
                   {p.baseUrl && (
                     <p className='truncate' title={p.baseUrl}>

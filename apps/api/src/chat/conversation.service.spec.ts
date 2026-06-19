@@ -3,6 +3,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConversationService } from './conversation.service';
 import { Conversation } from './entities/conversation.entity';
+import { Message } from './entities/message.entity';
 
 describe('ConversationService', () => {
   let service: ConversationService;
@@ -25,11 +26,16 @@ describe('ConversationService', () => {
     delete: jest.fn().mockResolvedValue({ affected: 1 }),
   };
 
+  const mockMessageRepo = {
+    delete: jest.fn().mockResolvedValue({ affected: 0 }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ConversationService,
         { provide: getRepositoryToken(Conversation), useValue: mockRepo },
+        { provide: getRepositoryToken(Message), useValue: mockMessageRepo },
       ],
     }).compile();
 
@@ -65,8 +71,9 @@ describe('ConversationService', () => {
     });
   });
 
-  it('delete should remove a conversation', async () => {
+  it('delete should remove messages then conversation', async () => {
     await service.delete('conv-1');
+    expect(mockMessageRepo.delete).toHaveBeenCalledWith({ conversationId: 'conv-1' });
     expect(mockRepo.delete).toHaveBeenCalledWith('conv-1');
   });
 });

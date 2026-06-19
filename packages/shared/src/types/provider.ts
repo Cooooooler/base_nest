@@ -9,6 +9,9 @@ export interface ModelProvider {
   createdAt: string;
 }
 
+/** 本地部署的 provider 类型，不需要 API key */
+export const LOCAL_PROVIDER_TYPES: ModelProvider['type'][] = ['ollama', 'langchain-ollama'];
+
 export interface ApiKey {
   id: string;
   providerId: string;

@@ -8,7 +8,7 @@ import { CreateProviderDto } from './dto/create-provider.dto';
 import { UpdateModelDto } from './dto/update-model.dto';
 import { UpdateProviderDto } from './dto/update-provider.dto';
 import { ApiKey } from './entities/api-key.entity';
-import { ModelProvider } from './entities/model-provider.entity';
+import { ModelProvider, needsApiKey } from './entities/model-provider.entity';
 import { Model } from './entities/model.entity';
 import { LlmProvider } from './interfaces/llm-provider.interface';
 import { getPresetModelsByType } from './preset-models';
@@ -148,16 +148,27 @@ export class ProvidersService {
       relations: { apiKeys: true },
     });
 
-    if (!provider || provider.apiKeys.length === 0) {
-      throw new NotFoundException('No enabled provider or API key found');
+    if (!provider) {
+      throw new NotFoundException('No enabled provider found');
     }
 
-    const activeKey = provider.apiKeys.find((k) => k.isActive);
-    if (!activeKey) {
-      throw new NotFoundException('No active API key found');
+    // 本地 provider（ollama / langchain-ollama）不需要 API key
+    const keyRequired = needsApiKey(provider.type);
+
+    if (keyRequired) {
+      if (provider.apiKeys.length === 0) {
+        throw new NotFoundException('No API key found for this provider');
+      }
+
+      const activeKey = provider.apiKeys.find((k) => k.isActive);
+      if (!activeKey) {
+        throw new NotFoundException('No active API key found');
+      }
     }
 
-    const decryptedKey = decrypt(activeKey.encryptedKey);
+    const decryptedKey = keyRequired
+      ? decrypt(provider.apiKeys.find((k) => k.isActive)!.encryptedKey)
+      : '';
 
     switch (provider.type) {
       case 'openai':
