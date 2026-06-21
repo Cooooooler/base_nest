@@ -27,6 +27,11 @@ export interface ChatChunk {
   content: string;
   isEnd: boolean;
   model?: string;
+  sources?: Array<{
+    content: string;
+    metadata: Record<string, any>;
+    score?: number;
+  }>;
 }
 
 export interface LlmProvider {
