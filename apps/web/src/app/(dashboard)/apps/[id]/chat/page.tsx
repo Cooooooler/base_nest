@@ -13,7 +13,7 @@ import {
   useMessages,
 } from '@/hooks/use-chat';
 import { useUpdateEffect } from 'ahooks';
-import { MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
+import { FileText, MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -248,12 +248,16 @@ export default function ChatPage() {
                     >
                       {msg.role === 'assistant' ? (
                         msg.content ? (
-                          <div className='prose prose-sm dark:prose-invert max-w-none'>
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                          <>
+                            <div className='prose prose-sm dark:prose-invert max-w-none'>
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {msg.content}
+                              </ReactMarkdown>
+                            </div>
                             {msg.sources && msg.sources.length > 0 && (
                               <SourceList data={msg.sources} />
                             )}
-                          </div>
+                          </>
                         ) : (
                           <div className='flex items-center gap-1.5 py-1'>
                             <span
@@ -313,24 +317,39 @@ function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className='mt-2 border-t pt-2'>
+    <div className='mt-3 border-t border-border/50 pt-2'>
       <button
-        className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground cursor-pointer'
+        className='flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors'
         onClick={() => setOpen(!open)}
       >
-        {open ? '收起' : '展开'}来源（{data.length}）
+        <FileText className='size-3' />
+        <span>
+          {open ? '收起' : '展开'}来源（{data.length}）
+        </span>
       </button>
       {open && (
-        <div className='mt-1 flex flex-col gap-1'>
+        <div className='mt-2 flex flex-col gap-1.5'>
           {data.map((src, i) => (
-            <div key={i} className='rounded-md border bg-muted/30 px-3 py-1.5 text-xs'>
-              <span className='font-medium'>[{i + 1}]</span>{' '}
-              {src.metadata?.fileName && (
-                <span className='text-muted-foreground'>{String(src.metadata.fileName)}</span>
-              )}
+            <div
+              key={i}
+              className='flex items-start gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-xs'
+            >
+              <span className='mt-0.5 shrink-0 font-semibold text-muted-foreground'>[{i + 1}]</span>
+              <div className='min-w-0 flex-1'>
+                <p className='truncate font-medium text-foreground'>
+                  {src.metadata?.fileName ? String(src.metadata.fileName) : '未知来源'}
+                </p>
+                <p className='text-muted-foreground'>
+                  {src.score !== undefined
+                    ? `相似度 ${(src.score * 100).toFixed(0)}%`
+                    : src.content
+                      ? src.content.slice(0, 80) + (src.content.length > 80 ? '...' : '')
+                      : ''}
+                </p>
+              </div>
               {src.score !== undefined && (
-                <span className='ml-1 text-muted-foreground'>
-                  · 相似度 {(src.score * 100).toFixed(0)}%
+                <span className='shrink-0 text-muted-foreground'>
+                  {(src.score * 100).toFixed(0)}%
                 </span>
               )}
             </div>
