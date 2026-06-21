@@ -12,6 +12,7 @@ import {
   useDeleteConversation,
   useMessages,
 } from '@/hooks/use-chat';
+import { useUpdateEffect } from 'ahooks';
 import { MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -74,8 +75,8 @@ export default function ChatPage() {
     }
   }, [activeConvId, loadedMessages, messages.length]);
 
-  // Auto scroll
-  useEffect(() => {
+  // Auto scroll — skip the initial render (messages starts empty anyway)
+  useUpdateEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 

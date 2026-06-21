@@ -1,6 +1,7 @@
 'use client';
 
 import { useAuthStore } from '@/store/auth-store';
+import { useMount } from 'ahooks';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -12,14 +13,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
+  useMount(() => {
     if (useAuthStore.persist.hasHydrated()) {
       setHydrated(true);
       return;
     }
     const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
     return unsub;
-  }, []);
+  });
 
   useEffect(() => {
     if (!hydrated) return;

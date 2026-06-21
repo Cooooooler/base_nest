@@ -45,9 +45,10 @@ import {
 import type { PresetModel } from '@base/shared';
 import { LOCAL_PROVIDER_TYPES } from '@base/shared';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useMemoizedFn } from 'ahooks';
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
@@ -100,33 +101,27 @@ export default function ProviderDetailPage() {
     defaultValues: { name: '', displayName: '', contextWindow: undefined, maxOutput: undefined },
   });
 
-  const handlePresetChange = useCallback(
-    (value: string) => {
-      setSelectedPreset(value);
-      const preset = presetModels?.find((pm: PresetModel) => pm.name === value);
-      if (preset) {
-        setModelValue('name', preset.name);
-        setModelValue('displayName', preset.displayName);
-        setModelValue('contextWindow', preset.contextWindow);
-        setModelValue('maxOutput', preset.maxOutput);
-        setModelCapabilities({ ...preset.capabilities });
-      }
-    },
-    [presetModels, setModelValue]
-  );
+  const handlePresetChange = useMemoizedFn((value: string) => {
+    setSelectedPreset(value);
+    const preset = presetModels?.find((pm: PresetModel) => pm.name === value);
+    if (preset) {
+      setModelValue('name', preset.name);
+      setModelValue('displayName', preset.displayName);
+      setModelValue('contextWindow', preset.contextWindow);
+      setModelValue('maxOutput', preset.maxOutput);
+      setModelCapabilities({ ...preset.capabilities });
+    }
+  });
 
-  const handleEditModel = useCallback(
-    (model: any) => {
-      setEditingModel(model);
-      setModelValue('name', model.name);
-      setModelValue('displayName', model.displayName);
-      setModelValue('contextWindow', model.contextWindow || undefined);
-      setModelValue('maxOutput', model.maxOutput || undefined);
-      setModelCapabilities(model.capabilities || {});
-      setModelDialogOpen(true);
-    },
-    [setModelValue]
-  );
+  const handleEditModel = useMemoizedFn((model: any) => {
+    setEditingModel(model);
+    setModelValue('name', model.name);
+    setModelValue('displayName', model.displayName);
+    setModelValue('contextWindow', model.contextWindow || undefined);
+    setModelValue('maxOutput', model.maxOutput || undefined);
+    setModelCapabilities(model.capabilities || {});
+    setModelDialogOpen(true);
+  });
 
   const onModelSubmit = async (data: ModelFormData) => {
     try {
