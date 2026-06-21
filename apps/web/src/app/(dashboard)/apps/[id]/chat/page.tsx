@@ -68,10 +68,16 @@ export default function ChatPage() {
     if (convChanged || dataArrived) {
       if (loadedMessages) {
         setMessages(
-          loadedMessages.map((m) => ({
-            role: m.role as 'user' | 'assistant',
-            content: m.content,
-          }))
+          loadedMessages.map((m) => {
+            const msg: ChatMessage = {
+              role: m.role as 'user' | 'assistant',
+              content: m.content,
+            };
+            if (m.metadata?.sources) {
+              msg.sources = m.metadata.sources;
+            }
+            return msg;
+          })
         );
       } else {
         setMessages([]);

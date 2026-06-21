@@ -105,8 +105,11 @@ export class ChatService {
 
       stream.subscribe({
         next: (chunk: ChatChunk) => {
-          if (!chunk.isEnd) fullContent += chunk.content;
-          subscriber.next(chunk);
+          if (!chunk.isEnd) {
+            fullContent += chunk.content;
+            subscriber.next(chunk);
+          }
+          // 跳过 llm-provider 的 isEnd chunk——让外层 observer.complete() 统一发送带 sources 的结束信号
         },
         error: (err: Error) => {
           this.logger.error(`Chat stream error: ${err.message}`);
