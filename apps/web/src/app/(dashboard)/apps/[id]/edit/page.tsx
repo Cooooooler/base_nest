@@ -12,9 +12,17 @@ import {
 } from '@/components/ui/dialog';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { useApp, useDeleteApp, useUpdateApp } from '@/hooks/use-chat';
+import { useKnowledgeBases } from '@/hooks/use-knowledge';
 import { useProviders } from '@/hooks/use-providers';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -27,11 +35,13 @@ export default function EditAppPage() {
   const updateApp = useUpdateApp();
   const deleteApp = useDeleteApp();
   const { data: providers } = useProviders();
+  const { data: knowledgeBases } = useKnowledgeBases();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [temperature, setTemperature] = useState('0.7');
+  const [knowledgeBaseId, setKnowledgeBaseId] = useState('');
   const [showDelete, setShowDelete] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -41,6 +51,7 @@ export default function EditAppPage() {
       setDescription(app.description || '');
       setSystemPrompt(app.systemPrompt || '');
       setTemperature(String(app.temperature));
+      setKnowledgeBaseId(app.knowledgeBaseId || '');
     }
   }, [app]);
 
@@ -54,6 +65,7 @@ export default function EditAppPage() {
         description: description.trim() || undefined,
         systemPrompt,
         temperature: parseFloat(temperature),
+        knowledgeBaseId: knowledgeBaseId || undefined,
       });
       toast.success('应用已更新');
       router.push(`/apps/${id}/chat`);
@@ -127,6 +139,28 @@ export default function EditAppPage() {
                 onChange={(e) => setTemperature(e.target.value)}
               />
             </Field>
+
+            <Field>
+              <FieldLabel>关联知识库（可选）</FieldLabel>
+              <Select
+                value={knowledgeBaseId}
+                onValueChange={(v) => {
+                  if (v) setKnowledgeBaseId(v);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder='不关联知识库' />
+                </SelectTrigger>
+                <SelectContent>
+                  {knowledgeBases?.map((kb) => (
+                    <SelectItem key={kb.id} value={kb.id}>
+                      {kb.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+
             <div className='flex gap-3'>
               <Button className='cursor-pointer' type='submit' disabled={saving}>
                 {saving ? '保存中...' : '保存'}
