@@ -17,6 +17,7 @@ describe('AppService', () => {
     systemPrompt: '',
     temperature: 0.7,
     maxTokens: 4096,
+    knowledgeBaseId: null,
     userId: 'user-1',
     isPublished: false,
     createdAt: new Date(),

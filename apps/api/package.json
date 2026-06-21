@@ -33,7 +33,10 @@
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
-    }
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!(.pnpm/)?uuid)"
+    ]
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.104.1",

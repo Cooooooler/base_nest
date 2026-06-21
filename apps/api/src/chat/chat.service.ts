@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Observable } from 'rxjs';
 import { Repository } from 'typeorm';
+import { RetrievalService } from '../knowledge/retrieval.service';
 import { ProvidersService } from '../providers/providers.service';
 import { AppService } from './app.service';
 import { ConversationService } from './conversation.service';
@@ -11,6 +12,11 @@ interface ChatChunk {
   content: string;
   isEnd: boolean;
   error?: string;
+  sources?: Array<{
+    content: string;
+    metadata: Record<string, any>;
+    score?: number;
+  }>;
 }
 
 interface ChatMessage {
@@ -27,7 +33,8 @@ export class ChatService {
     private readonly msgRepo: Repository<Message>,
     private readonly appService: AppService,
     private readonly convService: ConversationService,
-    private readonly providersService: ProvidersService
+    private readonly providersService: ProvidersService,
+    private readonly retrievalService: RetrievalService
   ) {}
 
   async getMessages(convId: string): Promise<Message[]> {
@@ -62,7 +69,27 @@ export class ChatService {
       })
     );
 
-    const messages = this.buildMessages(app.systemPrompt, history, content, app.maxTokens);
+    let retrievedSources: ChatChunk['sources'] = undefined;
+    if (app.knowledgeBaseId) {
+      try {
+        const results = await this.retrievalService.searchWithScore(
+          app.knowledgeBaseId,
+          content,
+          4
+        );
+        retrievedSources = results;
+      } catch (err) {
+        this.logger.warn(`Knowledge retrieval failed: ${(err as Error).message}`);
+      }
+    }
+
+    const messages = this.buildMessages(
+      app.systemPrompt,
+      history,
+      content,
+      app.maxTokens,
+      retrievedSources
+    );
     const client = await this.providersService.getProviderClient(app.providerId);
 
     return new Observable<ChatChunk>((subscriber) => {
@@ -88,24 +115,30 @@ export class ChatService {
         },
         complete: async () => {
           try {
-            await this.msgRepo.save(
-              this.msgRepo.create({
-                conversationId: convId,
-                role: 'assistant',
-                content: fullContent,
-                tokens: {
-                  prompt: this.estimateTokens(messages.map((m) => m.content).join('')),
-                  completion: this.estimateTokens(fullContent),
-                  total:
-                    this.estimateTokens(fullContent) +
-                    this.estimateTokens(messages.map((m) => m.content).join('')),
-                },
-              })
-            );
+            const msgData: any = {
+              conversationId: convId,
+              role: 'assistant',
+              content: fullContent,
+              tokens: {
+                prompt: this.estimateTokens(messages.map((m) => m.content).join('')),
+                completion: this.estimateTokens(fullContent),
+                total:
+                  this.estimateTokens(fullContent) +
+                  this.estimateTokens(messages.map((m) => m.content).join('')),
+              },
+            };
+            if (retrievedSources) {
+              msgData.metadata = { sources: retrievedSources };
+            }
+            await this.msgRepo.save(this.msgRepo.create(msgData));
           } catch (err) {
             this.logger.error(`Failed to save assistant message: ${(err as Error).message}`);
           }
-          subscriber.next({ content: '', isEnd: true });
+          subscriber.next({
+            content: '',
+            isEnd: true,
+            ...(retrievedSources ? { sources: retrievedSources } : {}),
+          });
           subscriber.complete();
         },
       });
@@ -120,15 +153,29 @@ export class ChatService {
     systemPrompt: string,
     history: Message[],
     userContent: string,
-    maxTokens: number
+    maxTokens: number,
+    sources?: ChatChunk['sources']
   ): ChatMessage[] {
+    let systemContent = this.renderPrompt(systemPrompt, {
+      query: userContent,
+      date: new Date().toISOString().slice(0, 10),
+      time: new Date().toISOString().slice(11, 19),
+    });
+
+    // 如果有检索结果，追加引用上下文
+    if (sources && sources.length > 0) {
+      const refs = sources
+        .map(
+          (s, i) =>
+            `[${i + 1}] (相似度 ${(s.score! * 100).toFixed(0)}%) —— ${s.metadata?.fileName || '未知来源'}`
+        )
+        .join('\n');
+      systemContent += `\n\n以下是与用户问题相关的参考资料：\n${refs}\n\n请在回答中引用相关来源，格式为 [编号]；不要提及内部编号规则。`;
+    }
+
     const systemMsg: ChatMessage = {
       role: 'system',
-      content: this.renderPrompt(systemPrompt, {
-        query: userContent,
-        date: new Date().toISOString().slice(0, 10),
-        time: new Date().toISOString().slice(11, 19),
-      }),
+      content: systemContent,
     };
 
     const userMsg: ChatMessage = { role: 'user', content: userContent };

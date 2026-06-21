@@ -2,7 +2,8 @@
 
 Purpose: quick, actionable knowledge for an AI agent to be immediately productive in this repository (a NestJS monorepo).
 
-1) Big picture
+1. Big picture
+
 - Monorepo managed by pnpm + Turborepo. Root scripts proxy to packages using `pnpm --filter` and `turbo` (see `package.json`).
 - Service apps:
   - `apps/api` — NestJS 11 backend (TypeORM + Postgres, Passport JWT auth, Swagger at `/docs`).
@@ -10,7 +11,8 @@ Purpose: quick, actionable knowledge for an AI agent to be immediately productiv
   - `packages/shared` — shared types/utilities.
 - Database + schema: TypeORM with `synchronize: false` — migrations are the source of truth. CLI DataSource reads compiled `dist` entities (see `apps/api/src/database/data-source.ts`).
 
-2) Key files to consult (examples)
+2. Key files to consult (examples)
+
 - `apps/api/src/main.ts` — global interceptors and filters (ClassSerializerInterceptor, ResponseInterceptor, HttpExceptionFilter).
 - `apps/api/src/app.module.ts` — ConfigModule + TypeOrmModule setup; global ValidationPipe settings.
 - `apps/api/src/database/data-source.ts` — DataSource used by migration CLI (uses `dist/` compiled entities/migrations).
@@ -20,7 +22,8 @@ Purpose: quick, actionable knowledge for an AI agent to be immediately productiv
 - `apps/api/package.json` and root `package.json` — scripts for build, run, tests and migrations.
 - `.claude/skills/` and `CLAUDE.md` — repository-level guidance and the internal "superpowers" skills framework (agent must respect these skills).
 
-3) Important patterns & conventions
+3. Important patterns & conventions
+
 - Global response envelope: all successful responses should be `{ code: 1, data, msg: 'ok' }`. Interceptor enforces/normalizes this.
 - Errors are normalized to `{ code: 0, data: null, msg }` by the HttpExceptionFilter.
 - ClassSerializerInterceptor is enabled globally in `main.ts` to strip `@Exclude()` fields (e.g. `User.password`).
@@ -31,7 +34,8 @@ Purpose: quick, actionable knowledge for an AI agent to be immediately productiv
 - Tests: Jest + ts-jest. Unit tests mock services/repositories (see CLAUDE.md testing patterns). E2E tests live in `apps/api/test/` and use `supertest`.
 - Pre-commit: Husky enforced (`prepare` script). pre-commit runs lint/format/tests; commit-msg uses commitlint for Conventional Commits.
 
-4) Developer workflows (commands & examples)
+4. Developer workflows (commands & examples)
+
 - Start backend in dev (watch): from repo root
 
   pnpm run start:dev
@@ -62,21 +66,25 @@ Purpose: quick, actionable knowledge for an AI agent to be immediately productiv
 
   pnpm run test:e2e
 
-5) Environment & configuration
-- `@nestjs/config` is used; `ConfigModule.forRoot(...)` loads `database` via `registerAs` and expects a `.env` file by default. Migrations use `dotenv` in `src/database/data-source.ts`.
-- Environment variables: DB_* (host/port/username/password/database) and NODE_ENV.
+5. Environment & configuration
 
-6) Where to look for examples and common code
+- `@nestjs/config` is used; `ConfigModule.forRoot(...)` loads `database` via `registerAs` and expects a `.env` file by default. Migrations use `dotenv` in `src/database/data-source.ts`.
+- Environment variables: DB\_\* (host/port/username/password/database) and NODE_ENV.
+
+6. Where to look for examples and common code
+
 - Entities: `apps/api/src/**/entities/*.ts` (e.g. `users/user.entity.ts`, `auth/entities/blacklisted-token.entity.ts`).
 - Controllers/services: `apps/api/src/*/*.controller.ts` and `*.service.ts` (see `auth`, `users`, `knowledge`, `providers`).
 - Shared utilities / docs: `apps/api/src/common/*` (interceptors, filters, docs setup, local-ai adapter).
 
-7) Agent conduct & important project-specific rules
+7. Agent conduct & important project-specific rules
+
 - Respect `.claude/skills` and `CLAUDE.md`: this repo embeds an explicit agent workflow ("superpowers"). Before making changes or beginning implementation, check `CLAUDE.md` and applicable SKILL.md files.
 - Migrations must be generated and run with the build step; mention and follow the build → migration pattern in any automation or PR instructions.
 - Tests are the expected verification method. The repo enforces pre-commit hooks that run lint/format/tests; be conservative with commits that skip tests.
 
-8) Quick investigative checklist for agents
+8. Quick investigative checklist for agents
+
 - Read `CLAUDE.md` and relevant `.claude/skills/*` SKILL.md before implementing (project policy).
 - Check `apps/api/src/app.module.ts` for registration of global pipes/interceptors/filters when changing request/response behaviors.
 - If changing schema: generate migration via `pnpm run migration:generate ...` and include migration file in PR.
@@ -84,6 +92,7 @@ Purpose: quick, actionable knowledge for an AI agent to be immediately productiv
 - When running migrations or scripts, ensure `pnpm` + `turbo` proxying is used as shown in root `package.json`.
 
 References (files to open first)
+
 - `CLAUDE.md`
 - `.claude/skills/using-superpowers/SKILL.md`
 - `apps/api/src/main.ts`
@@ -95,4 +104,5 @@ References (files to open first)
 - `apps/api/package.json`
 
 ---
+
 Generated by an automated analysis of the repository. Update this file if repository conventions change.

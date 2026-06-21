@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateApp } from '@/hooks/use-chat';
+import { useKnowledgeBases } from '@/hooks/use-knowledge';
 import { useProviderModels, useProviders } from '@/hooks/use-providers';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -29,9 +30,11 @@ export default function NewAppPage() {
   const [modelId, setModelId] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
   const [temperature, setTemperature] = useState('0.7');
+  const [knowledgeBaseId, setKnowledgeBaseId] = useState('');
   const [saving, setSaving] = useState(false);
 
   const { data: models } = useProviderModels(providerId);
+  const { data: knowledgeBases } = useKnowledgeBases();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +52,7 @@ export default function NewAppPage() {
         systemPrompt,
         temperature: parseFloat(temperature),
         maxTokens: 4096,
+        knowledgeBaseId: knowledgeBaseId || undefined,
       });
       toast.success('应用已创建');
       router.push(`/apps/${app.id}/chat`);
@@ -148,6 +152,27 @@ export default function NewAppPage() {
               value={temperature}
               onChange={(e) => setTemperature(e.target.value)}
             />
+          </Field>
+
+          <Field>
+            <FieldLabel>关联知识库（可选）</FieldLabel>
+            <Select
+              value={knowledgeBaseId}
+              onValueChange={(v) => {
+                if (v) setKnowledgeBaseId(v);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder='不关联知识库' />
+              </SelectTrigger>
+              <SelectContent>
+                {knowledgeBases?.map((kb) => (
+                  <SelectItem key={kb.id} value={kb.id}>
+                    {kb.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </Field>
 
           <div className='flex gap-3'>

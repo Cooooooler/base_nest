@@ -13,6 +13,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useAuthStore } from '@/store/auth-store';
+import { useMemoizedFn } from 'ahooks';
 import {
   BookOpen,
   Bot,
@@ -23,7 +24,6 @@ import {
   Workflow,
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback } from 'react';
 
 const navItems = [
   { href: '/', label: '仪表盘', icon: LayoutDashboard },
@@ -48,9 +48,8 @@ export function AppSidebar() {
     router.push('/login');
   };
 
-  const isActive = useCallback(
-    (href: string) => pathname === href || pathname.startsWith(href + '/'),
-    [pathname]
+  const isActive = useMemoizedFn(
+    (href: string) => pathname === href || pathname.startsWith(href + '/')
   );
 
   return (

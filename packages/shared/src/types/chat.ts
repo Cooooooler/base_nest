@@ -4,6 +4,7 @@ export interface App {
   description: string | null;
   providerId: string;
   modelId: string;
+  knowledgeBaseId: string | null;
   systemPrompt: string;
   temperature: number;
   maxTokens: number;

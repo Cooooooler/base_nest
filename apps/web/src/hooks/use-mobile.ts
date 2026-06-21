@@ -1,19 +1,13 @@
-import * as React from 'react';
+import { useResponsive } from 'ahooks';
 
-const MOBILE_BREAKPOINT = 768;
-
+/**
+ * Returns true when the viewport width is less than the md breakpoint (768px).
+ * Uses ahooks' useResponsive with built-in breakpoints.
+ */
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
-
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    };
-    mql.addEventListener('change', onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener('change', onChange);
-  }, []);
-
-  return !!isMobile;
+  const responsive = useResponsive();
+  // During SSR or hydration, responsive is undefined — default to non-mobile.
+  if (!responsive) return false;
+  // md is true when width >= 768, so !md means mobile (<768px).
+  return !responsive.md;
 }

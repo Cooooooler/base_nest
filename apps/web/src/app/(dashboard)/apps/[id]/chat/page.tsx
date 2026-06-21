@@ -1,6 +1,6 @@
 'use client';
 
-import { streamChat } from '@/api/chat';
+import { streamChat, type ChatChunk } from '@/api/chat';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,6 +12,7 @@ import {
   useDeleteConversation,
   useMessages,
 } from '@/hooks/use-chat';
+import { useUpdateEffect } from 'ahooks';
 import { MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -22,6 +23,11 @@ import { toast } from 'sonner';
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  sources?: Array<{
+    content: string;
+    metadata: Record<string, any>;
+    score?: number;
+  }>;
 }
 
 export default function ChatPage() {
@@ -74,8 +80,8 @@ export default function ChatPage() {
     }
   }, [activeConvId, loadedMessages, messages.length]);
 
-  // Auto scroll
-  useEffect(() => {
+  // Auto scroll — skip the initial render (messages starts empty anyway)
+  useUpdateEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
@@ -104,8 +110,10 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, { role: 'user', content }, { role: 'assistant', content: '' }]);
 
     let fullContent = '';
+    let lastChunk: ChatChunk | null = null;
     try {
       for await (const chunk of streamChat(appId, convId, content)) {
+        lastChunk = chunk;
         if (chunk.error) {
           toast.error(chunk.error);
           break;
@@ -120,6 +128,15 @@ export default function ChatPage() {
       }
     } catch {
       toast.error('发送失败');
+    }
+
+    // 流结束——将 sources 附加到最后一条消息
+    if (lastChunk?.sources) {
+      setMessages((prev) => {
+        const next = [...prev];
+        if (next[aiIdx]) next[aiIdx] = { ...next[aiIdx], sources: lastChunk!.sources };
+        return next;
+      });
     }
 
     streamingRef.current = false;
@@ -233,6 +250,9 @@ export default function ChatPage() {
                         msg.content ? (
                           <div className='prose prose-sm dark:prose-invert max-w-none'>
                             <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                            {msg.sources && msg.sources.length > 0 && (
+                              <SourceList data={msg.sources} />
+                            )}
                           </div>
                         ) : (
                           <div className='flex items-center gap-1.5 py-1'>
@@ -285,6 +305,38 @@ export default function ChatPage() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className='mt-2 border-t pt-2'>
+      <button
+        className='flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground cursor-pointer'
+        onClick={() => setOpen(!open)}
+      >
+        {open ? '收起' : '展开'}来源（{data.length}）
+      </button>
+      {open && (
+        <div className='mt-1 flex flex-col gap-1'>
+          {data.map((src, i) => (
+            <div key={i} className='rounded-md border bg-muted/30 px-3 py-1.5 text-xs'>
+              <span className='font-medium'>[{i + 1}]</span>{' '}
+              {src.metadata?.fileName && (
+                <span className='text-muted-foreground'>{String(src.metadata.fileName)}</span>
+              )}
+              {src.score !== undefined && (
+                <span className='ml-1 text-muted-foreground'>
+                  · 相似度 {(src.score * 100).toFixed(0)}%
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

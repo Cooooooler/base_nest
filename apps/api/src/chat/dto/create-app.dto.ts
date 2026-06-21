@@ -48,4 +48,9 @@ export class CreateAppDto {
   @Min(1)
   @Max(128000)
   maxTokens?: number;
+
+  @ApiProperty({ required: false, description: '关联知识库 ID' })
+  @IsOptional()
+  @IsUUID()
+  knowledgeBaseId?: string;
 }

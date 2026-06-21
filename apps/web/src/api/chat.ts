@@ -20,6 +20,7 @@ export function createApp(dto: {
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
+  knowledgeBaseId?: string;
 }) {
   return apiClient<App>('/apps', { method: 'POST', json: dto });
 }
@@ -32,6 +33,7 @@ export function updateApp(
     systemPrompt: string;
     temperature: number;
     maxTokens: number;
+    knowledgeBaseId: string;
   }>
 ) {
   return apiClient<App>(`/apps/${id}`, { method: 'PATCH', json: dto });
@@ -66,6 +68,11 @@ export interface ChatChunk {
   content: string;
   isEnd: boolean;
   error?: string;
+  sources?: Array<{
+    content: string;
+    metadata: Record<string, any>;
+    score?: number;
+  }>;
 }
 
 export async function* streamChat(

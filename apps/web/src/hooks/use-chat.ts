@@ -47,6 +47,7 @@ export function useUpdateApp() {
       systemPrompt: string;
       temperature: number;
       maxTokens: number;
+      knowledgeBaseId: string;
     }>) => updateApp(id, dto),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ['apps'] });

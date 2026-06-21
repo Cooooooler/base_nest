@@ -14,9 +14,10 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDeleteProvider, useProviders } from '@/hooks/use-providers';
 import { LOCAL_PROVIDER_TYPES } from '@base/shared';
+import { useMemoizedFn } from 'ahooks';
 import { Plus, Server, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 
 export default function ProvidersPage() {
@@ -25,7 +26,7 @@ export default function ProvidersPage() {
   const deleteProvider = useDeleteProvider();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = useMemoizedFn(async () => {
     if (!deleteTarget) return;
     try {
       await deleteProvider.mutateAsync(deleteTarget.id);
@@ -34,7 +35,7 @@ export default function ProvidersPage() {
       toast.error('删除失败');
     }
     setDeleteTarget(null);
-  }, [deleteTarget, deleteProvider]);
+  });
 
   if (isLoading) {
     return (

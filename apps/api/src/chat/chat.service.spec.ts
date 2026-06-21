@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { lastValueFrom, of } from 'rxjs';
+import { RetrievalService } from '../knowledge/retrieval.service';
 import { ProvidersService } from '../providers/providers.service';
 import { AppService } from './app.service';
 import { ChatService } from './chat.service';
@@ -46,6 +47,10 @@ describe('ChatService', () => {
     }),
   };
 
+  const mockRetrievalService = {
+    searchWithScore: jest.fn().mockResolvedValue([]),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -54,6 +59,7 @@ describe('ChatService', () => {
         { provide: AppService, useValue: mockAppService },
         { provide: ConversationService, useValue: mockConvService },
         { provide: ProvidersService, useValue: mockProvidersService },
+        { provide: RetrievalService, useValue: mockRetrievalService },
       ],
     }).compile();
 
