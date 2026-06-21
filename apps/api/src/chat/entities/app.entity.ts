@@ -44,6 +44,9 @@ export class App {
   @Column('int', { default: 4096 })
   maxTokens: number;
 
+  @Column({ nullable: true })
+  knowledgeBaseId: string;
+
   @Column()
   userId: string;
 
