@@ -13,6 +13,11 @@ export class CreateKnowledgeBaseDto {
   @IsString()
   description?: string;
 
+  @ApiProperty({ example: 'mxbai-embed-large', required: false, description: '嵌入模型' })
+  @IsOptional()
+  @IsString()
+  embeddingModel?: string;
+
   @ApiProperty({ example: 500, required: false, description: '分块大小' })
   @IsOptional()
   @IsNumber()

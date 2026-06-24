@@ -5,23 +5,37 @@ import type { Where } from 'chromadb';
 
 @Injectable()
 export class ChromaVectorStoreService {
-  private store: Chroma;
+  private readonly defaultStore: Chroma;
 
   constructor(
-    private readonly embeddings: Embeddings,
+    private readonly defaultEmbeddings: Embeddings,
     config: { collectionName: string; url?: string; numDimensions?: number }
   ) {
-    this.store = new Chroma(embeddings, {
+    this.defaultStore = new Chroma(defaultEmbeddings, {
       collectionName: config.collectionName,
       url: config.url || 'http://localhost:8000',
       numDimensions: config.numDimensions ?? 1024,
     });
   }
 
+  private storeFor(embeddings?: Embeddings): Chroma {
+    if (!embeddings || embeddings === this.defaultEmbeddings) {
+      return this.defaultStore;
+    }
+    // When a custom embeddings is provided, create an ephemeral store
+    return new Chroma(embeddings, {
+      collectionName: this.defaultStore.collectionName,
+      url: (this.defaultStore as any).url || 'http://localhost:8000',
+      numDimensions: (this.defaultStore as any).numDimensions ?? 1024,
+    });
+  }
+
   async addDocuments(
-    docs: { pageContent: string; metadata?: Record<string, any> }[]
+    docs: { pageContent: string; metadata?: Record<string, any> }[],
+    embeddings?: Embeddings
   ): Promise<string[]> {
-    return this.store.addDocuments(
+    const store = this.storeFor(embeddings);
+    return store.addDocuments(
       docs.map((d) => ({
         pageContent: d.pageContent,
         metadata: d.metadata ?? {},
@@ -29,16 +43,18 @@ export class ChromaVectorStoreService {
     );
   }
 
-  async similaritySearch(query: string, k: number = 4) {
-    return this.store.similaritySearch(query, k);
+  async similaritySearch(query: string, k: number = 4, embeddings?: Embeddings) {
+    const store = this.storeFor(embeddings);
+    return store.similaritySearch(query, k);
   }
 
-  async similaritySearchWithScore(query: string, k: number = 4) {
-    return this.store.similaritySearchWithScore(query, k);
+  async similaritySearchWithScore(query: string, k: number = 4, embeddings?: Embeddings) {
+    const store = this.storeFor(embeddings);
+    return store.similaritySearchWithScore(query, k);
   }
 
   async deleteDocuments(ids: string[]): Promise<void> {
-    await this.store.delete({ ids });
+    await this.defaultStore.delete({ ids });
   }
 
   /**
@@ -46,12 +62,12 @@ export class ChromaVectorStoreService {
    * Uses the underlying ChromaDB collection's native filter delete.
    */
   async deleteByFilter(filter: Where): Promise<void> {
-    if (this.store.collection) {
-      await this.store.collection.delete({ where: filter });
+    if (this.defaultStore.collection) {
+      await this.defaultStore.collection.delete({ where: filter });
     }
   }
 
   getCollectionName(): string {
-    return this.store.collectionName;
+    return this.defaultStore.collectionName;
   }
 }

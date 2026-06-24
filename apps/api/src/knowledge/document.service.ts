@@ -1,6 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { EmbeddingFactory } from '../common/embeddings/embedding-factory.service';
 import { ChromaVectorStoreService } from '../common/vectore-store/chroma-vector-store.service';
 import { ChunkProcessorService } from './chunking/chunk-processor.service';
 import { DocumentSegment } from './entities/document-segment.entity';
@@ -21,7 +22,8 @@ export class DocumentService {
     private readonly kbRepo: Repository<KnowledgeBase>,
     private readonly chunkProcessor: ChunkProcessorService,
     private readonly fileStorage: FileStorageService,
-    private readonly vectorStore: ChromaVectorStoreService
+    private readonly vectorStore: ChromaVectorStoreService,
+    private readonly embeddingFactory: EmbeddingFactory
   ) {}
 
   async findByKnowledgeBase(knowledgeBaseId: string): Promise<DocEntity[]> {
@@ -106,7 +108,8 @@ export class DocumentService {
       );
       await this.segmentRepo.save(segments);
 
-      // Store vectors in Chroma
+      // Store vectors in Chroma using KB-configured embedding model
+      const embeddings = this.embeddingFactory.create(kb?.embeddingModel ?? 'mxbai-embed-large');
       await this.vectorStore.addDocuments(
         chunks.map((c) => ({
           pageContent: c.content,
@@ -116,7 +119,8 @@ export class DocumentService {
             index: c.index,
             fileName: doc.fileName,
           },
-        }))
+        })),
+        embeddings
       );
 
       await this.docRepo.update(docId, {

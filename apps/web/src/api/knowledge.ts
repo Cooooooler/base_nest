@@ -12,6 +12,7 @@ export function getKnowledgeBase(id: string) {
 export function createKnowledgeBase(dto: {
   name: string;
   description?: string;
+  embeddingModel?: string;
   chunkSize?: number;
   chunkOverlap?: number;
 }) {

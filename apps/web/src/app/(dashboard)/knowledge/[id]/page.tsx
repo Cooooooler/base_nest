@@ -158,6 +158,7 @@ export default function KnowledgeBaseDetailPage() {
       <div>
         <h2 className='text-2xl font-bold'>{kb.name}</h2>
         {kb.description && <p className='text-sm text-muted-foreground'>{kb.description}</p>}
+        <p className='mt-1 text-xs text-muted-foreground'>嵌入模型: {kb.embeddingModel}</p>
       </div>
 
       <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>

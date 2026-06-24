@@ -104,11 +104,12 @@ export class ChatService {
 
       stream.subscribe({
         next: (chunk: ChatChunk) => {
+          fullContent += chunk.content;
           if (!chunk.isEnd) {
-            fullContent += chunk.content;
             subscriber.next(chunk);
           }
-          // 跳过 llm-provider 的 isEnd chunk——让外层 observer.complete() 统一发送带 sources 的结束信号
+          // 跳过 llm-provider 的 isEnd chunk 转发——让 complete() 统一发送带 sources 的结束信号
+          // 但 fullContent 仍需累加，因为 Ollama 的 done=true 块中可能包含内容
         },
         error: (err: Error) => {
           this.logger.error(`Chat stream error: ${err.message}`);
