@@ -6,7 +6,6 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
-  Req,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -39,11 +38,10 @@ export class ChatController {
     @Param('appId', ParseUUIDPipe) appId: string,
     @Param('convId', ParseUUIDPipe) convId: string,
     @Body() dto: SendMessageDto,
-    @Req() req: { user: { id: string } },
     @Res() res: Response
   ) {
     // 先执行验证（可能抛出异常），再设置 SSE headers
-    const observable = await this.chatService.sendMessage(appId, convId, dto.content, req.user.id);
+    const observable = await this.chatService.sendMessage(appId, convId, dto.content);
 
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');

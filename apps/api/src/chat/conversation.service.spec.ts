@@ -1,13 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { ConversationService } from './conversation.service';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
 
 describe('ConversationService', () => {
   let service: ConversationService;
-  let repo: Repository<Conversation>;
 
   const mockConv: Conversation = {
     id: 'conv-1',
@@ -40,7 +38,6 @@ describe('ConversationService', () => {
     }).compile();
 
     service = module.get<ConversationService>(ConversationService);
-    repo = module.get(getRepositoryToken(Conversation));
   });
 
   it('should be defined', () => {

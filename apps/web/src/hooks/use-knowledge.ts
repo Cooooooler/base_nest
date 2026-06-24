@@ -32,6 +32,7 @@ export function useCreateKnowledgeBase() {
     mutationFn: (dto: {
       name: string;
       description?: string;
+      embeddingModel?: string;
       chunkSize?: number;
       chunkOverlap?: number;
     }) => createKnowledgeBase(dto),

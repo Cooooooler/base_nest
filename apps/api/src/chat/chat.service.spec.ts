@@ -71,7 +71,7 @@ describe('ChatService', () => {
   });
 
   it('sendMessage should return an Observable and save messages', async () => {
-    const result$ = await service.sendMessage('app-1', 'conv-1', 'Hi', 'user-1');
+    const result$ = await service.sendMessage('app-1', 'conv-1', 'Hi');
 
     const chunks: any[] = [];
     result$.subscribe({

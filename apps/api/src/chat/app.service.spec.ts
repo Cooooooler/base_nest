@@ -1,28 +1,28 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { AppService } from './app.service';
 import { App } from './entities/app.entity';
+import { Conversation } from './entities/conversation.entity';
+import { Message } from './entities/message.entity';
 
 describe('AppService', () => {
   let service: AppService;
-  let repo: Repository<App>;
 
-  const mockApp: App = {
+  const mockApp: Partial<App> = {
     id: 'app-1',
     name: 'Test App',
-    description: null,
+    description: null as string | null,
     providerId: 'prov-1',
     modelId: 'model-1',
     systemPrompt: '',
     temperature: 0.7,
     maxTokens: 4096,
-    knowledgeBaseId: null,
+    knowledgeBaseId: null as string | null,
     userId: 'user-1',
     isPublished: false,
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as App;
+  };
 
   const mockRepo = {
     find: jest.fn().mockResolvedValue([mockApp]),
@@ -34,13 +34,26 @@ describe('AppService', () => {
     delete: jest.fn().mockResolvedValue({ affected: 1 }),
   };
 
+  const mockConvRepo = {
+    find: jest.fn().mockResolvedValue([]),
+    delete: jest.fn().mockResolvedValue({ affected: 0 }),
+  };
+
+  const mockMessageRepo = {
+    delete: jest.fn().mockResolvedValue({ affected: 0 }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AppService, { provide: getRepositoryToken(App), useValue: mockRepo }],
+      providers: [
+        AppService,
+        { provide: getRepositoryToken(App), useValue: mockRepo },
+        { provide: getRepositoryToken(Conversation), useValue: mockConvRepo },
+        { provide: getRepositoryToken(Message), useValue: mockMessageRepo },
+      ],
     }).compile();
 
     service = module.get<AppService>(AppService);
-    repo = module.get(getRepositoryToken(App));
   });
 
   it('should be defined', () => {

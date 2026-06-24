@@ -47,8 +47,7 @@ export class ChatService {
   async sendMessage(
     appId: string,
     convId: string,
-    content: string,
-    userId: string
+    content: string
   ): Promise<Observable<ChatChunk>> {
     const conv = await this.convService.findOne(convId);
     if (conv.appId !== appId) throw new NotFoundException('Conversation not found');
@@ -105,14 +104,19 @@ export class ChatService {
 
       stream.subscribe({
         next: (chunk: ChatChunk) => {
-          if (!chunk.isEnd) fullContent += chunk.content;
-          subscriber.next(chunk);
+          fullContent += chunk.content;
+          if (!chunk.isEnd) {
+            subscriber.next(chunk);
+          }
+          // 跳过 llm-provider 的 isEnd chunk 转发——让 complete() 统一发送带 sources 的结束信号
+          // 但 fullContent 仍需累加，因为 Ollama 的 done=true 块中可能包含内容
         },
         error: (err: Error) => {
           this.logger.error(`Chat stream error: ${err.message}`);
           subscriber.next({ content: '', isEnd: true, error: err.message });
           subscriber.complete();
         },
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         complete: async () => {
           try {
             const msgData: any = {
@@ -189,7 +193,7 @@ export class ChatService {
       const tokens = estimated(msg.content);
       if (total + tokens > maxTokens) break;
       total += tokens;
-      selected.push({ role: msg.role as 'user' | 'assistant', content: msg.content });
+      selected.push({ role: msg.role, content: msg.content });
     }
 
     // 恢复时间顺序（最早的在前），再追加当前消息

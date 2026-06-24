@@ -32,7 +32,7 @@ export class ProvidersController {
 
   @Get('preset-models')
   @ApiOperation({ summary: '获取预设模型列表' })
-  async getPresetModels(@Query('type') type: string) {
+  getPresetModels(@Query('type') type: string) {
     return this.providersService.getPresetModels(type);
   }
 
