@@ -47,8 +47,7 @@ export class ChatService {
   async sendMessage(
     appId: string,
     convId: string,
-    content: string,
-    userId: string
+    content: string
   ): Promise<Observable<ChatChunk>> {
     const conv = await this.convService.findOne(convId);
     if (conv.appId !== appId) throw new NotFoundException('Conversation not found');
@@ -116,6 +115,7 @@ export class ChatService {
           subscriber.next({ content: '', isEnd: true, error: err.message });
           subscriber.complete();
         },
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         complete: async () => {
           try {
             const msgData: any = {
@@ -192,7 +192,7 @@ export class ChatService {
       const tokens = estimated(msg.content);
       if (total + tokens > maxTokens) break;
       total += tokens;
-      selected.push({ role: msg.role as 'user' | 'assistant', content: msg.content });
+      selected.push({ role: msg.role, content: msg.content });
     }
 
     // 恢复时间顺序（最早的在前），再追加当前消息

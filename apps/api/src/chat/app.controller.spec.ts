@@ -36,7 +36,7 @@ describe('AppController', () => {
 
   it('findAll should return apps', async () => {
     const req = { user: { id: 'user-1' } };
-    const result = await controller.findAll(req as any);
+    const result = await controller.findAll(req);
     expect(result).toEqual([]);
     expect(mockService.findAllByUser).toHaveBeenCalledWith('user-1');
   });
@@ -53,7 +53,7 @@ describe('AppController', () => {
       modelId: 'model-1',
     };
     const req = { user: { id: 'user-1' } };
-    const result = await controller.create(req as any, dto);
+    const result = await controller.create(req, dto);
     expect(result).toEqual({ id: 'app-1' });
     expect(mockService.create).toHaveBeenCalledWith('user-1', dto);
   });

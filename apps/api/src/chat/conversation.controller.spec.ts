@@ -35,7 +35,7 @@ describe('ConversationController', () => {
 
   it('findAll should return conversations', async () => {
     const req = { user: { id: 'user-1' } };
-    const result = await controller.findAll(req as any, 'app-1');
+    const result = await controller.findAll(req, 'app-1');
     expect(result).toEqual([]);
     expect(mockService.findByApp).toHaveBeenCalledWith('app-1', 'user-1');
   });
@@ -43,7 +43,7 @@ describe('ConversationController', () => {
   it('create should create a conversation', async () => {
     const req = { user: { id: 'user-1' } };
     const dto: CreateConversationDto = { title: 'Test' };
-    const result = await controller.create(req as any, 'app-1', dto);
+    const result = await controller.create(req, 'app-1', dto);
     expect(result).toEqual({ id: 'conv-1' });
   });
 
