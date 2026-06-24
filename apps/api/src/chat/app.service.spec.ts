@@ -1,6 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { AppService } from './app.service';
 import { App } from './entities/app.entity';
 import { Conversation } from './entities/conversation.entity';
@@ -8,7 +7,6 @@ import { Message } from './entities/message.entity';
 
 describe('AppService', () => {
   let service: AppService;
-  let repo: Repository<App>;
 
   const mockApp: Partial<App> = {
     id: 'app-1',
@@ -56,7 +54,6 @@ describe('AppService', () => {
     }).compile();
 
     service = module.get<AppService>(AppService);
-    repo = module.get(getRepositoryToken(App));
   });
 
   it('should be defined', () => {

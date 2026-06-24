@@ -1,2 +1,11 @@
 pnpm lint-staged
+
+# Ensure no ESLint errors remain (match lines like "  104:22  error", not "0 errors")
+cd apps/api
+node_modules/.bin/eslint "{src,test}/**/*.ts" 2>&1 | grep -qE '^\s+\d+:\d+\s+error' && echo "❌ ESLint 错误未完全修复，阻止提交" && exit 1 || true
+
+cd ../web
+node_modules/.bin/eslint "src/**/*.{ts,tsx}" 2>&1 | grep -qE '^\s+\d+:\d+\s+error' && echo "❌ ESLint 错误未完全修复，阻止提交" && exit 1 || true
+
+cd ..
 pnpm --filter @base/api run test

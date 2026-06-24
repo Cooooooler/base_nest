@@ -20,7 +20,7 @@ describe('ProvidersController', () => {
     createApiKey: jest.fn().mockResolvedValue({ id: 'key-id', maskedKey: 'sk-***' }),
     deleteApiKey: jest.fn().mockResolvedValue(undefined),
     findModels: jest.fn().mockResolvedValue([]),
-    getPresetModels: jest.fn().mockResolvedValue([{ name: 'gpt-4o', displayName: 'GPT-4o' }]),
+    getPresetModels: jest.fn().mockReturnValue([{ name: 'gpt-4o', displayName: 'GPT-4o' }]),
     createModel: jest.fn().mockResolvedValue({ id: 'model-id', name: 'gpt-4o' }),
     updateModel: jest.fn().mockResolvedValue({ id: 'model-id', name: 'gpt-4o-updated' }),
     deleteModel: jest.fn().mockResolvedValue(undefined),
@@ -100,8 +100,8 @@ describe('ProvidersController', () => {
   });
 
   describe('getPresetModels', () => {
-    it('should return preset models by type', async () => {
-      const result = await controller.getPresetModels('openai');
+    it('should return preset models by type', () => {
+      const result = controller.getPresetModels('openai');
       expect(result).toHaveLength(1);
       expect(mockService.getPresetModels).toHaveBeenCalledWith('openai');
     });
