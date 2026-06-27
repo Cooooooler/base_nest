@@ -1,5 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
+import { User } from '../../users/user.entity';
 import { ApiKey } from './api-key.entity';
 import { Model } from './model.entity';
 
@@ -46,6 +55,13 @@ export class ModelProvider {
   @ApiProperty({ description: '创建时间' })
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
+
+  @Column()
+  userId: string;
+
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'userId' })
+  user: User;
 
   @OneToMany(() => ApiKey, (key) => key.provider)
   apiKeys: ApiKey[];

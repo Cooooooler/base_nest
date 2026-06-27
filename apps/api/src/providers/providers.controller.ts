@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -25,9 +26,11 @@ export class ProvidersController {
   constructor(private readonly providersService: ProvidersService) {}
 
   @Get()
-  @ApiOperation({ summary: '获取所有模型提供商' })
-  async findAll() {
-    return this.providersService.findAllProviders();
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '获取当前用户的所有模型提供商' })
+  async findAll(@Req() req: { user: { id: string } }) {
+    return this.providersService.findAllProviders(req.user.id);
   }
 
   @Get('preset-models')
@@ -37,47 +40,59 @@ export class ProvidersController {
   }
 
   @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '获取提供商详情' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.providersService.findProviderById(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @Req() req: { user: { id: string } }) {
+    return this.providersService.findProviderById(id, req.user.id);
   }
 
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '创建模型提供商' })
-  async create(@Body() dto: CreateProviderDto) {
-    return this.providersService.createProvider(dto);
+  async create(@Body() dto: CreateProviderDto, @Req() req: { user: { id: string } }) {
+    return this.providersService.createProvider(req.user.id, dto);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新模型提供商' })
-  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProviderDto) {
-    return this.providersService.updateProvider(id, dto);
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateProviderDto,
+    @Req() req: { user: { id: string } }
+  ) {
+    return this.providersService.updateProvider(id, req.user.id, dto);
   }
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '删除模型提供商' })
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.providersService.deleteProvider(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: { user: { id: string } }) {
+    return this.providersService.deleteProvider(id, req.user.id);
   }
 
   @Get(':id/keys')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '获取提供商的所有 API 密钥' })
-  async findApiKeys(@Param('id', ParseUUIDPipe) id: string) {
-    return this.providersService.findApiKeys(id);
+  async findApiKeys(@Param('id', ParseUUIDPipe) id: string, @Req() req: { user: { id: string } }) {
+    return this.providersService.findApiKeys(id, req.user.id);
   }
 
   @Post(':id/keys')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '添加 API 密钥' })
-  async createApiKey(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateApiKeyDto) {
-    return this.providersService.createApiKey(id, dto);
+  async createApiKey(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CreateApiKeyDto,
+    @Req() req: { user: { id: string } }
+  ) {
+    return this.providersService.createApiKey(id, req.user.id, dto);
   }
 
   @Delete('keys/:keyId')
@@ -92,8 +107,12 @@ export class ProvidersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '添加模型' })
-  async createModel(@Param('id', ParseUUIDPipe) id: string, @Body() dto: CreateModelDto) {
-    return this.providersService.createModel(id, dto);
+  async createModel(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: CreateModelDto,
+    @Req() req: { user: { id: string } }
+  ) {
+    return this.providersService.createModel(id, req.user.id, dto);
   }
 
   @Patch(':id/models/:modelId')
@@ -108,13 +127,18 @@ export class ProvidersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '删除模型' })
-  async removeModel(@Param('modelId', ParseUUIDPipe) modelId: string) {
-    return this.providersService.deleteModel(modelId);
+  async removeModel(
+    @Param('modelId', ParseUUIDPipe) modelId: string,
+    @Req() req: { user: { id: string } }
+  ) {
+    return this.providersService.deleteModel(modelId, req.user.id);
   }
 
   @Get(':id/models')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '获取提供商支持的模型列表' })
-  async findModels(@Param('id', ParseUUIDPipe) id: string) {
-    return this.providersService.findModels(id);
+  async findModels(@Param('id', ParseUUIDPipe) id: string, @Req() req: { user: { id: string } }) {
+    return this.providersService.findModels(id, req.user.id);
   }
 }

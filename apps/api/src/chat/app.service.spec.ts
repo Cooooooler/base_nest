@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { ModelProvider } from '../providers/entities/model-provider.entity';
+import { Model } from '../providers/entities/model.entity';
 import { AppService } from './app.service';
 import { App } from './entities/app.entity';
 import { Conversation } from './entities/conversation.entity';
@@ -24,6 +26,30 @@ describe('AppService', () => {
     updatedAt: new Date(),
   };
 
+  const mockProvider: Partial<ModelProvider> = {
+    id: 'prov-1',
+    userId: 'user-1',
+    name: 'Test Provider',
+    type: 'openai',
+    isEnabled: true,
+    baseUrl: null,
+    createdAt: new Date(),
+    apiKeys: [],
+    models: [],
+  };
+
+  const mockModel: Partial<Model> = {
+    id: 'model-1',
+    providerId: 'prov-1',
+    name: 'gpt-4',
+    displayName: 'GPT-4',
+    contextWindow: 8192,
+    maxOutput: 4096,
+    capabilities: {},
+    isBuiltin: false,
+    createdAt: new Date(),
+  };
+
   const mockRepo = {
     find: jest.fn().mockResolvedValue([mockApp]),
     findOne: jest.fn().mockResolvedValue(mockApp),
@@ -43,13 +69,24 @@ describe('AppService', () => {
     delete: jest.fn().mockResolvedValue({ affected: 0 }),
   };
 
+  const mockProviderRepo = {
+    findOneBy: jest.fn().mockResolvedValue(mockProvider),
+  };
+
+  const mockModelRepo = {
+    findOneBy: jest.fn().mockResolvedValue(mockModel),
+  };
+
   beforeEach(async () => {
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AppService,
         { provide: getRepositoryToken(App), useValue: mockRepo },
         { provide: getRepositoryToken(Conversation), useValue: mockConvRepo },
         { provide: getRepositoryToken(Message), useValue: mockMessageRepo },
+        { provide: getRepositoryToken(ModelProvider), useValue: mockProviderRepo },
+        { provide: getRepositoryToken(Model), useValue: mockModelRepo },
       ],
     }).compile();
 
@@ -78,19 +115,36 @@ describe('AppService', () => {
     });
   });
 
-  it('create should create and return an app', async () => {
+  it('create should verify ownership and create an app', async () => {
     const dto = { name: 'Test App', providerId: 'prov-1', modelId: 'model-1' };
     const result = await service.create('user-1', dto);
     expect(result).toEqual(mockApp);
+    expect(mockProviderRepo.findOneBy).toHaveBeenCalledWith({ id: 'prov-1', userId: 'user-1' });
+    expect(mockModelRepo.findOneBy).toHaveBeenCalledWith({ id: 'model-1', providerId: 'prov-1' });
     expect(mockRepo.create).toHaveBeenCalled();
     expect(mockRepo.save).toHaveBeenCalled();
   });
 
+  it('create should throw if provider not owned by user', async () => {
+    mockProviderRepo.findOneBy = jest.fn().mockResolvedValue(null);
+    const dto = { name: 'Test App', providerId: 'prov-1', modelId: 'model-1' };
+    await expect(service.create('user-2', dto)).rejects.toThrow('Provider not found');
+  });
+
   it('update should update an app', async () => {
     const dto = { name: 'Updated' };
-    const result = await service.update('app-1', dto);
+    const result = await service.update('app-1', 'user-1', dto);
     expect(result).toEqual(mockApp);
     expect(mockRepo.update).toHaveBeenCalledWith('app-1', dto);
+  });
+
+  it('update should verify provider ownership if providerId changes', async () => {
+    mockProviderRepo.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+    mockModelRepo.findOneBy = jest.fn().mockResolvedValue(mockModel);
+    const dto = { providerId: 'prov-1', modelId: 'model-1' };
+    await service.update('app-1', 'user-1', dto);
+    expect(mockProviderRepo.findOneBy).toHaveBeenCalledWith({ id: 'prov-1', userId: 'user-1' });
+    expect(mockModelRepo.findOneBy).toHaveBeenCalledWith({ id: 'model-1', providerId: 'prov-1' });
   });
 
   it('delete should remove an app', async () => {

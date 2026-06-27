@@ -6,7 +6,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
-    "migration:generate": "nest build && typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts src/database/migrations/",
+    "migration:generate": "nest build && typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts src/database/migrations/migration",
     "migration:revert": "nest build && typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
     "migration:run": "nest build && typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "start": "nest start",
