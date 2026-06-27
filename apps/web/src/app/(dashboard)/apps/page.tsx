@@ -38,7 +38,7 @@ export default function AppsPage() {
     <div className='flex flex-col gap-4'>
       <div className='flex items-center justify-between'>
         <h2 className='text-2xl font-bold'>对话应用</h2>
-        <Button className='cursor-pointer' size='sm' onClick={() => router.push('/apps/new')}>
+        <Button size='sm' onClick={() => router.push('/apps/new')}>
           <Plus data-icon />
           新建应用
         </Button>
@@ -62,9 +62,7 @@ export default function AppsPage() {
           <CardContent className='flex flex-col items-center gap-3 py-12'>
             <MessageSquare className='size-12 text-muted-foreground' />
             <p className='text-muted-foreground'>还没有对话应用</p>
-            <Button className='cursor-pointer' onClick={() => router.push('/apps/new')}>
-              创建第一个应用
-            </Button>
+            <Button onClick={() => router.push('/apps/new')}>创建第一个应用</Button>
           </CardContent>
         </Card>
       ) : (
@@ -85,7 +83,7 @@ export default function AppsPage() {
                   )}
                 </div>
                 <Button
-                  className='cursor-pointer shrink-0'
+                  className='shrink-0'
                   variant='ghost'
                   size='icon'
                   onClick={(e) => {
@@ -115,19 +113,10 @@ export default function AppsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              className='cursor-pointer'
-              variant='outline'
-              onClick={() => setDeleteTarget(null)}
-            >
+            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
               取消
             </Button>
-            <Button
-              className='cursor-pointer'
-              variant='destructive'
-              disabled={deleteApp.isPending}
-              onClick={handleDelete}
-            >
+            <Button variant='destructive' disabled={deleteApp.isPending} onClick={handleDelete}>
               {deleteApp.isPending ? '删除中...' : '确认删除'}
             </Button>
           </DialogFooter>

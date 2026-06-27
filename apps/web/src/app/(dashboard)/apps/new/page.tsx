@@ -176,15 +176,10 @@ export default function NewAppPage() {
           </Field>
 
           <div className='flex gap-3'>
-            <Button className='cursor-pointer' type='submit' disabled={saving}>
+            <Button type='submit' disabled={saving}>
               {saving ? '创建中...' : '创建'}
             </Button>
-            <Button
-              className='cursor-pointer'
-              variant='outline'
-              type='button'
-              onClick={() => router.back()}
-            >
+            <Button variant='outline' type='button' onClick={() => router.back()}>
               取消
             </Button>
           </div>

@@ -178,7 +178,6 @@ export default function KnowledgeBaseDetailPage() {
                     onChange={handleUpload}
                   />
                   <Button
-                    className='cursor-pointer'
                     size='sm'
                     disabled={uploading}
                     onClick={() => fileInputRef.current?.click()}
@@ -217,7 +216,6 @@ export default function KnowledgeBaseDetailPage() {
                         <TableCell>{statusBadge(doc.status)}</TableCell>
                         <TableCell>
                           <Button
-                            className='cursor-pointer'
                             variant='ghost'
                             size='icon'
                             onClick={() => setDeleteTarget({ id: doc.id, fileName: doc.fileName })}
@@ -251,11 +249,7 @@ export default function KnowledgeBaseDetailPage() {
                 placeholder='输入查询内容...'
                 rows={3}
               />
-              <Button
-                className='cursor-pointer w-full'
-                onClick={handleSearch}
-                disabled={retrieval.isPending}
-              >
+              <Button className='w-full' onClick={handleSearch} disabled={retrieval.isPending}>
                 <Search data-icon />
                 {retrieval.isPending ? '检索中...' : '检索'}
               </Button>
@@ -290,19 +284,10 @@ export default function KnowledgeBaseDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              className='cursor-pointer'
-              variant='outline'
-              onClick={() => setDeleteTarget(null)}
-            >
+            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
               取消
             </Button>
-            <Button
-              className='cursor-pointer'
-              variant='destructive'
-              disabled={deleteDoc.isPending}
-              onClick={handleDeleteDoc}
-            >
+            <Button variant='destructive' disabled={deleteDoc.isPending} onClick={handleDeleteDoc}>
               {deleteDoc.isPending ? '删除中...' : '确认删除'}
             </Button>
           </DialogFooter>

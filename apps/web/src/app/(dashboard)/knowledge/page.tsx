@@ -54,7 +54,7 @@ export default function KnowledgePage() {
     <div className='space-y-6'>
       <div className='flex items-center justify-between'>
         <p className='mt-1 text-sm text-muted-foreground'>管理知识库</p>
-        <Button className='cursor-pointer' onClick={() => router.push('/knowledge/new')}>
+        <Button onClick={() => router.push('/knowledge/new')}>
           <Plus data-icon /> 创建知识库
         </Button>
       </div>
@@ -88,7 +88,6 @@ export default function KnowledgePage() {
                     )}
                   </div>
                   <Button
-                    className='cursor-pointer'
                     variant='ghost'
                     size='icon'
                     aria-label={`删除 ${kb.name}`}
@@ -112,7 +111,7 @@ export default function KnowledgePage() {
                   onClick={() => router.push(`/knowledge/${kb.id}`)}
                   variant='outline'
                   size='sm'
-                  className='cursor-pointer mt-4 w-full'
+                  className='mt-4 w-full'
                 >
                   管理
                 </Button>

@@ -287,7 +287,7 @@ export default function ProviderDetailPage() {
                       <p className='text-sm text-muted-foreground'>密钥已加密存储。显示值：</p>
                       <p className='font-mono text-lg'>{newKeyResult}</p>
                       <Button
-                        className='cursor-pointer w-full'
+                        className='w-full'
                         onClick={() => {
                           setNewKeyResult(null);
                           setDialogOpen(false);
@@ -340,12 +340,11 @@ export default function ProviderDetailPage() {
                         )}
                       />
                       <div className='flex items-center justify-end gap-2'>
-                        <Button className='cursor-pointer' type='submit' disabled={isSubmitting}>
+                        <Button type='submit' disabled={isSubmitting}>
                           {isSubmitting && <Spinner data-icon='inline-start' />}
                           保存
                         </Button>
                         <Button
-                          className='cursor-pointer'
                           type='button'
                           variant='outline'
                           onClick={() => {
@@ -396,7 +395,6 @@ export default function ProviderDetailPage() {
                     </TableCell>
                     <TableCell>
                       <Button
-                        className='cursor-pointer'
                         variant='ghost'
                         size='icon'
                         aria-label={`删除密钥 ${k.name}`}
@@ -430,7 +428,7 @@ export default function ProviderDetailPage() {
                 }
               }}
             >
-              <DialogTrigger render={<Button className='cursor-pointer' size='sm' />}>
+              <DialogTrigger render={<Button size='sm' />}>
                 <Plus data-icon='inline-start' />
                 添加模型
               </DialogTrigger>
@@ -702,15 +700,10 @@ export default function ProviderDetailPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              className='cursor-pointer'
-              variant='outline'
-              onClick={() => setDeleteKeyTarget(null)}
-            >
+            <Button variant='outline' onClick={() => setDeleteKeyTarget(null)}>
               取消
             </Button>
             <Button
-              className='cursor-pointer'
               variant='destructive'
               onClick={handleDeleteKey}
               disabled={deleteApiKey.isPending}

@@ -191,7 +191,7 @@ export default function ChatPage() {
       {/* Conversation sidebar */}
       <Card className='flex w-64 shrink-0 flex-col'>
         <CardContent className='flex flex-col gap-2 p-3'>
-          <Button className='cursor-pointer w-full' size='sm' onClick={handleNewConversation}>
+          <Button className='w-full' size='sm' onClick={handleNewConversation}>
             <Plus data-icon />
             新会话
           </Button>
@@ -210,7 +210,7 @@ export default function ChatPage() {
                   {conv.title || `会话 ${conv.createdAt.slice(0, 10)}`}
                 </span>
                 <Button
-                  className='cursor-pointer size-6 shrink-0'
+                  className='size-6 shrink-0'
                   variant='ghost'
                   size='icon'
                   onClick={async (e) => {
@@ -305,7 +305,7 @@ export default function ChatPage() {
                 className='resize-none'
               />
               <Button
-                className='cursor-pointer self-end'
+                className='self-end'
                 size='icon'
                 onClick={handleSend}
                 disabled={sending || !input.trim()}
