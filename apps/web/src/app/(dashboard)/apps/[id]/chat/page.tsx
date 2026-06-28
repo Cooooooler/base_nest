@@ -13,7 +13,7 @@ import {
   useMessages,
 } from '@/hooks/use-chat';
 import { useUpdateEffect } from 'ahooks';
-import { FileText, MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
+import { Brain, FileText, MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  reasoning?: string;
   sources?: Array<{
     content: string;
     metadata: Record<string, any>;
@@ -77,6 +78,9 @@ export default function ChatPage() {
             if (m.metadata?.sources) {
               msg.sources = m.metadata.sources;
             }
+            if (m.metadata?.reasoning) {
+              msg.reasoning = m.metadata.reasoning;
+            }
             return msg;
           })
         );
@@ -117,6 +121,7 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, { role: 'user', content }, { role: 'assistant', content: '' }]);
 
     let fullContent = '';
+    let fullReasoning = '';
     let lastChunk: ChatChunk | null = null;
     try {
       for await (const chunk of streamChat(appId, convId, content)) {
@@ -125,11 +130,32 @@ export default function ChatPage() {
           toast.error(chunk.error);
           break;
         }
-        if (chunk.isEnd) break;
-        fullContent += chunk.content;
+        fullContent += chunk.content || '';
+        fullReasoning += chunk.reasoning || '';
+        if (chunk.isEnd) {
+          // 最终块：可能没有 content，但 fullContent 和 fullReasoning 已在前面累加完毕
+          setMessages((prev) => {
+            const next = [...prev];
+            if (next[aiIdx]) {
+              next[aiIdx] = {
+                role: 'assistant',
+                content: fullContent || '（模型未返回内容）',
+                reasoning: fullReasoning || undefined,
+              };
+            }
+            return next;
+          });
+          break;
+        }
         setMessages((prev) => {
           const next = [...prev];
-          if (next[aiIdx]) next[aiIdx] = { role: 'assistant', content: fullContent };
+          if (next[aiIdx]) {
+            next[aiIdx] = {
+              role: 'assistant',
+              content: fullContent,
+              reasoning: fullReasoning || undefined,
+            };
+          }
           return next;
         });
       }
@@ -256,6 +282,7 @@ export default function ChatPage() {
                       {msg.role === 'assistant' ? (
                         msg.content ? (
                           <>
+                            {msg.reasoning && <ReasoningBlock text={msg.reasoning} />}
                             <div className='prose prose-sm dark:prose-invert max-w-none'>
                               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                 {msg.content}
@@ -352,6 +379,28 @@ function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
               )}
             </div>
           ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReasoningBlock({ text }: { text: string }) {
+  const [open, setOpen] = useState(true);
+
+  return (
+    <div className='mb-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30'>
+      <button
+        className='flex w-full cursor-pointer items-center gap-1.5 px-3 py-2 text-xs text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-200 transition-colors'
+        onClick={() => setOpen(!open)}
+      >
+        <Brain className='size-3' />
+        <span className='font-medium'>思考过程</span>
+        <span className='text-[10px] opacity-60'>{open ? '点击收起' : '点击展开'}</span>
+      </button>
+      {open && (
+        <div className='border-t border-amber-200 px-3 py-2 text-xs leading-relaxed text-amber-800 whitespace-pre-wrap dark:border-amber-800 dark:text-amber-300'>
+          {text}
         </div>
       )}
     </div>

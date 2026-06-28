@@ -25,6 +25,7 @@ export interface ChatResponse {
 
 export interface ChatChunk {
   content: string;
+  reasoning?: string;
   isEnd: boolean;
   model?: string;
   sources?: Array<{

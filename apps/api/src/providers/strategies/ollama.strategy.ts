@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import {
   ChatChunk,
@@ -7,6 +8,7 @@ import {
 } from '../interfaces/llm-provider.interface';
 
 export class OllamaStrategy implements LlmProvider {
+  private readonly logger = new Logger(OllamaStrategy.name);
   private baseUrl: string;
 
   constructor(_apiKey: string, baseUrl?: string) {
@@ -80,6 +82,7 @@ export class OllamaStrategy implements LlmProvider {
                 const data = JSON.parse(line);
                 subscriber.next({
                   content: data.message?.content || '',
+                  reasoning: data.message?.thinking || data.message?.reasoning_content || undefined,
                   isEnd: data.done === true,
                   model: data.model,
                 });
