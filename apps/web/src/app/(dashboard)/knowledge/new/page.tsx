@@ -165,7 +165,7 @@ export default function NewKnowledgeBasePage() {
                 )}
               />
             </div>
-            <Button className='cursor-pointer' type='submit' disabled={isSubmitting}>
+            <Button type='submit' disabled={isSubmitting}>
               {isSubmitting && <Spinner data-icon='inline-start' />}
               创建
             </Button>

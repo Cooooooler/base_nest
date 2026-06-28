@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { App } from '../chat/entities/app.entity';
 import { decrypt, encrypt } from '../common/crypto.util';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 import { CreateModelDto } from './dto/create-model.dto';
@@ -31,27 +32,32 @@ export class ProvidersService {
     @InjectRepository(ApiKey)
     private readonly apiKeyRepo: Repository<ApiKey>,
     @InjectRepository(Model)
-    private readonly modelRepo: Repository<Model>
+    private readonly modelRepo: Repository<Model>,
+    @InjectRepository(App)
+    private readonly appRepo: Repository<App>
   ) {}
 
-  async findAllProviders(): Promise<ModelProvider[]> {
-    return this.providerRepo.find({ relations: { apiKeys: true, models: true } });
-  }
-
-  async findProviderById(id: string): Promise<ModelProvider | null> {
-    return this.providerRepo.findOne({
-      where: { id },
+  async findAllProviders(userId: string): Promise<ModelProvider[]> {
+    return this.providerRepo.find({
+      where: { userId },
       relations: { apiKeys: true, models: true },
     });
   }
 
-  async createProvider(dto: CreateProviderDto): Promise<ModelProvider> {
-    const provider = this.providerRepo.create(dto);
+  async findProviderById(id: string, userId: string): Promise<ModelProvider | null> {
+    return this.providerRepo.findOne({
+      where: { id, userId },
+      relations: { apiKeys: true, models: true },
+    });
+  }
+
+  async createProvider(userId: string, dto: CreateProviderDto): Promise<ModelProvider> {
+    const provider = this.providerRepo.create({ ...dto, userId });
     return this.providerRepo.save(provider);
   }
 
-  async updateProvider(id: string, dto: UpdateProviderDto): Promise<ModelProvider> {
-    const provider = await this.providerRepo.findOneBy({ id });
+  async updateProvider(id: string, userId: string, dto: UpdateProviderDto): Promise<ModelProvider> {
+    const provider = await this.providerRepo.findOneBy({ id, userId });
     if (!provider) {
       throw new NotFoundException('Provider not found');
     }
@@ -59,9 +65,9 @@ export class ProvidersService {
     return this.providerRepo.save(provider);
   }
 
-  async deleteProvider(id: string): Promise<void> {
+  async deleteProvider(id: string, userId: string): Promise<void> {
     const provider = await this.providerRepo.findOne({
-      where: { id },
+      where: { id, userId },
       relations: { apiKeys: true, models: true },
     });
     if (!provider) {
@@ -77,12 +83,16 @@ export class ProvidersService {
     return getPresetModelsByType(type as any);
   }
 
-  async findApiKeys(providerId: string): Promise<ApiKey[]> {
+  async findApiKeys(providerId: string, userId: string): Promise<ApiKey[]> {
+    const provider = await this.providerRepo.findOneBy({ id: providerId, userId });
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
     return this.apiKeyRepo.find({ where: { providerId } });
   }
 
-  async createApiKey(providerId: string, dto: CreateApiKeyDto): Promise<ApiKey> {
-    const provider = await this.providerRepo.findOneBy({ id: providerId });
+  async createApiKey(providerId: string, userId: string, dto: CreateApiKeyDto): Promise<ApiKey> {
+    const provider = await this.providerRepo.findOneBy({ id: providerId, userId });
     if (!provider) {
       throw new NotFoundException('Provider not found');
     }
@@ -102,8 +112,8 @@ export class ProvidersService {
     await this.apiKeyRepo.delete(id);
   }
 
-  async createModel(providerId: string, dto: CreateModelDto): Promise<Model> {
-    const provider = await this.providerRepo.findOneBy({ id: providerId });
+  async createModel(providerId: string, userId: string, dto: CreateModelDto): Promise<Model> {
+    const provider = await this.providerRepo.findOneBy({ id: providerId, userId });
     if (!provider) {
       throw new NotFoundException('Provider not found');
     }
@@ -131,14 +141,34 @@ export class ProvidersService {
     return this.modelRepo.save(model);
   }
 
-  async deleteModel(modelId: string): Promise<void> {
-    const result = await this.modelRepo.delete(modelId);
-    if (result.affected === 0) {
+  async deleteModel(modelId: string, userId: string): Promise<void> {
+    // Verify the model belongs to a provider owned by this user
+    const model = await this.modelRepo.findOne({
+      where: { id: modelId },
+      relations: { provider: true },
+    });
+    if (!model) {
       throw new NotFoundException('Model not found');
     }
+    if (model.provider.userId !== userId) {
+      throw new NotFoundException('Model not found');
+    }
+
+    const appCount = await this.appRepo.count({ where: { modelId } });
+    if (appCount > 0) {
+      throw new BadRequestException(
+        `该模型已被 ${appCount} 个应用使用，请先删除关联应用后再删除模型`
+      );
+    }
+
+    await this.modelRepo.delete(modelId);
   }
 
-  async findModels(providerId: string): Promise<Model[]> {
+  async findModels(providerId: string, userId: string): Promise<Model[]> {
+    const provider = await this.providerRepo.findOneBy({ id: providerId, userId });
+    if (!provider) {
+      throw new NotFoundException('Provider not found');
+    }
     return this.modelRepo.find({ where: { providerId } });
   }
 

@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
+@plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -130,4 +131,45 @@ body {
   font-family: var(--font-sans, system-ui, sans-serif);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+@keyframes shimmer {
+  0% {
+    mask-image: linear-gradient(
+      -75deg,
+      transparent 30%,
+      black 50%,
+      transparent 70%
+    );
+    mask-size: 200%;
+    -webkit-mask-image: linear-gradient(
+      -75deg,
+      transparent 30%,
+      black 50%,
+      transparent 70%
+    );
+    -webkit-mask-size: 200%;
+  }
+  100% {
+    mask-image: linear-gradient(
+      -75deg,
+      transparent 30%,
+      black 50%,
+      transparent 70%
+    );
+    mask-size: 200%;
+    -webkit-mask-image: linear-gradient(
+      -75deg,
+      transparent 30%,
+      black 50%,
+      transparent 70%
+    );
+    -webkit-mask-size: 200%;
+    mask-position: 200%;
+    -webkit-mask-position: 200%;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s infinite linear;
 }

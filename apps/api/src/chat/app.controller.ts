@@ -43,8 +43,12 @@ export class AppController {
 
   @Patch(':id')
   @ApiOperation({ summary: '更新应用' })
-  async update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateAppDto) {
-    return this.appService.update(id, dto);
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateAppDto,
+    @Req() req: { user: { id: string } }
+  ) {
+    return this.appService.update(id, req.user.id, dto);
   }
 
   @Delete(':id')

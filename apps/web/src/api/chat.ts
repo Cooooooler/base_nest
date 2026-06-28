@@ -67,6 +67,7 @@ export function getMessages(appId: string, convId: string) {
 export interface ChatChunk {
   content: string;
   isEnd: boolean;
+  reasoning?: string;
   error?: string;
   sources?: Array<{
     content: string;

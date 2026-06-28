@@ -1,6 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
+import { ModelProvider } from '../providers/entities/model-provider.entity';
+import { Model } from '../providers/entities/model.entity';
 import { CreateAppDto } from './dto/create-app.dto';
 import { UpdateAppDto } from './dto/update-app.dto';
 import { App } from './entities/app.entity';
@@ -15,7 +17,11 @@ export class AppService {
     @InjectRepository(Conversation)
     private readonly convRepo: Repository<Conversation>,
     @InjectRepository(Message)
-    private readonly messageRepo: Repository<Message>
+    private readonly messageRepo: Repository<Message>,
+    @InjectRepository(ModelProvider)
+    private readonly providerRepo: Repository<ModelProvider>,
+    @InjectRepository(Model)
+    private readonly modelRepo: Repository<Model>
   ) {}
 
   async findAllByUser(userId: string): Promise<App[]> {
@@ -35,6 +41,18 @@ export class AppService {
   }
 
   async create(userId: string, dto: CreateAppDto): Promise<App> {
+    // Verify ownership: providerId must belong to this user
+    const provider = await this.providerRepo.findOneBy({ id: dto.providerId, userId });
+    if (!provider) {
+      throw new BadRequestException('Provider not found');
+    }
+
+    // Verify model belongs to this provider
+    const model = await this.modelRepo.findOneBy({ id: dto.modelId, providerId: dto.providerId });
+    if (!model) {
+      throw new BadRequestException('Model not found under this provider');
+    }
+
     const app = this.appRepo.create({
       ...dto,
       userId,
@@ -45,7 +63,24 @@ export class AppService {
     return this.appRepo.save(app);
   }
 
-  async update(id: string, dto: UpdateAppDto): Promise<App> {
+  async update(id: string, userId: string, dto: UpdateAppDto): Promise<App> {
+    // If providerId or modelId is being updated, verify ownership
+    if (dto.providerId) {
+      const provider = await this.providerRepo.findOneBy({ id: dto.providerId, userId });
+      if (!provider) {
+        throw new BadRequestException('Provider not found');
+      }
+    }
+    if (dto.modelId && dto.providerId) {
+      const model = await this.modelRepo.findOneBy({
+        id: dto.modelId,
+        providerId: dto.providerId,
+      });
+      if (!model) {
+        throw new BadRequestException('Model not found under this provider');
+      }
+    }
+
     await this.appRepo.update(id, dto);
     return this.findOne(id);
   }

@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthGuardModule } from '../auth/auth-guard.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
+import { ModelProvider } from '../providers/entities/model-provider.entity';
+import { Model } from '../providers/entities/model.entity';
 import { ProvidersModule } from '../providers/providers.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -15,7 +17,7 @@ import { Message } from './entities/message.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([App, Conversation, Message]),
+    TypeOrmModule.forFeature([App, Conversation, Message, ModelProvider, Model]),
     AuthGuardModule,
     KnowledgeModule,
     ProvidersModule,

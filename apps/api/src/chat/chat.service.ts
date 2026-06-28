@@ -10,6 +10,7 @@ import { Message } from './entities/message.entity';
 
 interface ChatChunk {
   content: string;
+  reasoning?: string;
   isEnd: boolean;
   error?: string;
   sources?: Array<{
@@ -93,6 +94,7 @@ export class ChatService {
 
     return new Observable<ChatChunk>((subscriber) => {
       let fullContent = '';
+      let fullReasoning = '';
       const modelName = (app.model as any)?.name || 'unknown';
 
       const stream = client.chatStream({
@@ -104,12 +106,11 @@ export class ChatService {
 
       stream.subscribe({
         next: (chunk: ChatChunk) => {
-          fullContent += chunk.content;
+          fullContent += chunk.content || '';
+          fullReasoning += chunk.reasoning || '';
           if (!chunk.isEnd) {
             subscriber.next(chunk);
           }
-          // 跳过 llm-provider 的 isEnd chunk 转发——让 complete() 统一发送带 sources 的结束信号
-          // 但 fullContent 仍需累加，因为 Ollama 的 done=true 块中可能包含内容
         },
         error: (err: Error) => {
           this.logger.error(`Chat stream error: ${err.message}`);
@@ -119,6 +120,13 @@ export class ChatService {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         complete: async () => {
           try {
+            const metadata: Record<string, any> = {};
+            if (retrievedSources) {
+              metadata.sources = retrievedSources;
+            }
+            if (fullReasoning) {
+              metadata.reasoning = fullReasoning;
+            }
             const msgData: any = {
               conversationId: convId,
               role: 'assistant',
@@ -130,19 +138,20 @@ export class ChatService {
                   this.estimateTokens(fullContent) +
                   this.estimateTokens(messages.map((m) => m.content).join('')),
               },
+              metadata: Object.keys(metadata).length > 0 ? metadata : null,
             };
-            if (retrievedSources) {
-              msgData.metadata = { sources: retrievedSources };
-            }
             await this.msgRepo.save(this.msgRepo.create(msgData));
           } catch (err) {
             this.logger.error(`Failed to save assistant message: ${(err as Error).message}`);
           }
-          subscriber.next({
+          const finalChunk: ChatChunk = {
             content: '',
             isEnd: true,
-            ...(retrievedSources ? { sources: retrievedSources } : {}),
-          });
+          };
+          if (retrievedSources) {
+            finalChunk.sources = retrievedSources;
+          }
+          subscriber.next(finalChunk);
           subscriber.complete();
         },
       });

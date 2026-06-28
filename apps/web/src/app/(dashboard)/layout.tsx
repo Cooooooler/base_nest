@@ -69,12 +69,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </DropdownMenuContent>
             </DropdownMenu>
             {showBack && (
-              <Button
-                className='cursor-pointer'
-                variant='outline'
-                size='sm'
-                onClick={() => router.push(parentRoute)}
-              >
+              <Button variant='outline' size='sm' onClick={() => router.push(parentRoute)}>
                 <ArrowLeft data-icon='inline-start' />
                 返回
               </Button>

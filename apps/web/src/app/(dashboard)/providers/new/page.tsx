@@ -131,7 +131,7 @@ export default function NewProviderPage() {
               )}
             />
             <div className='flex items-center justify-end gap-2'>
-              <Button type='submit' className='cursor-pointer' disabled={isSubmitting}>
+              <Button type='submit' disabled={isSubmitting}>
                 {isSubmitting && <Spinner data-icon='inline-start' />}
                 创建
               </Button>

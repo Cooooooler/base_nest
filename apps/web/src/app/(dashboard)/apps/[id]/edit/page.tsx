@@ -162,19 +162,14 @@ export default function EditAppPage() {
             </Field>
 
             <div className='flex gap-3'>
-              <Button className='cursor-pointer' type='submit' disabled={saving}>
+              <Button type='submit' disabled={saving}>
                 {saving ? '保存中...' : '保存'}
               </Button>
-              <Button
-                className='cursor-pointer'
-                variant='outline'
-                type='button'
-                onClick={() => router.back()}
-              >
+              <Button variant='outline' type='button' onClick={() => router.back()}>
                 取消
               </Button>
               <Button
-                className='cursor-pointer ml-auto'
+                className='ml-auto'
                 variant='destructive'
                 type='button'
                 onClick={() => setShowDelete(true)}
@@ -193,14 +188,10 @@ export default function EditAppPage() {
             <DialogDescription>删除后所有会话数据将丢失，此操作不可撤销。</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              className='cursor-pointer'
-              variant='outline'
-              onClick={() => setShowDelete(false)}
-            >
+            <Button variant='outline' onClick={() => setShowDelete(false)}>
               取消
             </Button>
-            <Button className='cursor-pointer' variant='destructive' onClick={handleDelete}>
+            <Button variant='destructive' onClick={handleDelete}>
               确认删除
             </Button>
           </DialogFooter>

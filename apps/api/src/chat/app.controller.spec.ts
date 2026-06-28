@@ -59,8 +59,10 @@ describe('AppController', () => {
   });
 
   it('update should update an app', async () => {
-    const result = await controller.update('app-1', { name: 'Updated' });
+    const req = { user: { id: 'user-1' } };
+    const result = await controller.update('app-1', { name: 'Updated' }, req);
     expect(result).toEqual({ id: 'app-1' });
+    expect(mockService.update).toHaveBeenCalledWith('app-1', 'user-1', { name: 'Updated' });
   });
 
   it('delete should remove an app', async () => {

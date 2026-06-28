@@ -10,6 +10,8 @@ import { ProvidersService } from './providers.service';
 describe('ProvidersController', () => {
   let controller: ProvidersController;
 
+  const mockRequest = { user: { id: 'test-user-id' } };
+
   const mockService = {
     findAllProviders: jest.fn().mockResolvedValue([]),
     findProviderById: jest.fn().mockResolvedValue({ id: 'test-id' }),
@@ -29,6 +31,7 @@ describe('ProvidersController', () => {
   const mockJwtAuthGuard: CanActivate = { canActivate: jest.fn(() => true) };
 
   beforeEach(async () => {
+    jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProvidersController],
       providers: [{ provide: ProvidersService, useValue: mockService }],
@@ -44,48 +47,48 @@ describe('ProvidersController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('findAll should return all providers', async () => {
-    const result = await controller.findAll();
+  it('findAll should return all providers scoped to user', async () => {
+    const result = await controller.findAll(mockRequest);
     expect(result).toEqual([]);
-    expect(mockService.findAllProviders).toHaveBeenCalled();
+    expect(mockService.findAllProviders).toHaveBeenCalledWith('test-user-id');
   });
 
   it('findOne should return a provider', async () => {
-    const result = await controller.findOne('test-id');
+    const result = await controller.findOne('test-id', mockRequest);
     expect(result).toEqual({ id: 'test-id' });
-    expect(mockService.findProviderById).toHaveBeenCalledWith('test-id');
+    expect(mockService.findProviderById).toHaveBeenCalledWith('test-id', 'test-user-id');
   });
 
-  it('create should create a provider', async () => {
+  it('create should create a provider with userId', async () => {
     const dto: CreateProviderDto = { name: 'OpenAI', type: 'openai' };
-    const result = await controller.create(dto);
+    const result = await controller.create(dto, mockRequest);
     expect(result).toEqual({ id: 'new-id' });
-    expect(mockService.createProvider).toHaveBeenCalledWith(dto);
+    expect(mockService.createProvider).toHaveBeenCalledWith('test-user-id', dto);
   });
 
   it('update should update a provider', async () => {
     const dto = { name: 'Updated' };
-    const result = await controller.update('test-id', dto);
+    const result = await controller.update('test-id', dto, mockRequest);
     expect(result).toEqual({ id: 'updated-id' });
-    expect(mockService.updateProvider).toHaveBeenCalledWith('test-id', dto);
+    expect(mockService.updateProvider).toHaveBeenCalledWith('test-id', 'test-user-id', dto);
   });
 
   it('remove should delete a provider', async () => {
-    await controller.remove('test-id');
-    expect(mockService.deleteProvider).toHaveBeenCalledWith('test-id');
+    await controller.remove('test-id', mockRequest);
+    expect(mockService.deleteProvider).toHaveBeenCalledWith('test-id', 'test-user-id');
   });
 
   it('findApiKeys should return keys for a provider', async () => {
-    const result = await controller.findApiKeys('provider-id');
+    const result = await controller.findApiKeys('provider-id', mockRequest);
     expect(result).toEqual([]);
-    expect(mockService.findApiKeys).toHaveBeenCalledWith('provider-id');
+    expect(mockService.findApiKeys).toHaveBeenCalledWith('provider-id', 'test-user-id');
   });
 
   it('createApiKey should create a key', async () => {
     const dto: CreateApiKeyDto = { name: 'prod', apiKey: 'sk-xxx' };
-    const result = await controller.createApiKey('provider-id', dto);
+    const result = await controller.createApiKey('provider-id', dto, mockRequest);
     expect(result).toEqual({ id: 'key-id', maskedKey: 'sk-***' });
-    expect(mockService.createApiKey).toHaveBeenCalledWith('provider-id', dto);
+    expect(mockService.createApiKey).toHaveBeenCalledWith('provider-id', 'test-user-id', dto);
   });
 
   it('removeApiKey should delete a key', async () => {
@@ -94,9 +97,9 @@ describe('ProvidersController', () => {
   });
 
   it('findModels should return models for a provider', async () => {
-    const result = await controller.findModels('provider-id');
+    const result = await controller.findModels('provider-id', mockRequest);
     expect(result).toEqual([]);
-    expect(mockService.findModels).toHaveBeenCalledWith('provider-id');
+    expect(mockService.findModels).toHaveBeenCalledWith('provider-id', 'test-user-id');
   });
 
   describe('getPresetModels', () => {
@@ -110,9 +113,9 @@ describe('ProvidersController', () => {
   describe('createModel', () => {
     it('should create a model', async () => {
       const dto: CreateModelDto = { name: 'gpt-4o', displayName: 'GPT-4o' };
-      const result = await controller.createModel('provider-id', dto);
+      const result = await controller.createModel('provider-id', dto, mockRequest);
       expect(result).toEqual({ id: 'model-id', name: 'gpt-4o' });
-      expect(mockService.createModel).toHaveBeenCalledWith('provider-id', dto);
+      expect(mockService.createModel).toHaveBeenCalledWith('provider-id', 'test-user-id', dto);
     });
   });
 
@@ -126,9 +129,9 @@ describe('ProvidersController', () => {
   });
 
   describe('removeModel', () => {
-    it('should delete a model', async () => {
-      await controller.removeModel('model-id');
-      expect(mockService.deleteModel).toHaveBeenCalledWith('model-id');
+    it('should delete a model scoped to user', async () => {
+      await controller.removeModel('model-id', mockRequest);
+      expect(mockService.deleteModel).toHaveBeenCalledWith('model-id', 'test-user-id');
     });
   });
 });

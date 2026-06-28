@@ -109,7 +109,7 @@ export default function LoginPage() {
                 </Field>
               )}
             />
-            <Button type='submit' className='w-full cursor-pointer' disabled={isSubmitting}>
+            <Button type='submit' className='w-full' disabled={isSubmitting}>
               {isSubmitting && <Spinner data-icon='inline-start' />}
               登录
             </Button>

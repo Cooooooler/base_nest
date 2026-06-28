@@ -129,7 +129,7 @@ export default function RegisterPage() {
                 </Field>
               )}
             />
-            <Button type='submit' className='w-full cursor-pointer' disabled={isSubmitting}>
+            <Button type='submit' className='w-full' disabled={isSubmitting}>
               {isSubmitting && <Spinner data-icon='inline-start' />}
               注册
             </Button>
