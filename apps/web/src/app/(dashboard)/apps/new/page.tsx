@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/combobox';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
 import { useCreateApp } from '@/hooks/use-chat';
@@ -233,15 +234,15 @@ export default function NewAppPage() {
               control={control}
               render={({ field }) => (
                 <Field>
-                  <FieldLabel htmlFor='app-temperature'>温度 ({selectedTemperature})</FieldLabel>
-                  <Input
-                    id='app-temperature'
-                    type='range'
-                    min='0'
-                    max='2'
-                    step='0.1'
-                    value={field.value}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                  <FieldLabel>温度 ({selectedTemperature})</FieldLabel>
+                  <Slider
+                    min={0}
+                    max={2}
+                    step={0.1}
+                    value={[field.value]}
+                    onValueChange={(values) =>
+                      field.onChange(Array.isArray(values) ? values[0] : values)
+                    }
                   />
                 </Field>
               )}
