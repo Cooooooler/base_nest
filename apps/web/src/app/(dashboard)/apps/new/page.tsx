@@ -152,7 +152,7 @@ export default function NewAppPage() {
                       providerOptions.find((o) => o.value === item)?.label ?? item
                     }
                   >
-                    <ComboboxInput placeholder='选择提供商' />
+                    <ComboboxInput id={'app-provider'} placeholder='选择提供商' />
                     <ComboboxContent>
                       <ComboboxEmpty>未找到提供商</ComboboxEmpty>
                       <ComboboxList>
@@ -187,6 +187,8 @@ export default function NewAppPage() {
                     }
                   >
                     <ComboboxInput
+                      disabled={!selectedProviderId}
+                      id={'app-model'}
                       placeholder={selectedProviderId ? '选择模型' : '请先选择提供商'}
                     />
                     <ComboboxContent>
@@ -252,6 +254,7 @@ export default function NewAppPage() {
                 <Field>
                   <FieldLabel htmlFor='app-knowledge-base'>关联知识库（可选）</FieldLabel>
                   <Combobox
+                    id={'app-knowledge-base'}
                     items={knowledgeBaseOptions}
                     value={field.value ?? ''}
                     onValueChange={field.onChange}
@@ -275,7 +278,7 @@ export default function NewAppPage() {
               )}
             />
 
-            <div className='flex gap-3'>
+            <div className='flex justify-end gap-3'>
               <Button type='submit' disabled={isSubmitting}>
                 {isSubmitting && <Spinner data-icon='inline-start' />}
                 {isSubmitting ? '创建中...' : '创建'}
