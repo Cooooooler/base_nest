@@ -6,9 +6,9 @@ import {
   Combobox,
   ComboboxContent,
   ComboboxEmpty,
+  ComboboxInput,
   ComboboxItem,
   ComboboxList,
-  ComboboxTrigger,
 } from '@/components/ui/combobox';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ import { useKnowledgeBases } from '@/hooks/use-knowledge';
 import { useProviderModels, useProviders } from '@/hooks/use-providers';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { Controller, useForm } from 'react-hook-form';
+import { Controller, useForm, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
@@ -44,9 +44,8 @@ export default function NewAppPage() {
   const {
     control,
     handleSubmit,
-    watch,
     setValue,
-    formState: { isSubmitting, errors },
+    formState: { isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,7 +59,11 @@ export default function NewAppPage() {
     },
   });
 
-  const selectedProviderId = watch('providerId');
+  const selectedProviderId = useWatch({
+    control,
+    name: 'providerId',
+  });
+
   const { data: models } = useProviderModels(selectedProviderId);
 
   const providerOptions = providers?.map((p) => ({ value: p.id, label: p.name })) ?? [];
@@ -70,7 +73,10 @@ export default function NewAppPage() {
   const knowledgeBaseOptions =
     knowledgeBases?.map((kb) => ({ value: kb.id, label: kb.name })) ?? [];
 
-  const selectedTemperature = watch('temperature');
+  const selectedTemperature = useWatch({
+    control,
+    name: 'temperature',
+  });
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -136,28 +142,24 @@ export default function NewAppPage() {
                 <Field>
                   <FieldLabel htmlFor='app-provider'>模型提供商 *</FieldLabel>
                   <Combobox
+                    items={providerOptions}
                     value={field.value}
                     onValueChange={(v) => {
                       field.onChange(v);
                       setValue('modelId', '');
                     }}
+                    itemToStringLabel={(item) =>
+                      providerOptions.find((o) => o.value === item)?.label ?? item
+                    }
                   >
-                    <ComboboxTrigger>
-                      {field.value ? (
-                        providerOptions.find((o) => o.value === field.value)?.label
-                      ) : (
-                        <span className='text-muted-foreground'>选择提供商</span>
-                      )}
-                    </ComboboxTrigger>
+                    <ComboboxInput placeholder='选择提供商' />
                     <ComboboxContent>
+                      <ComboboxEmpty>未找到提供商</ComboboxEmpty>
                       <ComboboxList>
-                        {providerOptions.map((opt) => (
-                          <ComboboxItem key={opt.value} value={opt.value}>
-                            {opt.label}
+                        {(item) => (
+                          <ComboboxItem key={item.value} value={item.value}>
+                            {item.label}
                           </ComboboxItem>
-                        ))}
-                        {providerOptions.length === 0 && (
-                          <ComboboxEmpty>未找到提供商</ComboboxEmpty>
                         )}
                       </ComboboxList>
                     </ComboboxContent>
@@ -176,27 +178,25 @@ export default function NewAppPage() {
                 <Field>
                   <FieldLabel htmlFor='app-model'>模型 *</FieldLabel>
                   <Combobox
+                    items={modelOptions}
                     value={field.value}
                     onValueChange={field.onChange}
                     disabled={!selectedProviderId}
+                    itemToStringLabel={(item) =>
+                      modelOptions.find((o) => o.value === item)?.label ?? item
+                    }
                   >
-                    <ComboboxTrigger>
-                      {field.value ? (
-                        modelOptions.find((o) => o.value === field.value)?.label
-                      ) : (
-                        <span className='text-muted-foreground'>
-                          {selectedProviderId ? '选择模型' : '请先选择提供商'}
-                        </span>
-                      )}
-                    </ComboboxTrigger>
+                    <ComboboxInput
+                      placeholder={selectedProviderId ? '选择模型' : '请先选择提供商'}
+                    />
                     <ComboboxContent>
+                      <ComboboxEmpty>未找到模型</ComboboxEmpty>
                       <ComboboxList>
-                        {modelOptions.map((opt) => (
-                          <ComboboxItem key={opt.value} value={opt.value}>
-                            {opt.label}
+                        {(item) => (
+                          <ComboboxItem key={item.value} value={item.value}>
+                            {item.label}
                           </ComboboxItem>
-                        ))}
-                        {modelOptions.length === 0 && <ComboboxEmpty>未找到模型</ComboboxEmpty>}
+                        )}
                       </ComboboxList>
                     </ComboboxContent>
                   </Combobox>
@@ -251,23 +251,22 @@ export default function NewAppPage() {
               render={({ field }) => (
                 <Field>
                   <FieldLabel htmlFor='app-knowledge-base'>关联知识库（可选）</FieldLabel>
-                  <Combobox value={field.value ?? ''} onValueChange={field.onChange}>
-                    <ComboboxTrigger>
-                      {field.value ? (
-                        knowledgeBaseOptions.find((o) => o.value === field.value)?.label
-                      ) : (
-                        <span className='text-muted-foreground'>不关联知识库</span>
-                      )}
-                    </ComboboxTrigger>
+                  <Combobox
+                    items={knowledgeBaseOptions}
+                    value={field.value ?? ''}
+                    onValueChange={field.onChange}
+                    itemToStringLabel={(item) =>
+                      knowledgeBaseOptions.find((o) => o.value === item)?.label ?? item
+                    }
+                  >
+                    <ComboboxInput placeholder='不关联知识库' />
                     <ComboboxContent>
+                      <ComboboxEmpty>未找到知识库</ComboboxEmpty>
                       <ComboboxList>
-                        {knowledgeBaseOptions.map((opt) => (
-                          <ComboboxItem key={opt.value} value={opt.value}>
-                            {opt.label}
+                        {(item) => (
+                          <ComboboxItem key={item.value} value={item.value}>
+                            {item.label}
                           </ComboboxItem>
-                        ))}
-                        {knowledgeBaseOptions.length === 0 && (
-                          <ComboboxEmpty>未找到知识库</ComboboxEmpty>
                         )}
                       </ComboboxList>
                     </ComboboxContent>
