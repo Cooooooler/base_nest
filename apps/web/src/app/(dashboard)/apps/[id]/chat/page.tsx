@@ -1,8 +1,10 @@
 'use client';
 
-import { streamChat, type ChatChunk } from '@/api/chat';
+import { type ChatChunk, streamChat } from '@/api/chat';
+import { MarkdownRenderer } from '@/components/app/markdown-renderer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -16,8 +18,6 @@ import { useUpdateEffect } from 'ahooks';
 import { Brain, FileText, MessageSquare, Plus, Send, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
 
 interface ChatMessage {
@@ -283,11 +283,7 @@ export default function ChatPage() {
                         msg.content ? (
                           <>
                             {msg.reasoning && <ReasoningBlock text={msg.reasoning} />}
-                            <div className='prose prose-sm dark:prose-invert max-w-none'>
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {msg.content}
-                              </ReactMarkdown>
-                            </div>
+                            <MarkdownRenderer content={msg.content} />
                             {msg.sources && msg.sources.length > 0 && (
                               <SourceList data={msg.sources} />
                             )}
@@ -349,6 +345,7 @@ export default function ChatPage() {
 
 function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
   const [open, setOpen] = useState(false);
+  const [dialogSrc, setDialogSrc] = useState<(typeof data)[number] | null>(null);
 
   return (
     <div className='mt-3 border-t border-border/50 pt-2'>
@@ -364,9 +361,10 @@ function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
       {open && (
         <div className='mt-2 flex flex-col gap-1.5'>
           {data.map((src, i) => (
-            <div
+            <button
               key={i}
-              className='flex items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-xs'
+              className='flex cursor-pointer items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-xs text-left hover:bg-muted/40 transition-colors'
+              onClick={() => setDialogSrc(src)}
             >
               <span className='shrink-0 font-semibold text-muted-foreground'>[{i + 1}]</span>
               <span className='min-w-0 flex-1 truncate text-foreground'>
@@ -377,10 +375,26 @@ function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
                   {(src.score * 100).toFixed(0)}%
                 </span>
               )}
-            </div>
+            </button>
           ))}
         </div>
       )}
+
+      <Dialog
+        open={!!dialogSrc}
+        onOpenChange={(v) => {
+          if (!v) setDialogSrc(null);
+        }}
+      >
+        <DialogContent className='sm:max-w-4xl max-h-[80vh] overflow-y-auto'>
+          <DialogHeader>
+            <DialogTitle className='text-base'>
+              {dialogSrc?.metadata?.fileName ? String(dialogSrc.metadata.fileName) : '来源详情'}
+            </DialogTitle>
+          </DialogHeader>
+          <MarkdownRenderer content={dialogSrc?.content || ''} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
