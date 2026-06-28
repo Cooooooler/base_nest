@@ -1,7 +1,15 @@
 'use client';
 
 import { ChevronDownIcon } from 'lucide-react';
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -28,7 +36,13 @@ function useMessageScroller() {
 
 // ── Provider ─────────────────────────────────────────────────────────
 
-function MessageScrollerProvider({ children }: { children: React.ReactNode }) {
+function MessageScrollerProvider({
+  children,
+  autoScroll,
+}: {
+  children: React.ReactNode;
+  autoScroll?: boolean;
+}) {
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const bottomSentinelRef = useRef<HTMLDivElement | null>(null);
   const [isAtBottom, setIsAtBottom] = useState(true);
@@ -62,6 +76,12 @@ function MessageScrollerProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  // 流式/加载过程中自动滚动到底部
+  useLayoutEffect(() => {
+    if (!autoScroll || !viewportRef.current) return;
+    viewportRef.current.scrollTop = viewportRef.current.scrollHeight;
+  });
+
   return (
     <MessageScrollerContext.Provider
       value={{
@@ -79,9 +99,13 @@ function MessageScrollerProvider({ children }: { children: React.ReactNode }) {
 
 // ── Scroller root ────────────────────────────────────────────────────
 
-function MessageScroller({ className, ...props }: React.ComponentProps<'div'>) {
+function MessageScroller({
+  autoScroll = false,
+  className,
+  ...props
+}: React.ComponentProps<'div'> & { autoScroll?: boolean }) {
   return (
-    <MessageScrollerProvider>
+    <MessageScrollerProvider autoScroll={autoScroll}>
       <div
         data-slot='message-scroller'
         className={cn('flex flex-1 flex-col overflow-hidden', className)}
@@ -160,4 +184,5 @@ export {
   MessageScrollerProvider,
   MessageScrollerSentinel,
   MessageScrollerViewport,
+  useMessageScroller,
 };

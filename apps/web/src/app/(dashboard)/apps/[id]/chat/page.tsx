@@ -14,6 +14,7 @@ import {
   MessageScrollerSentinel,
   MessageScrollerViewport,
 } from '@/components/chat';
+import { TypingAnimation } from '@/components/chat/typing-animation';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -36,8 +37,10 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from '@/components/ui/input-group';
+import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   useApp,
@@ -57,6 +60,8 @@ import {
 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
 
 interface ChatMessage {
@@ -84,6 +89,7 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
+  const [streamingMsgIdx, setStreamingMsgIdx] = useState<number | null>(null);
 
   // 防止 React Query 请求在流式对话中覆盖本地消息
   const streamingRef = useRef(false);
@@ -151,6 +157,7 @@ export default function ChatPage() {
     setInput('');
     streamingRef.current = true;
     const aiIdx = messages.length + 1;
+    setStreamingMsgIdx(aiIdx);
     setMessages((prev) => [...prev, { role: 'user', content }, { role: 'assistant', content: '' }]);
 
     let fullContent = '';
@@ -206,6 +213,7 @@ export default function ChatPage() {
     }
 
     streamingRef.current = false;
+    setStreamingMsgIdx(null);
     setSending(false);
   };
 
@@ -314,14 +322,16 @@ export default function ChatPage() {
       <Card className='flex flex-1 flex-col'>
         <CardContent className='flex flex-1 flex-col overflow-hidden p-0'>
           {showMessages ? (
-            <MessageScroller>
+            <MessageScroller autoScroll={streamingMsgIdx !== null}>
               <MessageScrollerViewport>
                 <MessageScrollerContent className='p-(--card-spacing)'>
                   {messages.map((msg, i) => (
                     <MessageAnimated key={i} scrollAnchor={msg.role === 'user'}>
                       <div
                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${
-                          msg.role === 'assistant' && !msg.content ? 'opacity-50' : ''
+                          msg.role === 'assistant' && !msg.content && !msg.reasoning
+                            ? 'opacity-50'
+                            : ''
                         }`}
                       >
                         <div
@@ -330,30 +340,35 @@ export default function ChatPage() {
                           }`}
                         >
                           {msg.role === 'assistant' ? (
-                            msg.content ? (
-                              <>
-                                {msg.reasoning && <ReasoningBlock text={msg.reasoning} />}
-                                <MarkdownRenderer content={msg.content} />
-                                {msg.sources && msg.sources.length > 0 && (
-                                  <SourceList data={msg.sources} />
-                                )}
-                              </>
-                            ) : (
-                              <div className='flex items-center gap-1.5 py-1'>
-                                <span
-                                  className='size-1.5 animate-bounce rounded-full bg-current'
-                                  style={{ animationDelay: '0ms' }}
-                                />
-                                <span
-                                  className='size-1.5 animate-bounce rounded-full bg-current'
-                                  style={{ animationDelay: '150ms' }}
-                                />
-                                <span
-                                  className='size-1.5 animate-bounce rounded-full bg-current'
-                                  style={{ animationDelay: '300ms' }}
-                                />
-                              </div>
-                            )
+                            <>
+                              {/* 思考中提示 — 仅在没有 reasoning 也没有 content 的流式阶段 */}
+                              {!msg.reasoning && !msg.content && streamingMsgIdx === i && (
+                                <Marker role='status'>
+                                  <MarkerIcon>
+                                    <Spinner />
+                                  </MarkerIcon>
+                                  <MarkerContent className='shimmer'>思考中...</MarkerContent>
+                                </Marker>
+                              )}
+
+                              {/* Reasoning — 独立打字机，与内容互不干扰 */}
+                              {msg.reasoning && (
+                                <ReasoningBlock streaming={streamingMsgIdx === i && !msg.content}>
+                                  <TypingAnimation
+                                    text={msg.reasoning}
+                                    className='text-xs leading-relaxed text-amber-800 whitespace-pre-wrap dark:text-amber-300'
+                                  />
+                                </ReasoningBlock>
+                              )}
+
+                              {/* Content — 有内容或 reasoning 阶段结束后开始打字 */}
+                              {(msg.content || (streamingMsgIdx === i && msg.reasoning)) && (
+                                <StreamingMarkdown content={msg.content || ''} />
+                              )}
+                              {msg.sources && msg.sources.length > 0 && (
+                                <SourceList data={msg.sources} />
+                              )}
+                            </>
                           ) : (
                             <p className='whitespace-pre-wrap text-sm'>{msg.content}</p>
                           )}
@@ -466,7 +481,13 @@ function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
   );
 }
 
-function ReasoningBlock({ text }: { text: string }) {
+function ReasoningBlock({
+  streaming = false,
+  children,
+}: {
+  streaming?: boolean;
+  children: React.ReactNode;
+}) {
   const [open, setOpen] = useState(true);
 
   return (
@@ -477,13 +498,22 @@ function ReasoningBlock({ text }: { text: string }) {
       >
         <Brain className='size-3' />
         <span className='font-medium'>思考过程</span>
+        {streaming && <Spinner className='size-3' />}
         <span className='text-[10px] opacity-60'>{open ? '点击收起' : '点击展开'}</span>
       </button>
       {open && (
-        <div className='border-t border-amber-200 px-3 py-2 text-xs leading-relaxed text-amber-800 whitespace-pre-wrap dark:border-amber-800 dark:text-amber-300'>
-          {text}
-        </div>
+        <div className='border-t border-amber-200 px-3 py-2 dark:border-amber-800'>{children}</div>
       )}
+    </div>
+  );
+}
+
+function StreamingMarkdown({ content }: { content: string }) {
+  if (!content) return null;
+
+  return (
+    <div className='prose prose-sm dark:prose-invert max-w-none'>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   );
 }
