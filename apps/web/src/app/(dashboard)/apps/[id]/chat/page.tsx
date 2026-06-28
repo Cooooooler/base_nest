@@ -1,8 +1,8 @@
 'use client';
 
 import { type ChatChunk, streamChat } from '@/api/chat';
-import { MarkdownRenderer } from '@/components/app/markdown-renderer';
 import {
+  AssistantMessage,
   Empty,
   EmptyHeader,
   EmptyMedia,
@@ -14,7 +14,7 @@ import {
   MessageScrollerSentinel,
   MessageScrollerViewport,
 } from '@/components/chat';
-import { TypingAnimation } from '@/components/chat/typing-animation';
+import type { ChatMessage } from '@/components/chat/types';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,7 +24,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,10 +36,8 @@ import {
   InputGroupButton,
   InputGroupTextarea,
 } from '@/components/ui/input-group';
-import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Spinner } from '@/components/ui/spinner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   useApp,
@@ -49,31 +46,10 @@ import {
   useDeleteConversation,
   useMessages,
 } from '@/hooks/use-chat';
-import {
-  Brain,
-  FileText,
-  MessageSquare,
-  MoreHorizontal,
-  Plus,
-  SendHorizontal,
-  Trash2,
-} from 'lucide-react';
+import { MessageSquare, MoreHorizontal, Plus, SendHorizontal, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
-
-interface ChatMessage {
-  role: 'user' | 'assistant';
-  content: string;
-  reasoning?: string;
-  sources?: Array<{
-    content: string;
-    metadata: Record<string, any>;
-    score?: number;
-  }>;
-}
 
 export default function ChatPage() {
   const { id: appId } = useParams<{ id: string }>();
@@ -97,7 +73,6 @@ export default function ChatPage() {
   const localConvIdRef = useRef<string | null>(null);
 
   // Sync loadedMessages → local messages when conversation changes
-
   useEffect(() => {
     if (streamingRef.current) return;
 
@@ -173,7 +148,6 @@ export default function ChatPage() {
         fullContent += chunk.content || '';
         fullReasoning += chunk.reasoning || '';
         if (chunk.isEnd) {
-          // 最终块：可能没有 content，但 fullContent 和 fullReasoning 已在前面累加完毕
           setMessages((prev) => {
             const next = [...prev];
             if (next[aiIdx]) {
@@ -203,7 +177,6 @@ export default function ChatPage() {
       toast.error('发送失败');
     }
 
-    // 流结束——将 sources 附加到最后一条消息
     if (lastChunk?.sources) {
       setMessages((prev) => {
         const next = [...prev];
@@ -275,7 +248,7 @@ export default function ChatPage() {
           </CardAction>
         </CardHeader>
         <Separator />
-        <CardContent className='flex flex-col gap-1 p-3'>
+        <CardContent className={'flex flex-col gap-1 px-3 pb-3 overflow-y-auto'}>
           {conversations?.map((conv) => (
             <div
               key={conv.id}
@@ -289,6 +262,7 @@ export default function ChatPage() {
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger
+                  onClick={(e) => e.stopPropagation()}
                   className='opacity-0 transition-opacity group-hover:opacity-100'
                   render={
                     <Button size='icon-xs' variant='ghost'>
@@ -302,7 +276,7 @@ export default function ChatPage() {
                     className='cursor-pointer'
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDeleteConv(conv.id);
+                      void handleDeleteConv(conv.id);
                     }}
                   >
                     <Trash2 className='size-3' />
@@ -340,35 +314,7 @@ export default function ChatPage() {
                           }`}
                         >
                           {msg.role === 'assistant' ? (
-                            <>
-                              {/* 思考中提示 — 仅在没有 reasoning 也没有 content 的流式阶段 */}
-                              {!msg.reasoning && !msg.content && streamingMsgIdx === i && (
-                                <Marker role='status'>
-                                  <MarkerIcon>
-                                    <Spinner />
-                                  </MarkerIcon>
-                                  <MarkerContent className='shimmer'>思考中...</MarkerContent>
-                                </Marker>
-                              )}
-
-                              {/* Reasoning — 独立打字机，与内容互不干扰 */}
-                              {msg.reasoning && (
-                                <ReasoningBlock streaming={streamingMsgIdx === i && !msg.content}>
-                                  <TypingAnimation
-                                    text={msg.reasoning}
-                                    className='text-xs leading-relaxed text-amber-800 whitespace-pre-wrap dark:text-amber-300'
-                                  />
-                                </ReasoningBlock>
-                              )}
-
-                              {/* Content — 有内容或 reasoning 阶段结束后开始打字 */}
-                              {(msg.content || (streamingMsgIdx === i && msg.reasoning)) && (
-                                <StreamingMarkdown content={msg.content || ''} />
-                              )}
-                              {msg.sources && msg.sources.length > 0 && (
-                                <SourceList data={msg.sources} />
-                              )}
-                            </>
+                            <AssistantMessage msg={msg} streaming={streamingMsgIdx === i} />
                           ) : (
                             <p className='whitespace-pre-wrap text-sm'>{msg.content}</p>
                           )}
@@ -421,99 +367,6 @@ export default function ChatPage() {
           </InputGroup>
         </CardFooter>
       </Card>
-    </div>
-  );
-}
-
-function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
-  const [open, setOpen] = useState(false);
-  const [dialogSrc, setDialogSrc] = useState<(typeof data)[number] | null>(null);
-
-  return (
-    <div className='mt-3 border-t border-border/50 pt-2'>
-      <button
-        className='flex cursor-pointer items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors'
-        onClick={() => setOpen(!open)}
-      >
-        <FileText className='size-3' />
-        <span>
-          {open ? '收起' : '展开'}来源（{data.length}）
-        </span>
-      </button>
-      {open && (
-        <div className='mt-2 flex flex-col gap-1.5'>
-          {data.map((src, i) => (
-            <button
-              key={i}
-              className='flex cursor-pointer items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-xs text-left hover:bg-muted/40 transition-colors'
-              onClick={() => setDialogSrc(src)}
-            >
-              <span className='shrink-0 font-semibold text-muted-foreground'>[{i + 1}]</span>
-              <span className='min-w-0 flex-1 truncate text-foreground'>
-                {src.metadata?.fileName ? String(src.metadata.fileName) : '未知来源'}
-              </span>
-              {src.score !== undefined && (
-                <span className='shrink-0 tabular-nums text-muted-foreground'>
-                  {(src.score * 100).toFixed(0)}%
-                </span>
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-
-      <Dialog
-        open={!!dialogSrc}
-        onOpenChange={(v) => {
-          if (!v) setDialogSrc(null);
-        }}
-      >
-        <DialogContent className='sm:max-w-4xl max-h-[80vh] overflow-y-auto'>
-          <DialogHeader>
-            <DialogTitle className='text-base'>
-              {dialogSrc?.metadata?.fileName ? String(dialogSrc.metadata.fileName) : '来源详情'}
-            </DialogTitle>
-          </DialogHeader>
-          <MarkdownRenderer content={dialogSrc?.content || ''} />
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
-
-function ReasoningBlock({
-  streaming = false,
-  children,
-}: {
-  streaming?: boolean;
-  children: React.ReactNode;
-}) {
-  const [open, setOpen] = useState(true);
-
-  return (
-    <div className='mb-3 rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30'>
-      <button
-        className='flex w-full cursor-pointer items-center gap-1.5 px-3 py-2 text-xs text-amber-700 hover:text-amber-900 dark:text-amber-400 dark:hover:text-amber-200 transition-colors'
-        onClick={() => setOpen(!open)}
-      >
-        <Brain className='size-3' />
-        <span className='font-medium'>思考过程</span>
-        {streaming && <Spinner className='size-3' />}
-        <span className='text-[10px] opacity-60'>{open ? '点击收起' : '点击展开'}</span>
-      </button>
-      {open && (
-        <div className='border-t border-amber-200 px-3 py-2 dark:border-amber-800'>{children}</div>
-      )}
-    </div>
-  );
-}
-
-function StreamingMarkdown({ content }: { content: string }) {
-  if (!content) return null;
-
-  return (
-    <div className='prose prose-sm dark:prose-invert max-w-none'>
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   );
 }
