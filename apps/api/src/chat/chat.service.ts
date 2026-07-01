@@ -127,6 +127,12 @@ export class ChatService {
             if (fullReasoning) {
               metadata.reasoning = fullReasoning;
             }
+
+            // 如果 content 为空但 reasoning 有内容，从 reasoning 末段提取有效内容
+            if (!fullContent && fullReasoning) {
+              const paragraphs = fullReasoning.split('\n').filter(Boolean);
+              fullContent = paragraphs[paragraphs.length - 1] || '（模型未返回明确回答）';
+            }
             const msgData: any = {
               conversationId: convId,
               role: 'assistant',

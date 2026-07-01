@@ -84,4 +84,48 @@ describe('ChatService', () => {
     expect(chunks[chunks.length - 1].isEnd).toBe(true);
     expect(mockMessageRepo.save).toHaveBeenCalled();
   });
+
+  it('should fallback content from reasoning when content is empty', async () => {
+    // Fresh mock for reasoning test
+    const reasoningRepo = {
+      find: jest.fn().mockResolvedValue([]),
+      save: jest.fn().mockImplementation((data) => Promise.resolve({ id: 'msg-2', ...data })),
+      create: jest.fn().mockImplementation((data) => data),
+    };
+    const reasoningProviders = {
+      getProviderClient: jest.fn().mockResolvedValue({
+        chatStream: jest
+          .fn()
+          .mockReturnValue(
+            of(
+              { content: '', reasoning: 'Step 1: Analyze the problem...\n', isEnd: false },
+              { content: '', reasoning: 'Step 2: Think about edge cases...\n', isEnd: false },
+              { content: '', reasoning: 'The answer is 42.', isEnd: true }
+            )
+          ),
+      }),
+    };
+
+    const module = await Test.createTestingModule({
+      providers: [
+        ChatService,
+        { provide: getRepositoryToken(Message), useValue: reasoningRepo },
+        { provide: AppService, useValue: mockAppService },
+        { provide: ConversationService, useValue: mockConvService },
+        { provide: ProvidersService, useValue: reasoningProviders },
+        { provide: RetrievalService, useValue: mockRetrievalService },
+      ],
+    }).compile();
+
+    const svc = module.get<ChatService>(ChatService);
+    const result$ = await svc.sendMessage('app-1', 'conv-1', 'question');
+    await lastValueFrom(result$);
+
+    const savedCall = reasoningRepo.save.mock.calls.find(
+      (call: any[]) => call[0]?.role === 'assistant'
+    );
+    const savedMsg = savedCall ? savedCall[0] : null;
+    expect(savedMsg).toBeDefined();
+    expect(savedMsg.content).toBe('The answer is 42.');
+  });
 });
