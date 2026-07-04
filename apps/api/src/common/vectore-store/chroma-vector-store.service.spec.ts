@@ -1,3 +1,4 @@
+import { Embeddings } from '@langchain/core/embeddings';
 import { Test, TestingModule } from '@nestjs/testing';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { ChromaVectorStoreService } from './chroma-vector-store.service';
@@ -5,7 +6,10 @@ import { ChromaVectorStoreService } from './chroma-vector-store.service';
 describe('ChromaVectorStoreService', () => {
   let service: ChromaVectorStoreService;
 
-  const mockDefaultEmbeddings = fromPartial({});
+  const mockDefaultEmbeddings = fromPartial<Embeddings<number[]>>({
+    embedDocuments: jest.fn().mockResolvedValue([[0.1, 0.2]]),
+    embedQuery: jest.fn().mockResolvedValue([0.1, 0.2]),
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

@@ -161,19 +161,19 @@
 
 .dark {
   /* Dark palette */
-  --bg-deep: oklch(0.17 0.012 265);          /* #222831 */
-  --surface-dark: oklch(0.26 0.01 265);      /* #393E46 */
-  --taupe: oklch(0.57 0.018 72);            /* #948979 */
-  --beige: oklch(0.84 0.02 78);             /* #DFD0B8 */
+  --bg-deep: oklch(0.17 0.012 265); /* #222831 */
+  --surface-dark: oklch(0.26 0.01 265); /* #393E46 */
+  --taupe: oklch(0.57 0.018 72); /* #948979 */
+  --beige: oklch(0.84 0.02 78); /* #DFD0B8 */
 
   --radius: 0.75rem;
 
   /* Background & text */
-  --background: var(--bg-deep);              /* #222831 */
-  --foreground: var(--beige);                /* #DFD0B8 */
+  --background: var(--bg-deep); /* #222831 */
+  --foreground: var(--beige); /* #DFD0B8 */
 
   /* Card & popover */
-  --card: var(--surface-dark);               /* #393E46 */
+  --card: var(--surface-dark); /* #393E46 */
   --card-foreground: var(--foreground);
   --popover: var(--surface-dark);
   --popover-foreground: var(--foreground);
@@ -188,7 +188,7 @@
 
   /* Muted */
   --muted: oklch(0.22 0.01 265);
-  --muted-foreground: var(--taupe);          /* #948979 */
+  --muted-foreground: var(--taupe); /* #948979 */
 
   /* Accent */
   --accent: oklch(0.34 0.015 265);
