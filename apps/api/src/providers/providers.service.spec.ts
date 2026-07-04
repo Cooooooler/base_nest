@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { App } from '../chat/entities/app.entity';
 import * as cryptoUtil from '../common/crypto.util';
 import { ApiKey } from './entities/api-key.entity';
@@ -14,7 +15,7 @@ const TEST_USER_ID = '893e135b-f517-43a9-9104-8922407eabd9';
 describe('ProvidersService', () => {
   let service: ProvidersService;
 
-  const mockProvider: ModelProvider = {
+  const mockProvider: ModelProvider = fromPartial({
     id: '550e8400-e29b-41d4-a716-446655440000',
     name: 'OpenAI',
     type: 'openai',
@@ -24,12 +25,12 @@ describe('ProvidersService', () => {
     createdAt: new Date(),
     apiKeys: [],
     models: [],
-  } as ModelProvider;
+  });
 
-  const mockProviderWithKeys: ModelProvider = {
+  const mockProviderWithKeys: ModelProvider = fromPartial({
     ...mockProvider,
     apiKeys: [
-      {
+      fromPartial({
         id: '660e8400-e29b-41d4-a716-446655440001',
         providerId: mockProvider.id,
         name: 'Production Key',
@@ -37,12 +38,11 @@ describe('ProvidersService', () => {
         maskedKey: 'sk-t****xxx',
         isActive: true,
         createdAt: new Date(),
-        provider: null as any,
-      },
+      }),
     ],
-  };
+  });
 
-  const mockApiKey: ApiKey = {
+  const mockApiKey: ApiKey = fromPartial({
     id: '660e8400-e29b-41d4-a716-446655440001',
     providerId: mockProvider.id,
     name: 'Production Key',
@@ -50,8 +50,7 @@ describe('ProvidersService', () => {
     maskedKey: 'sk-t****xxx',
     isActive: true,
     createdAt: new Date(),
-    provider: null as any,
-  };
+  });
 
   const mockRepo = {
     find: jest.fn().mockResolvedValue([mockProvider]),
