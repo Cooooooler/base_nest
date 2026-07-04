@@ -24,13 +24,15 @@ export default function KnowledgePage() {
   const { data: knowledgeBases, isLoading } = useKnowledgeBases();
   const deleteKb = useDeleteKnowledgeBase();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
       await deleteKb.mutateAsync(deleteTarget.id);
       toast.success('知识库已删除');
-      setDeleteTarget(null);
+      setDeleteDialogOpen(false);
+      setTimeout(() => setDeleteTarget(null), 200);
     } catch {
       toast.error('删除失败');
     }
@@ -98,7 +100,10 @@ export default function KnowledgePage() {
                     variant='ghost'
                     size='icon'
                     aria-label={`删除 ${kb.name}`}
-                    onClick={() => setDeleteTarget({ id: kb.id, name: kb.name })}
+                    onClick={() => {
+                      setDeleteTarget({ id: kb.id, name: kb.name });
+                      setDeleteDialogOpen(true);
+                    }}
                   >
                     <Trash2 className='size-4' />
                   </Button>
@@ -128,7 +133,15 @@ export default function KnowledgePage() {
         </StaggerList>
       )}
 
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteDialogOpen(false);
+            setTimeout(() => setDeleteTarget(null), 200);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>确认删除</DialogTitle>
@@ -138,7 +151,13 @@ export default function KnowledgePage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setTimeout(() => setDeleteTarget(null), 200);
+              }}
+            >
               取消
             </Button>
             <Button variant='destructive' disabled={deleteKb.isPending} onClick={handleDelete}>

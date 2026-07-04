@@ -1,3 +1,4 @@
+import { fromPartial } from '@total-typescript/shoehorn';
 import { LangChainAdapter } from './langchain-adapter';
 
 const mockInstances: any[] = [];
@@ -24,13 +25,13 @@ function createMockResponse(content: string) {
   return { content, additional_kwargs: {}, response_metadata: {} };
 }
 
-const mockEmbeddings = {
+const mockEmbeddings = fromPartial({
   embedDocuments: jest.fn().mockResolvedValue([
     [0.1, 0.2, 0.3],
     [0.4, 0.5, 0.6],
   ]),
   embedQuery: jest.fn().mockResolvedValue([0.1, 0.2, 0.3]),
-};
+});
 
 describe('LangChainAdapter', () => {
   let factory: ReturnType<typeof createModelFactory>;
@@ -39,7 +40,7 @@ describe('LangChainAdapter', () => {
   beforeEach(() => {
     mockInstances.length = 0;
     factory = createModelFactory();
-    adapter = new LangChainAdapter(factory, mockEmbeddings as any);
+    adapter = new LangChainAdapter(factory, mockEmbeddings);
   });
 
   // ---- chat() ----
@@ -76,7 +77,7 @@ describe('LangChainAdapter', () => {
           usage_metadata: { input_tokens: 10, output_tokens: 5, total_tokens: 15 },
         }),
       });
-      const adapterWithUsage = new LangChainAdapter(usageFactory, mockEmbeddings as any);
+      const adapterWithUsage = new LangChainAdapter(usageFactory, mockEmbeddings);
 
       const result = await adapterWithUsage.chat({
         model: 'gpt-4',
@@ -123,7 +124,7 @@ describe('LangChainAdapter', () => {
           next: (chunk) => chunks.push(chunk),
           error: done,
           complete: () => {
-            const fullContent = chunks.map((c) => c.content).join('');
+            const fullContent = chunks.map((c: any) => c.content).join('');
             expect(fullContent).toBe('Hello from llama3!');
             done();
           },
@@ -138,7 +139,7 @@ describe('LangChainAdapter', () => {
           yield createMockChunk('Here is my answer.');
         }),
       });
-      const adapter2 = new LangChainAdapter(thinkingFactory, mockEmbeddings as any);
+      const adapter2 = new LangChainAdapter(thinkingFactory, mockEmbeddings);
 
       const chunks: any[] = [];
       adapter2
@@ -150,7 +151,7 @@ describe('LangChainAdapter', () => {
           next: (chunk) => chunks.push(chunk),
           error: done,
           complete: () => {
-            const reasoningParts = chunks.map((c) => c.reasoning).filter(Boolean);
+            const reasoningParts = chunks.map((c: any) => c.reasoning).filter(Boolean);
             expect(reasoningParts.length).toBeGreaterThan(0);
             expect(reasoningParts[0]).toContain('I need to think');
             done();
@@ -166,7 +167,7 @@ describe('LangChainAdapter', () => {
           yield createMockChunk('Answer');
         }),
       });
-      const a = new LangChainAdapter(rcFactory, mockEmbeddings as any);
+      const a = new LangChainAdapter(rcFactory, mockEmbeddings);
 
       const chunks: any[] = [];
       a.chatStream({
@@ -176,7 +177,7 @@ describe('LangChainAdapter', () => {
         next: (chunk) => chunks.push(chunk),
         error: done,
         complete: () => {
-          expect(chunks.some((c) => c.reasoning)).toBe(true);
+          expect(chunks.some((c: any) => c.reasoning)).toBe(true);
           done();
         },
       });

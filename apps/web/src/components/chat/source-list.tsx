@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileText } from 'lucide-react';
 import dynamic from 'next/dynamic';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { ChatMessage } from './types';
 
 const MarkdownRenderer = dynamic(
@@ -14,7 +14,9 @@ const MarkdownRenderer = dynamic(
 
 export function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
   const [open, setOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [dialogSrc, setDialogSrc] = useState<(typeof data)[number] | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   return (
     <div className='mt-3 border-t border-border/50 pt-2'>
@@ -33,7 +35,10 @@ export function SourceList({ data }: { data: NonNullable<ChatMessage['sources']>
             <button
               key={i}
               className='flex cursor-pointer items-center gap-2 rounded-lg border bg-muted/20 px-3 py-2 text-xs text-left hover:bg-muted/40 transition-colors'
-              onClick={() => setDialogSrc(src)}
+              onClick={() => {
+                setDialogSrc(src);
+                setDialogOpen(true);
+              }}
             >
               <span className='shrink-0 font-semibold text-muted-foreground'>[{i + 1}]</span>
               <span className='min-w-0 flex-1 truncate text-foreground'>
@@ -50,9 +55,13 @@ export function SourceList({ data }: { data: NonNullable<ChatMessage['sources']>
       )}
 
       <Dialog
-        open={!!dialogSrc}
+        open={dialogOpen}
         onOpenChange={(v) => {
-          if (!v) setDialogSrc(null);
+          if (!v) {
+            setDialogOpen(false);
+            clearTimeout(timerRef.current);
+            timerRef.current = setTimeout(() => setDialogSrc(null), 200);
+          }
         }}
       >
         <DialogContent className='sm:max-w-4xl max-h-[80vh] overflow-y-auto'>

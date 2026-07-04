@@ -27,6 +27,7 @@ export default function ProvidersPage() {
   const { data: providers, isLoading } = useProviders();
   const deleteProvider = useDeleteProvider();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDelete = useMemoizedFn(async () => {
     if (!deleteTarget) return;
@@ -36,7 +37,8 @@ export default function ProvidersPage() {
     } catch {
       toast.error('删除失败');
     }
-    setDeleteTarget(null);
+    setDeleteDialogOpen(false);
+    setTimeout(() => setDeleteTarget(null), 200);
   });
 
   if (isLoading) {
@@ -103,7 +105,10 @@ export default function ProvidersPage() {
                     variant='ghost'
                     size='icon'
                     aria-label={`删除 ${p.name}`}
-                    onClick={() => setDeleteTarget({ id: p.id, name: p.name })}
+                    onClick={() => {
+                      setDeleteTarget({ id: p.id, name: p.name });
+                      setDeleteDialogOpen(true);
+                    }}
                   >
                     <Trash2 className='size-4' />
                   </Button>
@@ -143,9 +148,12 @@ export default function ProvidersPage() {
       )}
 
       <Dialog
-        open={!!deleteTarget}
+        open={deleteDialogOpen}
         onOpenChange={(o) => {
-          if (!o) setDeleteTarget(null);
+          if (!o) {
+            setDeleteDialogOpen(false);
+            setTimeout(() => setDeleteTarget(null), 200);
+          }
         }}
       >
         <DialogContent>
@@ -157,7 +165,13 @@ export default function ProvidersPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setTimeout(() => setDeleteTarget(null), 200);
+              }}
+            >
               取消
             </Button>
             <Button

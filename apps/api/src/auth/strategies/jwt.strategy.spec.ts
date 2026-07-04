@@ -34,29 +34,25 @@ describe('JwtStrategy', () => {
 
     it('should return user if payload is valid', async () => {
       mockUsersService.findOne.mockResolvedValue(mockUser);
-      const done = jest.fn();
 
-      await strategy.validate(mockPayload, done);
+      const result = await strategy.validate(mockPayload);
 
-      expect(done).toHaveBeenCalledWith(null, mockUser);
+      expect(result).toEqual(mockUser);
     });
 
-    it('should call done with error if token type is not access', async () => {
-      const done = jest.fn();
-
-      await strategy.validate({ ...mockPayload, type: 'refresh' }, done);
-
-      expect(done).toHaveBeenCalledWith(new UnauthorizedException('Invalid token type'), false);
+    it('should throw if token type is not access', async () => {
+      await expect(strategy.validate({ ...mockPayload, type: 'refresh' })).rejects.toThrow(
+        new UnauthorizedException('Invalid token type')
+      );
       expect(mockUsersService.findOne).not.toHaveBeenCalled();
     });
 
-    it('should call done with error if user not found', async () => {
+    it('should throw if user not found', async () => {
       mockUsersService.findOne.mockResolvedValue(null);
-      const done = jest.fn();
 
-      await strategy.validate(mockPayload, done);
-
-      expect(done).toHaveBeenCalledWith(new UnauthorizedException('User not found'), false);
+      await expect(strategy.validate(mockPayload)).rejects.toThrow(
+        new UnauthorizedException('User not found')
+      );
     });
   });
 });

@@ -199,7 +199,7 @@ describe('ProvidersService', () => {
 
   describe('createApiKey', () => {
     it('should encrypt and save an API key', async () => {
-      (cryptoUtil.encrypt as jest.Mock).mockReturnValue('encrypted:value');
+      jest.mocked(cryptoUtil.encrypt).mockReturnValue('encrypted:value');
       const dto = { name: 'Production', apiKey: 'sk-proj-xxx' };
       const result = await service.createApiKey(mockProvider.id, TEST_USER_ID, dto);
       expect(result.maskedKey).toBeDefined();
@@ -506,7 +506,7 @@ describe('ProvidersService', () => {
 
   describe('getProviderClient', () => {
     it('should return a provider client for openai type', async () => {
-      (cryptoUtil.decrypt as jest.Mock).mockReturnValue('sk-test');
+      jest.mocked(cryptoUtil.decrypt).mockReturnValue('sk-test');
       const result = await service.getProviderClient(mockProvider.id);
       expect(result).toBeDefined();
     });

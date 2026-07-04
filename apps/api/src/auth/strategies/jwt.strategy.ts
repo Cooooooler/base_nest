@@ -1,7 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-import type { VerifyCallback } from 'passport-jwt';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UsersService } from '../../users/users.service';
 
@@ -17,24 +16,25 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     configService: ConfigService,
     private readonly usersService: UsersService
   ) {
+    // passport-jwt type definitions are incomplete — super() args and ExtractJwt are loosely typed
+    /* eslint-disable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET'),
     });
+    /* eslint-enable @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
   }
 
-  async validate(payload: JwtPayload, done: VerifyCallback) {
+  async validate(payload: JwtPayload) {
     if (payload.type !== 'access') {
-      done(new UnauthorizedException('Invalid token type'), false);
-      return;
+      throw new UnauthorizedException('Invalid token type');
     }
 
     const user = await this.usersService.findOne(payload.sub);
     if (!user) {
-      done(new UnauthorizedException('User not found'), false);
-      return;
+      throw new UnauthorizedException('User not found');
     }
-    done(null, user);
+    return user;
   }
 }

@@ -89,7 +89,7 @@ describe('AuthService', () => {
 
     it('should register a new user and return tokens', async () => {
       mockUsersService.findByEmail.mockResolvedValue(null);
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+      jest.mocked(bcrypt.hash).mockResolvedValue('hashed-password');
       mockQueryRunner.manager.save.mockResolvedValue(mockUser);
       mockJwtService.signAsync
         .mockResolvedValueOnce('access-token')
@@ -119,7 +119,7 @@ describe('AuthService', () => {
 
     it('should rollback transaction on DB error', async () => {
       mockUsersService.findByEmail.mockResolvedValue(null);
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashed-password');
+      jest.mocked(bcrypt.hash).mockResolvedValue('hashed-password');
       mockQueryRunner.manager.save.mockRejectedValue(new Error('DB error'));
 
       await expect(service.register(registerDto)).rejects.toThrow('DB error');
@@ -133,7 +133,7 @@ describe('AuthService', () => {
 
     it('should login successfully and return tokens', async () => {
       mockUsersService.findByEmailWithPassword.mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      jest.mocked(bcrypt.compare).mockResolvedValue(true);
       mockJwtService.signAsync
         .mockResolvedValueOnce('access-token')
         .mockResolvedValueOnce('refresh-token');
@@ -155,7 +155,7 @@ describe('AuthService', () => {
 
     it('should throw UnauthorizedException if password is invalid', async () => {
       mockUsersService.findByEmailWithPassword.mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+      jest.mocked(bcrypt.compare).mockResolvedValue(false);
 
       await expect(service.login(loginDto)).rejects.toThrow(UnauthorizedException);
     });
@@ -262,7 +262,7 @@ describe('AuthService', () => {
   describe('token generation', () => {
     beforeEach(() => {
       mockUsersService.findByEmailWithPassword.mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      jest.mocked(bcrypt.compare).mockResolvedValue(true);
     });
 
     it('should generate access and refresh tokens with correct payloads', async () => {
@@ -303,7 +303,7 @@ describe('AuthService', () => {
       // Simulate config returning undefined
       mockConfigService.get.mockReturnValue(undefined);
       mockUsersService.findByEmailWithPassword.mockResolvedValue(mockUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      jest.mocked(bcrypt.compare).mockResolvedValue(true);
       mockJwtService.signAsync
         .mockResolvedValueOnce('access-token')
         .mockResolvedValueOnce('refresh-token');

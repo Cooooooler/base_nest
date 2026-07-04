@@ -35,5 +35,16 @@ export default tseslint.config(
       '@typescript-eslint/no-unsafe-return': 'warn',
       'prettier/prettier': ['error', { endOfLine: 'auto' }],
     },
+  },
+  // Test files: mock factories + jest.fn() return types inherently carry `any`
+  {
+    files: ['**/*.spec.ts', '**/*.e2e-spec.ts'],
+    rules: {
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+    },
   }
 );

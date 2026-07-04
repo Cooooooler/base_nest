@@ -1,6 +1,7 @@
 'use client';
 
 import { register } from '@/api/auth';
+import { FadeIn } from '@/components/animated/fade-in';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -58,92 +59,100 @@ export default function RegisterPage() {
 
   return (
     <div className='flex min-h-screen items-center justify-center p-4'>
-      <Card className='w-full max-w-sm'>
-        <CardHeader className='space-y-1 text-center'>
-          <div className='mb-2 flex justify-center'>
-            <div className='flex size-10 items-center justify-center rounded-lg bg-primary'>
-              <Bot className='size-5 text-primary-foreground' />
+      <FadeIn direction='up'>
+        <Card className='w-full max-w-sm'>
+          <CardHeader className='space-y-1 text-center'>
+            <div className='mb-2 flex justify-center'>
+              <div className='flex size-10 items-center justify-center rounded-lg bg-primary'>
+                <Bot className='size-5 text-primary-foreground' />
+              </div>
             </div>
-          </div>
-          <CardTitle className='text-xl'>注册</CardTitle>
-          <CardDescription>创建你的 Base Nest AI 账号</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-            <Controller
-              name='name'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor='name'>用户名</FieldLabel>
-                  <Input
-                    {...field}
-                    id='name'
-                    placeholder='Alice'
-                    autoComplete='name'
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                  )}
-                </Field>
-              )}
-            />
-            <Controller
-              name='email'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor='email'>邮箱</FieldLabel>
-                  <Input
-                    {...field}
-                    id='email'
-                    type='email'
-                    placeholder='alice@example.com'
-                    autoComplete='email'
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                  )}
-                </Field>
-              )}
-            />
-            <Controller
-              name='password'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor='password'>密码</FieldLabel>
-                  <Input
-                    {...field}
-                    id='password'
-                    type='password'
-                    placeholder='最少 6 位'
-                    autoComplete='new-password'
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                  )}
-                </Field>
-              )}
-            />
-            <Button type='submit' className='w-full' disabled={isSubmitting}>
-              {isSubmitting && <Spinner data-icon='inline-start' />}
-              注册
-            </Button>
-          </form>
-        </CardContent>
-        <CardFooter className='justify-center'>
-          <p className='text-sm text-muted-foreground'>
-            已有账号？{' '}
-            <Link href='/login' className='font-medium text-primary hover:underline'>
-              登录
-            </Link>
-          </p>
-        </CardFooter>
-      </Card>
+            <CardTitle className='text-xl'>注册</CardTitle>
+            <CardDescription>创建你的 Base Nest AI 账号</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+              <Controller
+                name='name'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor='name' required>
+                      用户名
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id='name'
+                      placeholder='Alice'
+                      autoComplete='name'
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name='email'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor='email' required>
+                      邮箱
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id='email'
+                      type='email'
+                      placeholder='alice@example.com'
+                      autoComplete='email'
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name='password'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor='password' required>
+                      密码
+                    </FieldLabel>
+                    <Input
+                      {...field}
+                      id='password'
+                      type='password'
+                      placeholder='最少 6 位'
+                      autoComplete='new-password'
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                    )}
+                  </Field>
+                )}
+              />
+              <Button type='submit' className='w-full' disabled={isSubmitting}>
+                {isSubmitting && <Spinner data-icon='inline-start' />}
+                注册
+              </Button>
+            </form>
+          </CardContent>
+          <CardFooter className='justify-center'>
+            <p className='text-sm text-muted-foreground'>
+              已有账号？{' '}
+              <Link href='/login' className='font-medium text-primary hover:underline'>
+                登录
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </FadeIn>
     </div>
   );
 }
