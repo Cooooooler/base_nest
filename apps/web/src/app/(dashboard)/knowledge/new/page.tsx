@@ -85,7 +85,9 @@ export default function NewKnowledgeBasePage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='kb-name'>名称</FieldLabel>
+                    <FieldLabel htmlFor='kb-name' required>
+                      名称
+                    </FieldLabel>
                     <Input
                       {...field}
                       id='kb-name'
@@ -113,7 +115,9 @@ export default function NewKnowledgeBasePage() {
                 control={control}
                 render={({ field }) => (
                   <Field>
-                    <FieldLabel htmlFor='kb-embed-model'>嵌入模型</FieldLabel>
+                    <FieldLabel htmlFor='kb-embed-model' required>
+                      嵌入模型
+                    </FieldLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger id='kb-embed-model'>
                         <SelectValue placeholder='选择嵌入模型' />
@@ -135,7 +139,9 @@ export default function NewKnowledgeBasePage() {
                   control={control}
                   render={({ field, fieldState }) => (
                     <Field>
-                      <FieldLabel htmlFor='kb-chunk-size'>分块大小</FieldLabel>
+                      <FieldLabel htmlFor='kb-chunk-size' required>
+                        分块大小
+                      </FieldLabel>
                       <Input
                         {...field}
                         id='kb-chunk-size'
@@ -153,7 +159,9 @@ export default function NewKnowledgeBasePage() {
                   control={control}
                   render={({ field, fieldState }) => (
                     <Field>
-                      <FieldLabel htmlFor='kb-chunk-overlap'>分块重叠</FieldLabel>
+                      <FieldLabel htmlFor='kb-chunk-overlap' required>
+                        分块重叠
+                      </FieldLabel>
                       <Input
                         {...field}
                         id='kb-chunk-overlap'

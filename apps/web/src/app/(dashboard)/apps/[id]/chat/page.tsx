@@ -225,8 +225,8 @@ export default function ChatPage() {
 
   if (appLoading) {
     return (
-      <FadeIn direction='up'>
-        <div className='flex h-[calc(100vh-8rem)] gap-4'>
+      <FadeIn direction='up' className='flex flex-1 flex-col min-h-0'>
+        <div className='flex flex-1 gap-4 min-h-0'>
           <Skeleton className='w-64 shrink-0' />
           <Skeleton className='flex-1' />
         </div>
@@ -236,7 +236,7 @@ export default function ChatPage() {
 
   if (!app)
     return (
-      <FadeIn direction='up'>
+      <FadeIn direction='up' className='flex-1'>
         <p className='text-muted-foreground'>应用未找到</p>
       </FadeIn>
     );
@@ -244,12 +244,12 @@ export default function ChatPage() {
   const showMessages = messages.length > 0;
 
   return (
-    <FadeIn direction='up'>
-      <div className='flex h-[calc(100vh-8rem)] gap-4'>
+    <FadeIn direction='up' className='flex flex-1 flex-col min-h-0'>
+      <div className='flex flex-1 gap-4 min-h-0'>
         {/* Conversation sidebar */}
         <Card
           size='sm'
-          className='flex w-64 shrink-0 flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'
+          className='flex w-64 shrink-0 flex-col min-h-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'
         >
           <CardHeader className='flex items-center justify-between'>
             <CardTitle>历史会话</CardTitle>
@@ -314,7 +314,7 @@ export default function ChatPage() {
         </Card>
 
         {/* Main chat area */}
-        <Card className='flex flex-1 flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'>
+        <Card className='flex flex-1 flex-col min-h-0 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'>
           <CardContent className='flex flex-1 flex-col overflow-hidden p-0'>
             {showMessages ? (
               <MessageScroller autoScroll={streamingMsgIdx !== null}>

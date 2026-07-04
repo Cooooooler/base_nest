@@ -77,7 +77,9 @@ export default function RegisterPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='name'>用户名</FieldLabel>
+                    <FieldLabel htmlFor='name' required>
+                      用户名
+                    </FieldLabel>
                     <Input
                       {...field}
                       id='name'
@@ -96,7 +98,9 @@ export default function RegisterPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='email'>邮箱</FieldLabel>
+                    <FieldLabel htmlFor='email' required>
+                      邮箱
+                    </FieldLabel>
                     <Input
                       {...field}
                       id='email'
@@ -116,7 +120,9 @@ export default function RegisterPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='password'>密码</FieldLabel>
+                    <FieldLabel htmlFor='password' required>
+                      密码
+                    </FieldLabel>
                     <Input
                       {...field}
                       id='password'

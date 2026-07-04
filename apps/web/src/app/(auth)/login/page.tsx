@@ -76,7 +76,9 @@ export default function LoginPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='email'>邮箱</FieldLabel>
+                    <FieldLabel htmlFor='email' required>
+                      邮箱
+                    </FieldLabel>
                     <Input
                       {...field}
                       id='email'
@@ -96,7 +98,9 @@ export default function LoginPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='password'>密码</FieldLabel>
+                    <FieldLabel htmlFor='password' required>
+                      密码
+                    </FieldLabel>
                     <Input
                       {...field}
                       id='password'

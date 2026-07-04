@@ -113,7 +113,9 @@ export default function NewAppPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='app-name'>名称 *</FieldLabel>
+                    <FieldLabel htmlFor='app-name' required>
+                      名称
+                    </FieldLabel>
                     <Input
                       {...field}
                       id='app-name'
@@ -143,7 +145,9 @@ export default function NewAppPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='app-provider'>模型提供商 *</FieldLabel>
+                    <FieldLabel htmlFor='app-provider' required>
+                      模型提供商
+                    </FieldLabel>
                     <Combobox
                       items={providerOptions}
                       value={field.value}
@@ -179,7 +183,9 @@ export default function NewAppPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='app-model'>模型 *</FieldLabel>
+                    <FieldLabel htmlFor='app-model' required>
+                      模型
+                    </FieldLabel>
                     <Combobox
                       items={modelOptions}
                       value={field.value}

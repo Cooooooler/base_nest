@@ -41,7 +41,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className='max-h-screen min-h-0 overflow-hidden'>
         <header className='flex h-16 shrink-0 items-center gap-2 border-b px-4'>
           <SidebarTrigger className='-ml-1 cursor-pointer' />
           <h1 className='text-lg font-semibold'>{title}</h1>
@@ -76,7 +76,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </header>
-        <main className='flex-1 p-6 animate-fade-in-up'>{children}</main>
+        <main className='flex-1 p-6 animate-fade-in-up flex flex-col min-h-0'>{children}</main>
       </SidebarInset>
     </>
   );

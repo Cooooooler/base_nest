@@ -309,7 +309,9 @@ export default function ProviderDetailPage() {
                           control={control}
                           render={({ field, fieldState }) => (
                             <Field>
-                              <FieldLabel htmlFor='key-name'>密钥名称</FieldLabel>
+                              <FieldLabel htmlFor='key-name' required>
+                                密钥名称
+                              </FieldLabel>
                               <Input
                                 {...field}
                                 id='key-name'
@@ -329,7 +331,9 @@ export default function ProviderDetailPage() {
                           control={control}
                           render={({ field, fieldState }) => (
                             <Field>
-                              <FieldLabel htmlFor='key-value'>API 密钥</FieldLabel>
+                              <FieldLabel htmlFor='key-value' required>
+                                API 密钥
+                              </FieldLabel>
                               <Input
                                 {...field}
                                 id='key-value'
@@ -468,7 +472,9 @@ export default function ProviderDetailPage() {
                       control={modelControl}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <FieldLabel htmlFor='model-name'>模型标识名</FieldLabel>
+                          <FieldLabel htmlFor='model-name' required>
+                            模型标识名
+                          </FieldLabel>
                           <Input
                             {...field}
                             id='model-name'
@@ -486,7 +492,9 @@ export default function ProviderDetailPage() {
                       control={modelControl}
                       render={({ field, fieldState }) => (
                         <Field>
-                          <FieldLabel htmlFor='model-display-name'>展示名</FieldLabel>
+                          <FieldLabel htmlFor='model-display-name' required>
+                            展示名
+                          </FieldLabel>
                           <Input
                             {...field}
                             id='model-display-name'

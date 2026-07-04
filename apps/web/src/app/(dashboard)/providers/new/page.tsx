@@ -77,7 +77,9 @@ export default function NewProviderPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='provider-name'>名称</FieldLabel>
+                    <FieldLabel htmlFor='provider-name' required>
+                      名称
+                    </FieldLabel>
                     <Input
                       {...field}
                       id='provider-name'
@@ -95,7 +97,9 @@ export default function NewProviderPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Field>
-                    <FieldLabel htmlFor='provider-type'>类型</FieldLabel>
+                    <FieldLabel htmlFor='provider-type' required>
+                      类型
+                    </FieldLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger id='provider-type' aria-invalid={fieldState.invalid}>
                         <SelectValue placeholder='选择类型' />
