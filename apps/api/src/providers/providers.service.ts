@@ -1,3 +1,7 @@
+import { ChatAnthropic } from '@langchain/anthropic';
+import { BaseChatModel } from '@langchain/core/language_models/chat_models';
+import { ChatOllama } from '@langchain/ollama';
+import { ChatOpenAI } from '@langchain/openai';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -9,15 +13,11 @@ import { CreateProviderDto } from './dto/create-provider.dto';
 import { UpdateModelDto } from './dto/update-model.dto';
 import { UpdateProviderDto } from './dto/update-provider.dto';
 import { ApiKey } from './entities/api-key.entity';
-import { ModelProvider, needsApiKey } from './entities/model-provider.entity';
+import { ModelProvider, needsApiKey, type ProviderType } from './entities/model-provider.entity';
 import { Model } from './entities/model.entity';
 import { LlmProvider } from './interfaces/llm-provider.interface';
 import { getPresetModelsByType } from './preset-models';
-import { ClaudeStrategy } from './strategies/claude.strategy';
-import { LangChainOllamaStrategy } from './strategies/langchain-ollama.strategy';
-import { OllamaStrategy } from './strategies/ollama.strategy';
-import { OpenAiCompatibleStrategy } from './strategies/openai-compatible.strategy';
-import { OpenAiStrategy } from './strategies/openai.strategy';
+import { LangChainAdapter } from './strategies/langchain-adapter';
 
 function maskApiKey(key: string): string {
   if (key.length <= 8) return '****';
@@ -80,7 +80,7 @@ export class ProvidersService {
   }
 
   getPresetModels(type: string) {
-    return getPresetModelsByType(type as any);
+    return getPresetModelsByType(type as ProviderType);
   }
 
   async findApiKeys(providerId: string, userId: string): Promise<ApiKey[]> {
@@ -199,20 +199,34 @@ export class ProvidersService {
     const decryptedKey = keyRequired
       ? decrypt(provider.apiKeys.find((k) => k.isActive)!.encryptedKey)
       : '';
+    const baseUrl = provider.baseUrl || undefined;
 
-    switch (provider.type) {
+    // Map langchain-ollama → ollama for backward compatibility
+    const normalizedType = provider.type === 'langchain-ollama' ? 'ollama' : provider.type;
+
+    const modelFactory = this.createModelFactory(normalizedType, decryptedKey, baseUrl);
+    return new LangChainAdapter(modelFactory);
+  }
+
+  private createModelFactory(
+    type: string,
+    apiKey: string,
+    baseUrl?: string
+  ): (model: string) => BaseChatModel {
+    switch (type) {
       case 'openai':
-        return new OpenAiStrategy(decryptedKey, provider.baseUrl ?? undefined);
+        return (model: string) =>
+          new ChatOpenAI({ model, apiKey, configuration: { baseURL: baseUrl } });
       case 'anthropic':
-        return new ClaudeStrategy(decryptedKey, provider.baseUrl ?? undefined);
+        return (model: string) =>
+          new ChatAnthropic({ model, apiKey, clientOptions: { baseURL: baseUrl } });
       case 'ollama':
-        return new OllamaStrategy(decryptedKey, provider.baseUrl ?? undefined);
+        return (model: string) => new ChatOllama({ model, baseUrl });
       case 'openai-compatible':
-        return new OpenAiCompatibleStrategy(decryptedKey, provider.baseUrl ?? '');
-      case 'langchain-ollama':
-        return new LangChainOllamaStrategy(decryptedKey, provider.baseUrl ?? undefined);
+        return (model: string) =>
+          new ChatOpenAI({ model, apiKey, configuration: { baseURL: baseUrl } });
       default:
-        throw new Error(`Unsupported provider type: ${provider.type as string}`);
+        throw new Error(`Unsupported provider type: ${type}`);
     }
   }
 }

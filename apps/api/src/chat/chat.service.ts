@@ -69,6 +69,9 @@ export class ChatService {
       })
     );
 
+    // 用第一条用户消息作为会话标题
+    await this.convService.updateTitleIfEmpty(convId, content);
+
     let retrievedSources: ChatChunk['sources'] = undefined;
     if (app.knowledgeBaseId) {
       try {
@@ -95,7 +98,7 @@ export class ChatService {
     return new Observable<ChatChunk>((subscriber) => {
       let fullContent = '';
       let fullReasoning = '';
-      const modelName = (app.model as any)?.name || 'unknown';
+      const modelName = app.model?.name || 'unknown';
 
       const stream = client.chatStream({
         model: modelName,
@@ -127,7 +130,13 @@ export class ChatService {
             if (fullReasoning) {
               metadata.reasoning = fullReasoning;
             }
-            const msgData: any = {
+
+            // 如果 content 为空但 reasoning 有内容，从 reasoning 末段提取有效内容
+            if (!fullContent && fullReasoning) {
+              const paragraphs = fullReasoning.split('\n').filter(Boolean);
+              fullContent = paragraphs[paragraphs.length - 1] || '（模型未返回明确回答）';
+            }
+            const msgData: Partial<Message> = {
               conversationId: convId,
               role: 'assistant',
               content: fullContent,
@@ -180,9 +189,9 @@ export class ChatService {
       const refs = sources
         .map(
           (s, i) =>
-            `[${i + 1}] (相似度 ${(s.score! * 100).toFixed(0)}%) —— ${s.metadata?.fileName || '未知来源'}`
+            `[${i + 1}] (相似度 ${(s.score! * 100).toFixed(0)}%) —— ${s.metadata?.fileName || '未知来源'}\n${s.content}`
         )
-        .join('\n');
+        .join('\n\n');
       systemContent += `\n\n以下是与用户问题相关的参考资料：\n${refs}\n\n请在回答中引用相关来源，格式为 [编号]；不要提及内部编号规则。`;
     }
 

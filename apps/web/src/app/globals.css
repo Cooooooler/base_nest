@@ -135,35 +135,15 @@ body {
 
 @keyframes shimmer {
   0% {
-    mask-image: linear-gradient(
-      -75deg,
-      transparent 30%,
-      black 50%,
-      transparent 70%
-    );
+    mask-image: linear-gradient(-75deg, transparent 30%, black 50%, transparent 70%);
     mask-size: 200%;
-    -webkit-mask-image: linear-gradient(
-      -75deg,
-      transparent 30%,
-      black 50%,
-      transparent 70%
-    );
+    -webkit-mask-image: linear-gradient(-75deg, transparent 30%, black 50%, transparent 70%);
     -webkit-mask-size: 200%;
   }
   100% {
-    mask-image: linear-gradient(
-      -75deg,
-      transparent 30%,
-      black 50%,
-      transparent 70%
-    );
+    mask-image: linear-gradient(-75deg, transparent 30%, black 50%, transparent 70%);
     mask-size: 200%;
-    -webkit-mask-image: linear-gradient(
-      -75deg,
-      transparent 30%,
-      black 50%,
-      transparent 70%
-    );
+    -webkit-mask-image: linear-gradient(-75deg, transparent 30%, black 50%, transparent 70%);
     -webkit-mask-size: 200%;
     mask-position: 200%;
     -webkit-mask-position: 200%;

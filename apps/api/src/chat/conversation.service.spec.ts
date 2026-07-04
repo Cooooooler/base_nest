@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { ConversationService } from './conversation.service';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
@@ -7,14 +8,14 @@ import { Message } from './entities/message.entity';
 describe('ConversationService', () => {
   let service: ConversationService;
 
-  const mockConv: Conversation = {
+  const mockConv: Conversation = fromPartial({
     id: 'conv-1',
     appId: 'app-1',
     title: 'Test',
     userId: 'user-1',
     createdAt: new Date(),
     updatedAt: new Date(),
-  } as Conversation;
+  });
 
   const mockRepo = {
     find: jest.fn().mockResolvedValue([mockConv]),
