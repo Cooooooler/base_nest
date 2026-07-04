@@ -35,13 +35,20 @@ export class KnowledgeService {
     });
   }
 
+  async findByIdForUser(id: string, userId: string): Promise<KnowledgeBase | null> {
+    return this.kbRepo.findOne({
+      where: { id, userId },
+      relations: { documents: true },
+    });
+  }
+
   async create(userId: string, dto: CreateKnowledgeBaseDto): Promise<KnowledgeBase> {
     const kb = this.kbRepo.create({ ...dto, userId });
     return this.kbRepo.save(kb);
   }
 
-  async delete(id: string): Promise<void> {
-    const kb = await this.kbRepo.findOneBy({ id });
+  async deleteForUser(id: string, userId: string): Promise<void> {
+    const kb = await this.kbRepo.findOneBy({ id, userId });
     if (!kb) throw new NotFoundException('Knowledge base not found');
 
     // Delete all associated documents (handles segments, vectors, files)

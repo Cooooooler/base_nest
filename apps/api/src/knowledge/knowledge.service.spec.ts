@@ -93,17 +93,17 @@ describe('KnowledgeService', () => {
     });
   });
 
-  describe('delete', () => {
+  describe('deleteForUser', () => {
     it('should delete a knowledge base with no documents', async () => {
       mockDocRepo.find.mockResolvedValueOnce([]);
-      await service.delete('uuid-1');
+      await service.deleteForUser('uuid-1', 'user-1');
       expect(mockKbRepo.delete).toHaveBeenCalledWith('uuid-1');
     });
 
     it('should delete associated documents before knowledge base', async () => {
       const mockDoc = { id: 'doc-1' };
       mockDocRepo.find.mockResolvedValueOnce([mockDoc]);
-      await service.delete('uuid-1');
+      await service.deleteForUser('uuid-1', 'user-1');
       expect(mockDocService.delete).toHaveBeenCalledWith('doc-1');
       expect(mockVectorStore.deleteByFilter).toHaveBeenCalledWith({ knowledgeBaseId: 'uuid-1' });
       expect(mockKbRepo.delete).toHaveBeenCalledWith('uuid-1');
@@ -111,7 +111,9 @@ describe('KnowledgeService', () => {
 
     it('should throw NotFoundException if not found', async () => {
       mockKbRepo.findOneBy.mockResolvedValueOnce(null);
-      await expect(service.delete('nonexistent')).rejects.toThrow('Knowledge base not found');
+      await expect(service.deleteForUser('nonexistent', 'user-1')).rejects.toThrow(
+        'Knowledge base not found'
+      );
     });
   });
 });

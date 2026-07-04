@@ -39,13 +39,13 @@ describe('RetrievalService', () => {
     expect(service).toBeDefined();
   });
 
-  describe('search', () => {
+  describe('searchForUser', () => {
     it('should return search results', async () => {
       mockVectorStore.similaritySearch.mockResolvedValue([
         { pageContent: 'result content', metadata: { fileName: 'doc.txt' } },
       ]);
 
-      const results = await service.search('kb-1', 'test query', 5);
+      const results = await service.searchForUser('kb-1', 'user-1', 'test query', 5);
 
       expect(results).toHaveLength(1);
       expect(results[0].content).toBe('result content');
@@ -58,7 +58,7 @@ describe('RetrievalService', () => {
 
     it('should use default topK of 4', async () => {
       mockVectorStore.similaritySearch.mockResolvedValue([]);
-      await service.search('kb-1', 'query');
+      await service.searchForUser('kb-1', 'user-1', 'query');
 
       expect(mockVectorStore.similaritySearch).toHaveBeenCalledWith('query', 4, expect.any(Object));
     });

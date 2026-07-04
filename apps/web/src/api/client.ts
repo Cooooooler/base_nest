@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/store/auth-store';
 import type { ApiResponse } from '@base/shared';
 import ky from 'ky';
 
@@ -17,9 +18,7 @@ export class ApiError extends Error {
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
-    const stored = localStorage.getItem('auth-storage');
-    if (!stored) return null;
-    return JSON.parse(stored).state?.accessToken ?? null;
+    return useAuthStore.getState().accessToken;
   } catch {
     return null;
   }
@@ -28,39 +27,18 @@ export function getAccessToken(): string | null {
 function getRefreshToken(): string | null {
   if (typeof window === 'undefined') return null;
   try {
-    const stored = localStorage.getItem('auth-storage');
-    if (!stored) return null;
-    return JSON.parse(stored).state?.refreshToken ?? null;
+    return useAuthStore.getState().refreshToken;
   } catch {
     return null;
   }
 }
 
 function setTokens(access: string, refresh: string) {
-  try {
-    const stored = localStorage.getItem('auth-storage');
-    if (!stored) return;
-    const state = JSON.parse(stored);
-    state.state.accessToken = access;
-    state.state.refreshToken = refresh;
-    localStorage.setItem('auth-storage', JSON.stringify(state));
-  } catch {
-    // ignore
-  }
+  useAuthStore.getState().setTokens(access, refresh);
 }
 
 function clearTokens() {
-  try {
-    const stored = localStorage.getItem('auth-storage');
-    if (!stored) return;
-    const state = JSON.parse(stored);
-    state.state.accessToken = null;
-    state.state.refreshToken = null;
-    state.state.user = null;
-    localStorage.setItem('auth-storage', JSON.stringify(state));
-  } catch {
-    // ignore
-  }
+  useAuthStore.getState().reset();
 }
 
 const client = ky.create({

@@ -1,5 +1,7 @@
 'use client';
 
+import { CountUp } from '@/components/animated/count-up';
+import { FadeIn } from '@/components/animated/fade-in';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useKnowledgeBases } from '@/hooks/use-knowledge';
@@ -31,22 +33,35 @@ export default function DashboardPage() {
 
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         {statCards.map((card, i) => (
-          <Card key={card.key} className='transition-shadow hover:shadow-md'>
-            <CardContent className='p-6'>
-              <div className='flex items-center gap-2'>
-                <div className='flex size-8 items-center justify-center rounded-md bg-primary/10'>
-                  <card.icon className='size-4 text-primary' />
+          <FadeIn key={card.key} direction='up' delay={i * 80}>
+            <Card className='transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'>
+              <CardContent className='p-6'>
+                <div className='flex items-center gap-2'>
+                  <div className='flex size-8 items-center justify-center rounded-md bg-primary/10'>
+                    <card.icon className='size-4 text-primary' />
+                  </div>
+                  <span className='text-sm font-medium text-muted-foreground'>{card.label}</span>
                 </div>
-                <span className='text-sm font-medium text-muted-foreground'>{card.label}</span>
-              </div>
-              {isLoading ? (
-                <Skeleton className='mt-3 h-8 w-16' />
-              ) : (
-                <p className='mt-3 text-3xl font-bold tracking-tight'>{stats[i].value}</p>
-              )}
-              <p className='mt-1 text-xs text-muted-foreground'>{stats[i].description}</p>
-            </CardContent>
-          </Card>
+                {isLoading ? (
+                  <Skeleton className='mt-3 h-8 w-16' />
+                ) : (
+                  <p className='mt-3 text-3xl font-bold tracking-tight'>
+                    {stats[i].value === '—' ? (
+                      stats[i].value
+                    ) : (
+                      <CountUp
+                        from={0}
+                        to={Number(stats[i].value)}
+                        duration={1200}
+                        delay={i * 150}
+                      />
+                    )}
+                  </p>
+                )}
+                <p className='mt-1 text-xs text-muted-foreground'>{stats[i].description}</p>
+              </CardContent>
+            </Card>
+          </FadeIn>
         ))}
       </div>
 

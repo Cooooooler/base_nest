@@ -71,6 +71,8 @@ export default function ChatPage() {
   const streamingRef = useRef(false);
   // 跟踪本地 messages 对应哪个会话
   const localConvIdRef = useRef<string | null>(null);
+  // 本地消息 ID 计数器（唯一标识）
+  const msgIdCounter = useRef(0);
 
   // Sync loadedMessages → local messages when conversation changes
   useEffect(() => {
@@ -91,6 +93,7 @@ export default function ChatPage() {
         setMessages(
           loadedMessages.map((m) => {
             const msg: ChatMessage = {
+              id: m.id,
               role: m.role as 'user' | 'assistant',
               content: m.content,
             };
@@ -133,7 +136,11 @@ export default function ChatPage() {
     streamingRef.current = true;
     const aiIdx = messages.length + 1;
     setStreamingMsgIdx(aiIdx);
-    setMessages((prev) => [...prev, { role: 'user', content }, { role: 'assistant', content: '' }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: `msg_${msgIdCounter.current++}`, role: 'user', content },
+      { id: `msg_${msgIdCounter.current++}`, role: 'assistant', content: '' },
+    ]);
 
     let fullContent = '';
     let fullReasoning = '';
@@ -232,8 +239,8 @@ export default function ChatPage() {
     <div className='flex h-[calc(100vh-8rem)] gap-4'>
       {/* Conversation sidebar */}
       <Card size='sm' className='flex w-64 shrink-0 flex-col'>
-        <CardHeader>
-          <CardTitle>会话</CardTitle>
+        <CardHeader className='flex items-center justify-between'>
+          <CardTitle>历史会话</CardTitle>
           <CardAction>
             <Tooltip>
               <TooltipTrigger
@@ -300,7 +307,7 @@ export default function ChatPage() {
               <MessageScrollerViewport>
                 <MessageScrollerContent className='p-(--card-spacing)'>
                   {messages.map((msg, i) => (
-                    <MessageAnimated key={i} scrollAnchor={msg.role === 'user'}>
+                    <MessageAnimated key={msg.id} scrollAnchor={msg.role === 'user'}>
                       <div
                         className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${
                           msg.role === 'assistant' && !msg.content && !msg.reasoning

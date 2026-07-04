@@ -76,7 +76,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
         </header>
-        <main className='flex-1 p-6'>{children}</main>
+        <main className='flex-1 p-6 animate-fade-in-up'>{children}</main>
       </SidebarInset>
     </>
   );

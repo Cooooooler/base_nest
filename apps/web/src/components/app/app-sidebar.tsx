@@ -67,7 +67,7 @@ export function AppSidebar() {
             {navItems.map((item) => (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
-                  className='cursor-pointer'
+                  className='cursor-pointer transition-colors duration-150'
                   onClick={() => router.push(item.href)}
                   isActive={isActive(item.href)}
                 >

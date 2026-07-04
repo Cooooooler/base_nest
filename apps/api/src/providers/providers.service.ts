@@ -3,8 +3,8 @@ import { BaseChatModel } from '@langchain/core/language_models/chat_models';
 import { ChatOllama } from '@langchain/ollama';
 import { ChatOpenAI } from '@langchain/openai';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { App } from '../chat/entities/app.entity';
 import { decrypt, encrypt } from '../common/crypto.util';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
@@ -34,7 +34,9 @@ export class ProvidersService {
     @InjectRepository(Model)
     private readonly modelRepo: Repository<Model>,
     @InjectRepository(App)
-    private readonly appRepo: Repository<App>
+    private readonly appRepo: Repository<App>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource
   ) {}
 
   async findAllProviders(userId: string): Promise<ModelProvider[]> {
@@ -73,10 +75,21 @@ export class ProvidersService {
     if (!provider) {
       throw new NotFoundException('Provider not found');
     }
-    // Delete related entities first to avoid FK constraints
-    await this.apiKeyRepo.delete({ providerId: id });
-    await this.modelRepo.delete({ providerId: id });
-    await this.providerRepo.delete(id);
+
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      await queryRunner.manager.delete(ApiKey, { providerId: id });
+      await queryRunner.manager.delete(Model, { providerId: id });
+      await queryRunner.manager.delete(ModelProvider, id);
+      await queryRunner.commitTransaction();
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
+    }
   }
 
   getPresetModels(type: string) {
@@ -108,7 +121,13 @@ export class ProvidersService {
     return this.apiKeyRepo.save(apiKey);
   }
 
-  async deleteApiKey(id: string): Promise<void> {
+  async deleteApiKey(id: string, userId: string): Promise<void> {
+    const key = await this.apiKeyRepo.findOne({
+      where: { id },
+      relations: { provider: true },
+    });
+    if (!key) throw new NotFoundException('API key not found');
+    if (key.provider.userId !== userId) throw new NotFoundException('API key not found');
     await this.apiKeyRepo.delete(id);
   }
 
@@ -131,9 +150,15 @@ export class ProvidersService {
     return this.modelRepo.save(model);
   }
 
-  async updateModel(modelId: string, dto: UpdateModelDto): Promise<Model> {
-    const model = await this.modelRepo.findOneBy({ id: modelId });
+  async updateModel(modelId: string, dto: UpdateModelDto, userId: string): Promise<Model> {
+    const model = await this.modelRepo.findOne({
+      where: { id: modelId },
+      relations: { provider: true },
+    });
     if (!model) {
+      throw new NotFoundException('Model not found');
+    }
+    if (model.provider.userId !== userId) {
       throw new NotFoundException('Model not found');
     }
 

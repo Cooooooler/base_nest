@@ -99,8 +99,11 @@ export class ProvidersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '删除 API 密钥' })
-  async removeApiKey(@Param('keyId', ParseUUIDPipe) keyId: string) {
-    return this.providersService.deleteApiKey(keyId);
+  async removeApiKey(
+    @Param('keyId', ParseUUIDPipe) keyId: string,
+    @Req() req: { user: { id: string } }
+  ) {
+    return this.providersService.deleteApiKey(keyId, req.user.id);
   }
 
   @Post(':id/models')
@@ -119,8 +122,12 @@ export class ProvidersController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '更新模型' })
-  async updateModel(@Param('modelId', ParseUUIDPipe) modelId: string, @Body() dto: UpdateModelDto) {
-    return this.providersService.updateModel(modelId, dto);
+  async updateModel(
+    @Param('modelId', ParseUUIDPipe) modelId: string,
+    @Body() dto: UpdateModelDto,
+    @Req() req: { user: { id: string } }
+  ) {
+    return this.providersService.updateModel(modelId, dto, req.user.id);
   }
 
   @Delete(':id/models/:modelId')

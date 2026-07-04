@@ -1,10 +1,11 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { InjectDataSource } from '@nestjs/typeorm';
+import { JsonWebTokenError, JwtService, TokenExpiredError } from '@nestjs/jwt';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
-import { DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
+import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -25,6 +26,8 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly tokenBlacklistService: TokenBlacklistService,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     @InjectDataSource()
     private readonly dataSource: DataSource
   ) {}
@@ -41,17 +44,18 @@ export class AuthService {
 
     try {
       const hashedPassword = await bcrypt.hash(dto.password, 10);
-      const user = await queryRunner.manager.save('users', {
+      const user = this.userRepo.create({
         email: dto.email,
         name: dto.name,
         password: hashedPassword,
       });
+      const saved = await queryRunner.manager.save(user);
 
       await queryRunner.commitTransaction();
 
-      const tokens = await this.generateTokens((user as any).id, (user as any).email);
+      const tokens = await this.generateTokens(saved.id, saved.email);
       return {
-        user: { id: (user as any).id, email: (user as any).email, name: (user as any).name },
+        user: { id: saved.id, email: saved.email, name: saved.name },
         ...tokens,
       };
     } catch (err) {
@@ -102,6 +106,12 @@ export class AuthService {
       return this.generateTokens(payload.sub, payload.email);
     } catch (err) {
       if (err instanceof UnauthorizedException) throw err;
+      if (err instanceof TokenExpiredError) {
+        throw new UnauthorizedException('Refresh token has expired');
+      }
+      if (err instanceof JsonWebTokenError) {
+        throw new UnauthorizedException('Invalid refresh token');
+      }
       throw new UnauthorizedException('Invalid or expired refresh token');
     }
   }

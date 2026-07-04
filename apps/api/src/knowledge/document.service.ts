@@ -1,4 +1,5 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmbeddingFactory } from '../common/embeddings/embedding-factory.service';
@@ -23,7 +24,8 @@ export class DocumentService {
     private readonly chunkProcessor: ChunkProcessorService,
     private readonly fileStorage: FileStorageService,
     private readonly vectorStore: ChromaVectorStoreService,
-    private readonly embeddingFactory: EmbeddingFactory
+    private readonly embeddingFactory: EmbeddingFactory,
+    private readonly eventEmitter: EventEmitter2
   ) {}
 
   async findByKnowledgeBase(knowledgeBaseId: string): Promise<DocEntity[]> {
@@ -52,13 +54,8 @@ export class DocumentService {
 
     const saved = await this.docRepo.save(doc);
 
-    // Process asynchronously — do not await
-    this.processDocument(saved.id).catch((err) => {
-      this.logger.error(
-        `Document processing failed for ${saved.id}: ${(err as Error).message}`,
-        (err as Error).stack
-      );
-    });
+    // Emit event to process document asynchronously
+    this.eventEmitter.emit('document.uploaded', { documentId: saved.id });
 
     return saved;
   }

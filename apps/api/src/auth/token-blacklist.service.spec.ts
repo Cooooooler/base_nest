@@ -1,12 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { BlacklistedToken } from '../auth/entities/blacklisted-token.entity';
 import { TokenBlacklistService } from '../auth/token-blacklist.service';
 
 describe('TokenBlacklistService', () => {
   let service: TokenBlacklistService;
-  let repo: Repository<BlacklistedToken>;
 
   const mockRepo = {
     count: jest.fn(),
@@ -34,7 +32,6 @@ describe('TokenBlacklistService', () => {
     }).compile();
 
     service = module.get<TokenBlacklistService>(TokenBlacklistService);
-    repo = module.get(getRepositoryToken(BlacklistedToken));
   });
 
   it('should be defined', () => {

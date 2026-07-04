@@ -33,6 +33,26 @@ import { useParams, useRouter } from 'next/navigation';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 
+const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
+  completed: 'default',
+  processing: 'secondary',
+  pending: 'outline',
+  failed: 'destructive',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  completed: '已完成',
+  processing: '处理中',
+  pending: '等待中',
+  failed: '失败',
+};
+
+function statusBadge(status: string) {
+  return (
+    <Badge variant={STATUS_VARIANTS[status] || 'outline'}>{STATUS_LABELS[status] || status}</Badge>
+  );
+}
+
 export default function KnowledgeBaseDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -102,21 +122,13 @@ export default function KnowledgeBaseDetailPage() {
     }
   };
 
-  const statusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
-      completed: 'default',
-      processing: 'secondary',
-      pending: 'outline',
-      failed: 'destructive',
-    };
-    const labels: Record<string, string> = {
-      completed: '已完成',
-      processing: '处理中',
-      pending: '等待中',
-      failed: '失败',
-    };
-    return <Badge variant={variants[status] || 'outline'}>{labels[status] || status}</Badge>;
-  };
+  function statusBadge(status: string) {
+    return (
+      <Badge variant={STATUS_VARIANTS[status] || 'outline'}>
+        {STATUS_LABELS[status] || status}
+      </Badge>
+    );
+  }
 
   if (isLoading) {
     return (
