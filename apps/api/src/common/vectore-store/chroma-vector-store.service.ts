@@ -25,8 +25,8 @@ export class ChromaVectorStoreService {
     // When a custom embeddings is provided, create an ephemeral store
     return new Chroma(embeddings, {
       collectionName: this.defaultStore.collectionName,
-      url: (this.defaultStore as any).url || 'http://localhost:8000',
-      numDimensions: (this.defaultStore as any).numDimensions ?? 1024,
+      url: this.defaultStore.url || 'http://localhost:8000',
+      numDimensions: this.defaultStore.numDimensions ?? 1024,
     });
   }
 

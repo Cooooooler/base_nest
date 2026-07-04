@@ -95,7 +95,7 @@ export class ChatService {
     return new Observable<ChatChunk>((subscriber) => {
       let fullContent = '';
       let fullReasoning = '';
-      const modelName = (app.model as any)?.name || 'unknown';
+      const modelName = app.model?.name || 'unknown';
 
       const stream = client.chatStream({
         model: modelName,
@@ -133,7 +133,7 @@ export class ChatService {
               const paragraphs = fullReasoning.split('\n').filter(Boolean);
               fullContent = paragraphs[paragraphs.length - 1] || '（模型未返回明确回答）';
             }
-            const msgData: any = {
+            const msgData: Partial<Message> = {
               conversationId: convId,
               role: 'assistant',
               content: fullContent,

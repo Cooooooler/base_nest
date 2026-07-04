@@ -13,7 +13,7 @@ import { CreateProviderDto } from './dto/create-provider.dto';
 import { UpdateModelDto } from './dto/update-model.dto';
 import { UpdateProviderDto } from './dto/update-provider.dto';
 import { ApiKey } from './entities/api-key.entity';
-import { ModelProvider, needsApiKey } from './entities/model-provider.entity';
+import { ModelProvider, needsApiKey, type ProviderType } from './entities/model-provider.entity';
 import { Model } from './entities/model.entity';
 import { LlmProvider } from './interfaces/llm-provider.interface';
 import { getPresetModelsByType } from './preset-models';
@@ -80,7 +80,7 @@ export class ProvidersService {
   }
 
   getPresetModels(type: string) {
-    return getPresetModelsByType(type as any);
+    return getPresetModelsByType(type as ProviderType);
   }
 
   async findApiKeys(providerId: string, userId: string): Promise<ApiKey[]> {
