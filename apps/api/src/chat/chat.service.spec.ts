@@ -31,6 +31,7 @@ describe('ChatService', () => {
 
   const mockConvService = {
     findOne: jest.fn().mockResolvedValue({ id: 'conv-1', appId: 'app-1' }),
+    updateTitleIfEmpty: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockProvidersService = {

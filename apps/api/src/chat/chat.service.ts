@@ -69,6 +69,9 @@ export class ChatService {
       })
     );
 
+    // 用第一条用户消息作为会话标题
+    await this.convService.updateTitleIfEmpty(convId, content);
+
     let retrievedSources: ChatChunk['sources'] = undefined;
     if (app.knowledgeBaseId) {
       try {
@@ -186,9 +189,9 @@ export class ChatService {
       const refs = sources
         .map(
           (s, i) =>
-            `[${i + 1}] (相似度 ${(s.score! * 100).toFixed(0)}%) —— ${s.metadata?.fileName || '未知来源'}`
+            `[${i + 1}] (相似度 ${(s.score! * 100).toFixed(0)}%) —— ${s.metadata?.fileName || '未知来源'}\n${s.content}`
         )
-        .join('\n');
+        .join('\n\n');
       systemContent += `\n\n以下是与用户问题相关的参考资料：\n${refs}\n\n请在回答中引用相关来源，格式为 [编号]；不要提及内部编号规则。`;
     }
 

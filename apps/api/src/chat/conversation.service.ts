@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { CreateConversationDto } from './dto/create-conversation.dto';
 import { Conversation } from './entities/conversation.entity';
 import { Message } from './entities/message.entity';
@@ -34,6 +34,10 @@ export class ConversationService {
       title: dto.title,
     } as Partial<Conversation>);
     return this.convRepo.save(conv);
+  }
+
+  async updateTitleIfEmpty(id: string, content: string): Promise<void> {
+    await this.convRepo.update({ id, title: IsNull() }, { title: content.slice(0, 255) });
   }
 
   async delete(id: string): Promise<void> {

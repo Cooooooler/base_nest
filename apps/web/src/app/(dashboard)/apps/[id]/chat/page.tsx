@@ -117,7 +117,7 @@ export default function ChatPage() {
     let convId = activeConvId;
     if (!convId) {
       try {
-        const conv = await createConv.mutateAsync({ appId });
+        const conv = await createConv.mutateAsync({ appId, title: content.slice(0, 255) });
         convId = conv.id;
         setActiveConvId(convId);
         localConvIdRef.current = convId;
