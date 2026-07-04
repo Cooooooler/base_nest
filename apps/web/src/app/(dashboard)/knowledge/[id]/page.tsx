@@ -69,6 +69,7 @@ export default function KnowledgeBaseDetailPage() {
     { content: string; metadata: Record<string, any>; score?: number }[] | null
   >(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; fileName: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -107,7 +108,8 @@ export default function KnowledgeBaseDetailPage() {
       await deleteDoc.mutateAsync({ knowledgeBaseId: id, documentId: deleteTarget.id });
       toast.success('文档已删除');
       await refetchDocs();
-      setDeleteTarget(null);
+      setDeleteDialogOpen(false);
+      setTimeout(() => setDeleteTarget(null), 200);
     } catch {
       toast.error('删除失败');
     }
@@ -234,9 +236,10 @@ export default function KnowledgeBaseDetailPage() {
                             <Button
                               variant='ghost'
                               size='icon'
-                              onClick={() =>
-                                setDeleteTarget({ id: doc.id, fileName: doc.fileName })
-                              }
+                              onClick={() => {
+                                setDeleteTarget({ id: doc.id, fileName: doc.fileName });
+                                setDeleteDialogOpen(true);
+                              }}
                             >
                               <Trash2 className='size-4' />
                             </Button>
@@ -293,7 +296,15 @@ export default function KnowledgeBaseDetailPage() {
         </div>
 
         {/* Delete document dialog */}
-        <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <Dialog
+          open={deleteDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDeleteDialogOpen(false);
+              setTimeout(() => setDeleteTarget(null), 200);
+            }
+          }}
+        >
           <DialogContent>
             <DialogHeader>
               <DialogTitle>确认删除</DialogTitle>
@@ -302,7 +313,13 @@ export default function KnowledgeBaseDetailPage() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant='outline' onClick={() => setDeleteTarget(null)}>
+              <Button
+                variant='outline'
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setTimeout(() => setDeleteTarget(null), 200);
+                }}
+              >
                 取消
               </Button>
               <Button

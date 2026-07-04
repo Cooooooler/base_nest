@@ -24,13 +24,15 @@ export default function AppsPage() {
   const { data: apps, isLoading } = useApps();
   const deleteApp = useDeleteApp();
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
       await deleteApp.mutateAsync(deleteTarget.id);
       toast.success('应用已删除');
-      setDeleteTarget(null);
+      setDeleteDialogOpen(false);
+      setTimeout(() => setDeleteTarget(null), 200);
     } catch {
       toast.error('删除失败');
     }
@@ -92,6 +94,7 @@ export default function AppsPage() {
                   onClick={(e) => {
                     e.stopPropagation();
                     setDeleteTarget({ id: app.id, name: app.name });
+                    setDeleteDialogOpen(true);
                   }}
                 >
                   <Trash2 className='size-4' />
@@ -107,7 +110,15 @@ export default function AppsPage() {
         </StaggerList>
       )}
 
-      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <Dialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteDialogOpen(false);
+            setTimeout(() => setDeleteTarget(null), 200);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>确认删除</DialogTitle>
@@ -116,7 +127,13 @@ export default function AppsPage() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant='outline' onClick={() => setDeleteTarget(null)}>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setTimeout(() => setDeleteTarget(null), 200);
+              }}
+            >
               取消
             </Button>
             <Button variant='destructive' disabled={deleteApp.isPending} onClick={handleDelete}>

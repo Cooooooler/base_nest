@@ -79,6 +79,7 @@ export default function ProviderDetailPage() {
   const [deleteModelTarget, setDeleteModelTarget] = useState<{ id: string; name: string } | null>(
     null
   );
+  const [deleteModelDialogOpen, setDeleteModelDialogOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState('');
   const [modelCapabilities, setModelCapabilities] = useState<Record<string, boolean>>({});
 
@@ -157,7 +158,8 @@ export default function ProviderDetailPage() {
     try {
       await deleteModel.mutateAsync({ providerId: id, modelId: deleteModelTarget.id });
       toast.success('模型已删除');
-      setDeleteModelTarget(null);
+      setDeleteModelDialogOpen(false);
+      setTimeout(() => setDeleteModelTarget(null), 200);
     } catch {
       toast.error('删除失败');
     }
@@ -166,6 +168,7 @@ export default function ProviderDetailPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newKeyResult, setNewKeyResult] = useState<string | null>(null);
   const [deleteKeyTarget, setDeleteKeyTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteKeyDialogOpen, setDeleteKeyDialogOpen] = useState(false);
 
   const {
     control,
@@ -197,7 +200,8 @@ export default function ProviderDetailPage() {
     try {
       await deleteApiKey.mutateAsync(deleteKeyTarget.id);
       toast.success('密钥已删除');
-      setDeleteKeyTarget(null);
+      setDeleteKeyDialogOpen(false);
+      setTimeout(() => setDeleteKeyTarget(null), 200);
       await refetchKeys();
     } catch {
       toast.error('删除失败');
@@ -408,7 +412,10 @@ export default function ProviderDetailPage() {
                           variant='ghost'
                           size='icon'
                           aria-label={`删除密钥 ${k.name}`}
-                          onClick={() => setDeleteKeyTarget({ id: k.id, name: k.name })}
+                          onClick={() => {
+                            setDeleteKeyTarget({ id: k.id, name: k.name });
+                            setDeleteKeyDialogOpen(true);
+                          }}
                         >
                           <Trash2 className='size-4' />
                         </Button>
@@ -658,7 +665,10 @@ export default function ProviderDetailPage() {
                             size='icon'
                             className='size-8'
                             aria-label={`删除 ${m.displayName}`}
-                            onClick={() => setDeleteModelTarget({ id: m.id, name: m.displayName })}
+                            onClick={() => {
+                              setDeleteModelTarget({ id: m.id, name: m.displayName });
+                              setDeleteModelDialogOpen(true);
+                            }}
                           >
                             <Trash2 className='size-3.5' />
                           </Button>
@@ -674,9 +684,12 @@ export default function ProviderDetailPage() {
 
         {/* Delete Model Confirmation Dialog */}
         <Dialog
-          open={!!deleteModelTarget}
+          open={deleteModelDialogOpen}
           onOpenChange={(o) => {
-            if (!o) setDeleteModelTarget(null);
+            if (!o) {
+              setDeleteModelDialogOpen(false);
+              setTimeout(() => setDeleteModelTarget(null), 200);
+            }
           }}
         >
           <DialogContent>
@@ -687,7 +700,13 @@ export default function ProviderDetailPage() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant='outline' onClick={() => setDeleteModelTarget(null)}>
+              <Button
+                variant='outline'
+                onClick={() => {
+                  setDeleteModelDialogOpen(false);
+                  setTimeout(() => setDeleteModelTarget(null), 200);
+                }}
+              >
                 取消
               </Button>
               <Button
@@ -703,9 +722,12 @@ export default function ProviderDetailPage() {
 
         {/* Delete Key Confirmation Dialog */}
         <Dialog
-          open={!!deleteKeyTarget}
+          open={deleteKeyDialogOpen}
           onOpenChange={(o) => {
-            if (!o) setDeleteKeyTarget(null);
+            if (!o) {
+              setDeleteKeyDialogOpen(false);
+              setTimeout(() => setDeleteKeyTarget(null), 200);
+            }
           }}
         >
           <DialogContent>
@@ -717,7 +739,13 @@ export default function ProviderDetailPage() {
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant='outline' onClick={() => setDeleteKeyTarget(null)}>
+              <Button
+                variant='outline'
+                onClick={() => {
+                  setDeleteKeyDialogOpen(false);
+                  setTimeout(() => setDeleteKeyTarget(null), 200);
+                }}
+              >
                 取消
               </Button>
               <Button
