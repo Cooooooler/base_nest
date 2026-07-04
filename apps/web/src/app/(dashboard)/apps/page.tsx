@@ -36,8 +36,7 @@ export default function AppsPage() {
 
   return (
     <div className='flex flex-col gap-4'>
-      <div className='flex items-center justify-between'>
-        <h2 className='text-2xl font-bold'>对话应用</h2>
+      <div className='flex items-center justify-end'>
         <Button size='sm' onClick={() => router.push('/apps/new')}>
           <Plus data-icon />
           新建应用
@@ -70,7 +69,7 @@ export default function AppsPage() {
           {apps.map((app) => (
             <Card
               key={app.id}
-              className='cursor-pointer transition-colors hover:bg-accent/50'
+              className='cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:bg-accent/50'
               onClick={() => router.push(`/apps/${app.id}/chat`)}
             >
               <CardHeader className='flex flex-row items-start justify-between'>

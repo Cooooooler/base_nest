@@ -76,7 +76,7 @@ export default function KnowledgePage() {
       ) : (
         <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
           {knowledgeBases.map((kb) => (
-            <Card key={kb.id} className='transition-shadow hover:shadow-md'>
+            <Card key={kb.id} className='transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'>
               <CardHeader className='pb-3'>
                 <div className='flex items-start justify-between'>
                   <div className='min-w-0 flex-1'>
