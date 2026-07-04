@@ -1,6 +1,7 @@
 'use client';
 
 import { type ChatChunk, streamChat } from '@/api/chat';
+import { FadeIn } from '@/components/animated/fade-in';
 import {
   AssistantMessage,
   Empty,
@@ -224,156 +225,172 @@ export default function ChatPage() {
 
   if (appLoading) {
     return (
-      <div className='flex h-[calc(100vh-8rem)] gap-4'>
-        <Skeleton className='w-64 shrink-0' />
-        <Skeleton className='flex-1' />
-      </div>
+      <FadeIn direction='up'>
+        <div className='flex h-[calc(100vh-8rem)] gap-4'>
+          <Skeleton className='w-64 shrink-0' />
+          <Skeleton className='flex-1' />
+        </div>
+      </FadeIn>
     );
   }
 
-  if (!app) return <p className='text-muted-foreground'>应用未找到</p>;
+  if (!app)
+    return (
+      <FadeIn direction='up'>
+        <p className='text-muted-foreground'>应用未找到</p>
+      </FadeIn>
+    );
 
   const showMessages = messages.length > 0;
 
   return (
-    <div className='flex h-[calc(100vh-8rem)] gap-4'>
-      {/* Conversation sidebar */}
-      <Card size='sm' className='flex w-64 shrink-0 flex-col'>
-        <CardHeader className='flex items-center justify-between'>
-          <CardTitle>历史会话</CardTitle>
-          <CardAction>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button size='icon-sm' variant='ghost' onClick={handleNewConversation}>
-                    <Plus className='size-4' />
-                  </Button>
-                }
-              />
-              <TooltipContent>新建会话</TooltipContent>
-            </Tooltip>
-          </CardAction>
-        </CardHeader>
-        <Separator />
-        <CardContent className={'flex flex-col gap-1 px-3 pb-3 overflow-y-auto'}>
-          {conversations?.map((conv) => (
-            <div
-              key={conv.id}
-              className={`group flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
-                activeConvId === conv.id ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/50'
-              }`}
-              onClick={() => setActiveConvId(conv.id)}
-            >
-              <span className='truncate'>
-                {conv.title || `会话 ${conv.createdAt.slice(0, 10)}`}
-              </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  onClick={(e) => e.stopPropagation()}
-                  className='opacity-0 transition-opacity group-hover:opacity-100'
+    <FadeIn direction='up'>
+      <div className='flex h-[calc(100vh-8rem)] gap-4'>
+        {/* Conversation sidebar */}
+        <Card
+          size='sm'
+          className='flex w-64 shrink-0 flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'
+        >
+          <CardHeader className='flex items-center justify-between'>
+            <CardTitle>历史会话</CardTitle>
+            <CardAction>
+              <Tooltip>
+                <TooltipTrigger
                   render={
-                    <Button size='icon-xs' variant='ghost'>
-                      <MoreHorizontal className='size-3' />
+                    <Button size='icon-sm' variant='ghost' onClick={handleNewConversation}>
+                      <Plus className='size-4' />
                     </Button>
                   }
                 />
-                <DropdownMenuContent align='end'>
-                  <DropdownMenuItem
-                    variant='destructive'
-                    className='cursor-pointer'
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      void handleDeleteConv(conv.id);
-                    }}
-                  >
-                    <Trash2 className='size-3' />
-                    删除
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          ))}
-          {(!conversations || conversations.length === 0) && (
-            <p className='py-4 text-center text-xs text-muted-foreground'>暂无会话</p>
-          )}
-        </CardContent>
-      </Card>
+                <TooltipContent>新建会话</TooltipContent>
+              </Tooltip>
+            </CardAction>
+          </CardHeader>
+          <Separator />
+          <CardContent className={'flex flex-col gap-1 px-3 pb-3 overflow-y-auto'}>
+            {conversations?.map((conv) => (
+              <div
+                key={conv.id}
+                className={`group flex cursor-pointer items-center justify-between rounded-md px-3 py-2 text-sm transition-colors ${
+                  activeConvId === conv.id
+                    ? 'bg-accent text-accent-foreground'
+                    : 'hover:bg-accent/50'
+                }`}
+                onClick={() => setActiveConvId(conv.id)}
+              >
+                <span className='truncate'>
+                  {conv.title || `会话 ${conv.createdAt.slice(0, 10)}`}
+                </span>
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    onClick={(e) => e.stopPropagation()}
+                    className='opacity-0 transition-opacity group-hover:opacity-100'
+                    render={
+                      <Button size='icon-xs' variant='ghost'>
+                        <MoreHorizontal className='size-3' />
+                      </Button>
+                    }
+                  />
+                  <DropdownMenuContent align='end'>
+                    <DropdownMenuItem
+                      variant='destructive'
+                      className='cursor-pointer'
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void handleDeleteConv(conv.id);
+                      }}
+                    >
+                      <Trash2 className='size-3' />
+                      删除
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ))}
+            {(!conversations || conversations.length === 0) && (
+              <p className='py-4 text-center text-xs text-muted-foreground'>暂无会话</p>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* Main chat area */}
-      <Card className='flex flex-1 flex-col'>
-        <CardContent className='flex flex-1 flex-col overflow-hidden p-0'>
-          {showMessages ? (
-            <MessageScroller autoScroll={streamingMsgIdx !== null}>
-              <MessageScrollerViewport>
-                <MessageScrollerContent className='p-(--card-spacing)'>
-                  {messages.map((msg, i) => (
-                    <MessageAnimated key={msg.id} scrollAnchor={msg.role === 'user'}>
-                      <div
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${
-                          msg.role === 'assistant' && !msg.content && !msg.reasoning
-                            ? 'opacity-50'
-                            : ''
-                        }`}
-                      >
+        {/* Main chat area */}
+        <Card className='flex flex-1 flex-col transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'>
+          <CardContent className='flex flex-1 flex-col overflow-hidden p-0'>
+            {showMessages ? (
+              <MessageScroller autoScroll={streamingMsgIdx !== null}>
+                <MessageScrollerViewport>
+                  <MessageScrollerContent className='p-(--card-spacing)'>
+                    {messages.map((msg, i) => (
+                      <MessageAnimated key={msg.id} scrollAnchor={msg.role === 'user'}>
                         <div
-                          className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                            msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} ${
+                            msg.role === 'assistant' && !msg.content && !msg.reasoning
+                              ? 'opacity-50'
+                              : ''
                           }`}
                         >
-                          {msg.role === 'assistant' ? (
-                            <AssistantMessage msg={msg} streaming={streamingMsgIdx === i} />
-                          ) : (
-                            <p className='whitespace-pre-wrap text-sm'>{msg.content}</p>
-                          )}
+                          <div
+                            className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                              msg.role === 'user'
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-muted'
+                            }`}
+                          >
+                            {msg.role === 'assistant' ? (
+                              <AssistantMessage msg={msg} streaming={streamingMsgIdx === i} />
+                            ) : (
+                              <p className='whitespace-pre-wrap text-sm'>{msg.content}</p>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </MessageAnimated>
-                  ))}
-                </MessageScrollerContent>
-                <MessageScrollerButton />
-                <MessageScrollerSentinel />
-              </MessageScrollerViewport>
-            </MessageScroller>
-          ) : (
-            <Empty>
-              <EmptyMedia variant='icon'>
-                <MessageSquare />
-              </EmptyMedia>
-              <EmptyHeader>
-                <EmptyTitle>开始与 {app.name} 对话</EmptyTitle>
-              </EmptyHeader>
-            </Empty>
-          )}
-        </CardContent>
+                      </MessageAnimated>
+                    ))}
+                  </MessageScrollerContent>
+                  <MessageScrollerButton />
+                  <MessageScrollerSentinel />
+                </MessageScrollerViewport>
+              </MessageScroller>
+            ) : (
+              <Empty>
+                <EmptyMedia variant='icon'>
+                  <MessageSquare />
+                </EmptyMedia>
+                <EmptyHeader>
+                  <EmptyTitle>开始与 {app.name} 对话</EmptyTitle>
+                </EmptyHeader>
+              </Empty>
+            )}
+          </CardContent>
 
-        <CardFooter>
-          <InputGroup className='w-full'>
-            <InputGroupTextarea
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder='输入消息... (Enter 发送, Shift+Enter 换行)'
-              rows={2}
-            />
-            <InputGroupAddon align='block-end' className='pt-1'>
-              <InputGroupButton
-                type='submit'
-                size='icon-xs'
-                onClick={handleSend}
-                disabled={sending || !input.trim()}
-                className='ml-auto'
-              >
-                {sending ? (
-                  <span className='size-3 animate-spin rounded-full border-2 border-current border-t-transparent' />
-                ) : (
-                  <SendHorizontal className='size-4' />
-                )}
-                <span className='sr-only'>发送</span>
-              </InputGroupButton>
-            </InputGroupAddon>
-          </InputGroup>
-        </CardFooter>
-      </Card>
-    </div>
+          <CardFooter>
+            <InputGroup className='w-full'>
+              <InputGroupTextarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder='输入消息... (Enter 发送, Shift+Enter 换行)'
+                rows={2}
+              />
+              <InputGroupAddon align='block-end' className='pt-1'>
+                <InputGroupButton
+                  type='submit'
+                  size='icon-xs'
+                  onClick={handleSend}
+                  disabled={sending || !input.trim()}
+                  className='ml-auto'
+                >
+                  {sending ? (
+                    <span className='size-3 animate-spin rounded-full border-2 border-current border-t-transparent' />
+                  ) : (
+                    <SendHorizontal className='size-4' />
+                  )}
+                  <span className='sr-only'>发送</span>
+                </InputGroupButton>
+              </InputGroupAddon>
+            </InputGroup>
+          </CardFooter>
+        </Card>
+      </div>
+    </FadeIn>
   );
 }
