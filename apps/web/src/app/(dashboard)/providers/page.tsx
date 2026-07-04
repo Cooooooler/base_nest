@@ -83,7 +83,10 @@ export default function ProvidersPage() {
       ) : (
         <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
           {providers.map((p) => (
-            <Card key={p.id} className='transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'>
+            <Card
+              key={p.id}
+              className='transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'
+            >
               <CardHeader className='pb-3'>
                 <div className='flex items-start justify-between'>
                   <div className='min-w-0 flex-1'>

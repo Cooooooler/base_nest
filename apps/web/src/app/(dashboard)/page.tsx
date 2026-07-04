@@ -31,7 +31,10 @@ export default function DashboardPage() {
 
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
         {statCards.map((card, i) => (
-          <Card key={card.key} className='transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'>
+          <Card
+            key={card.key}
+            className='transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg'
+          >
             <CardContent className='p-6'>
               <div className='flex items-center gap-2'>
                 <div className='flex size-8 items-center justify-center rounded-md bg-primary/10'>
