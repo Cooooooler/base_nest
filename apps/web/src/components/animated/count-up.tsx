@@ -10,7 +10,7 @@ interface CountUpProps {
   className?: string;
 }
 
-function CountUp({ from = 0, to, duration = 1500, delay = 0 }: CountUpProps) {
+function CountUp({ from = 0, to, duration = 1500, delay = 0, className }: CountUpProps) {
   const { value } = useSpring({
     from: { value: from },
     to: { value: to },
@@ -18,7 +18,7 @@ function CountUp({ from = 0, to, duration = 1500, delay = 0 }: CountUpProps) {
     delay,
   });
 
-  return <animated.span>{value.to((v) => Math.round(v))}</animated.span>;
+  return <animated.span className={className}>{value.to((v) => Math.round(v))}</animated.span>;
 }
 
 export { CountUp };
