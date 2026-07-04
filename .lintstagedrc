@@ -1,6 +1,6 @@
 {
-  "apps/api/src/**/*.ts": [".husky/eslint-pkg.cmd apps/api apps/api/", "prettier --write"],
-  "apps/api/test/**/*.ts": [".husky/eslint-pkg.cmd apps/api apps/api/", "prettier --write"],
-  "apps/web/src/**/*.{ts,tsx}": [".husky/eslint-pkg.cmd apps/web apps/web/", "prettier --write"],
+  "apps/api/src/**/*.ts": ["prettier --write"],
+  "apps/api/test/**/*.ts": ["prettier --write"],
+  "apps/web/src/**/*.{ts,tsx}": ["prettier --write"],
   "*.{json,md,yaml,yml}": ["prettier --write"]
 }

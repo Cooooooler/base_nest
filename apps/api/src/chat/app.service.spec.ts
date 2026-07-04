@@ -131,7 +131,16 @@ describe('AppService', () => {
     await expect(service.create('user-2', dto)).rejects.toThrow('Provider not found');
   });
 
-  it('update should update an app', async () => {
+  it('create should throw if model not found under provider', async () => {
+    mockProviderRepo.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+    mockModelRepo.findOneBy = jest.fn().mockResolvedValue(null);
+    const dto = { name: 'Test App', providerId: 'prov-1', modelId: 'model-1' };
+    await expect(service.create('user-1', dto)).rejects.toThrow(
+      'Model not found under this provider'
+    );
+  });
+
+  it('update should update an app without changing provider or model', async () => {
     const dto = { name: 'Updated' };
     const result = await service.update('app-1', 'user-1', dto);
     expect(result).toEqual(mockApp);
@@ -147,8 +156,39 @@ describe('AppService', () => {
     expect(mockModelRepo.findOneBy).toHaveBeenCalledWith({ id: 'model-1', providerId: 'prov-1' });
   });
 
-  it('delete should remove an app', async () => {
+  it('update should throw if new provider not found', async () => {
+    mockProviderRepo.findOneBy = jest.fn().mockResolvedValue(null);
+    const dto = { providerId: 'prov-2' };
+    await expect(service.update('app-1', 'user-1', dto)).rejects.toThrow('Provider not found');
+  });
+
+  it('update should throw if model not found under new provider', async () => {
+    mockProviderRepo.findOneBy = jest.fn().mockResolvedValue(mockProvider);
+    mockModelRepo.findOneBy = jest.fn().mockResolvedValue(null);
+    const dto = { providerId: 'prov-1', modelId: 'nonexistent-model' };
+    await expect(service.update('app-1', 'user-1', dto)).rejects.toThrow(
+      'Model not found under this provider'
+    );
+  });
+
+  it('findOne should throw if app not found', async () => {
+    mockRepo.findOne = jest.fn().mockResolvedValue(null);
+    await expect(service.findOne('nonexistent')).rejects.toThrow('App not found');
+  });
+
+  it('delete should remove messages and conversations before app', async () => {
+    mockConvRepo.find = jest.fn().mockResolvedValue([{ id: 'conv-1' }]);
     await service.delete('app-1');
+    // Message deleted by conversationId using In() clause
+    expect(mockMessageRepo.delete).toHaveBeenCalled();
+    expect(mockConvRepo.delete).toHaveBeenCalledWith({ appId: 'app-1' });
     expect(mockRepo.delete).toHaveBeenCalledWith('app-1');
+  });
+
+  it('delete should throw NotFoundException if app not found', async () => {
+    mockRepo.delete = jest.fn().mockResolvedValue({ affected: 0 });
+    await expect(service.delete('nonexistent')).rejects.toThrow('App not found');
+    // Restore for other tests
+    mockRepo.delete = jest.fn().mockResolvedValue({ affected: 1 });
   });
 });
