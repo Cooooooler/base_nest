@@ -1,10 +1,16 @@
 'use client';
 
-import { MarkdownRenderer } from '@/components/app/markdown-renderer';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FileText } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { useState } from 'react';
 import type { ChatMessage } from './types';
+
+const MarkdownRenderer = dynamic(
+  // @ts-expect-error — dynamic import with @/ webpack alias
+  () => import('@/components/app/markdown-renderer').then((mod) => mod.MarkdownRenderer),
+  { ssr: false }
+) as React.ComponentType<{ content: string }>;
 
 export function SourceList({ data }: { data: NonNullable<ChatMessage['sources']> }) {
   const [open, setOpen] = useState(false);

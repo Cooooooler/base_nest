@@ -1,68 +1,48 @@
 import { OllamaEmbeddings } from '@langchain/ollama';
-import { DynamicModule, Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmbeddingFactory } from './embeddings/embedding-factory.service';
 import { EmbeddingsService } from './embeddings/embeddings.service';
 import { ChromaVectorStoreService } from './vectore-store/chroma-vector-store.service';
 
-export interface LocalAIOptions {
-  ollamaBaseUrl?: string;
-  llmModel?: string;
-  embedModel?: string;
-  chromaUrl?: string;
-  chromaCollectionName?: string;
-}
-
-@Global()
-@Module({})
-export class LocalAIModule {
-  static forRoot(options: LocalAIOptions = {}): DynamicModule {
-    const {
-      ollamaBaseUrl = process.env.OLLAMA_BASE_URL || 'http://localhost:11434',
-      embedModel = process.env.EMBED_MODEL || 'mxbai-embed-large',
-      chromaUrl = process.env.CHROMA_URL || 'http://localhost:8000',
-      chromaCollectionName = process.env.CHROMA_COLLECTION || 'knowledge_base',
-    } = options;
-
-    return {
-      module: LocalAIModule,
-      providers: [
-        {
-          provide: 'OLLAMA_BASE_URL',
-          useValue: ollamaBaseUrl,
-        },
-        {
-          provide: 'OLLAMA_EMBEDDINGS',
-          useFactory: () =>
-            new OllamaEmbeddings({
-              model: embedModel,
-              baseUrl: ollamaBaseUrl,
-            }),
-        },
-        {
-          provide: EmbeddingFactory,
-          useFactory: () => new EmbeddingFactory(ollamaBaseUrl),
-        },
-        {
-          provide: EmbeddingsService,
-          useFactory: (embeddings: OllamaEmbeddings) => {
-            const svc = new EmbeddingsService();
-            svc.setEmbeddings(embeddings);
-            return svc;
-          },
-          inject: ['OLLAMA_EMBEDDINGS'],
-        },
-        {
-          provide: ChromaVectorStoreService,
-          useFactory: (embeddings: OllamaEmbeddings) => {
-            return new ChromaVectorStoreService(embeddings, {
-              collectionName: chromaCollectionName,
-              url: chromaUrl,
-            });
-          },
-          inject: ['OLLAMA_EMBEDDINGS'],
-        },
-      ],
-      exports: [EmbeddingFactory, EmbeddingsService, ChromaVectorStoreService],
-    };
-  }
-}
+@Module({
+  imports: [ConfigModule],
+  providers: [
+    {
+      provide: 'OLLAMA_EMBEDDINGS',
+      useFactory: (config: ConfigService) =>
+        new OllamaEmbeddings({
+          model: config.get('EMBED_MODEL', 'mxbai-embed-large'),
+          baseUrl: config.get('OLLAMA_BASE_URL', 'http://localhost:11434'),
+        }),
+      inject: [ConfigService],
+    },
+    {
+      provide: EmbeddingFactory,
+      useFactory: (config: ConfigService) =>
+        new EmbeddingFactory(config.get('OLLAMA_BASE_URL', 'http://localhost:11434')),
+      inject: [ConfigService],
+    },
+    {
+      provide: EmbeddingsService,
+      useFactory: (embeddings: OllamaEmbeddings) => {
+        const svc = new EmbeddingsService();
+        svc.setEmbeddings(embeddings);
+        return svc;
+      },
+      inject: ['OLLAMA_EMBEDDINGS'],
+    },
+    {
+      provide: ChromaVectorStoreService,
+      useFactory: (embeddings: OllamaEmbeddings, config: ConfigService) => {
+        return new ChromaVectorStoreService(embeddings, {
+          collectionName: config.get('CHROMA_COLLECTION', 'knowledge_base'),
+          url: config.get('CHROMA_URL', 'http://localhost:8000'),
+        });
+      },
+      inject: ['OLLAMA_EMBEDDINGS', ConfigService],
+    },
+  ],
+  exports: [EmbeddingFactory, EmbeddingsService, ChromaVectorStoreService],
+})
+export class LocalAIModule {}

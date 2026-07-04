@@ -1,12 +1,23 @@
 'use client';
 
-import { MarkdownRenderer } from '@/components/app/markdown-renderer';
 import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker';
 import { Spinner } from '@/components/ui/spinner';
+import dynamic from 'next/dynamic';
 import { ReasoningBlock } from './reasoning-block';
 import { SourceList } from './source-list';
-import { StreamingMarkdown } from './streaming-markdown';
 import type { ChatMessage } from './types';
+
+const MarkdownRenderer = dynamic(
+  // @ts-expect-error — dynamic import with @/ webpack alias
+  () => import('@/components/app/markdown-renderer').then((mod) => mod.MarkdownRenderer),
+  { ssr: false }
+) as React.ComponentType<{ content: string; className?: string }>;
+
+const StreamingMarkdown = dynamic(
+  // @ts-expect-error — dynamic import with @/ webpack alias
+  () => import('@/components/chat/streaming-markdown').then((mod) => mod.StreamingMarkdown),
+  { ssr: false }
+) as React.ComponentType<{ content: string }>;
 
 export function AssistantMessage({ msg, streaming }: { msg: ChatMessage; streaming: boolean }) {
   return (

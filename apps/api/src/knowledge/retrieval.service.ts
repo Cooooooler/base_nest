@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { EmbeddingFactory } from '../common/embeddings/embedding-factory.service';
@@ -14,9 +14,10 @@ export class RetrievalService {
     private readonly kbRepo: Repository<KnowledgeBase>
   ) {}
 
-  async search(knowledgeBaseId: string, query: string, topK: number = 4) {
-    const kb = await this.kbRepo.findOneBy({ id: knowledgeBaseId });
-    const embeddings = this.embeddingFactory.create(kb?.embeddingModel ?? 'mxbai-embed-large');
+  async searchForUser(knowledgeBaseId: string, userId: string, query: string, topK: number = 4) {
+    const kb = await this.kbRepo.findOneBy({ id: knowledgeBaseId, userId });
+    if (!kb) throw new NotFoundException('Knowledge base not found');
+    const embeddings = this.embeddingFactory.create(kb.embeddingModel ?? 'mxbai-embed-large');
     const results = await this.vectorStore.similaritySearch(query, topK, embeddings);
 
     return results.map((doc) => ({

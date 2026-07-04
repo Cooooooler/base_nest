@@ -30,6 +30,7 @@ export function useChatStream({
   const [sending, setSending] = useState(false);
   const [streamingMsgIdx, setStreamingMsgIdx] = useState<number | null>(null);
   const streamingRef = useRef(false);
+  const msgIdCounter = useRef(0);
 
   const sendMessage = useCallback(
     async (content: string, aiIdx?: number) => {
@@ -41,8 +42,8 @@ export function useChatStream({
       setStreamingMsgIdx(idx);
       setMessages((prev) => [
         ...prev,
-        { role: 'user', content },
-        { role: 'assistant', content: '' },
+        { id: `msg_${msgIdCounter.current++}`, role: 'user', content },
+        { id: `msg_${msgIdCounter.current++}`, role: 'assistant', content: '' },
       ]);
 
       let fullContent = '';

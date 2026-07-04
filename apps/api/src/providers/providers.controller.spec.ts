@@ -92,8 +92,8 @@ describe('ProvidersController', () => {
   });
 
   it('removeApiKey should delete a key', async () => {
-    await controller.removeApiKey('key-id');
-    expect(mockService.deleteApiKey).toHaveBeenCalledWith('key-id');
+    await controller.removeApiKey('key-id', mockRequest);
+    expect(mockService.deleteApiKey).toHaveBeenCalledWith('key-id', 'test-user-id');
   });
 
   it('findModels should return models for a provider', async () => {
@@ -122,9 +122,9 @@ describe('ProvidersController', () => {
   describe('updateModel', () => {
     it('should update a model', async () => {
       const dto = { displayName: 'GPT-4o Updated' };
-      const result = await controller.updateModel('model-id', dto);
+      const result = await controller.updateModel('model-id', dto, mockRequest);
       expect(result).toEqual({ id: 'model-id', name: 'gpt-4o-updated' });
-      expect(mockService.updateModel).toHaveBeenCalledWith('model-id', dto);
+      expect(mockService.updateModel).toHaveBeenCalledWith('model-id', dto, 'test-user-id');
     });
   });
 

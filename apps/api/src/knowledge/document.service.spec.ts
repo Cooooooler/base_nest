@@ -1,4 +1,5 @@
 import { NotFoundException } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { EmbeddingFactory } from '../common/embeddings/embedding-factory.service';
@@ -76,6 +77,10 @@ describe('DocumentService', () => {
     create: jest.fn().mockReturnValue({}),
   };
 
+  const mockEventEmitter = {
+    emit: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
@@ -88,6 +93,7 @@ describe('DocumentService', () => {
         { provide: FileStorageService, useValue: mockFileStorage },
         { provide: ChromaVectorStoreService, useValue: mockVectorStore },
         { provide: EmbeddingFactory, useValue: mockEmbeddingFactory },
+        { provide: EventEmitter2, useValue: mockEventEmitter },
       ],
     }).compile();
 
@@ -121,7 +127,7 @@ describe('DocumentService', () => {
   });
 
   describe('upload', () => {
-    it('should upload and return pending document', async () => {
+    it('should upload and return pending document and emit event', async () => {
       const buffer = Buffer.from('test content');
       const result = await service.upload('kb-1', 'test.txt', buffer);
 
@@ -134,6 +140,9 @@ describe('DocumentService', () => {
         fileSize: buffer.length,
         storagePath: '/storage/test.txt',
         status: 'pending',
+      });
+      expect(mockEventEmitter.emit).toHaveBeenCalledWith('document.uploaded', {
+        documentId: 'doc-1',
       });
     });
 

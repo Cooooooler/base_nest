@@ -2,8 +2,9 @@ import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Test, TestingModule } from '@nestjs/testing';
-import { getDataSourceToken } from '@nestjs/typeorm';
+import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { User } from '../users/user.entity';
 import { UsersService } from '../users/users.service';
 import { AuthService } from './auth.service';
 import { TokenBlacklistService } from './token-blacklist.service';
@@ -58,6 +59,10 @@ describe('AuthService', () => {
     createQueryRunner: jest.fn().mockReturnValue(mockQueryRunner),
   };
 
+  const mockUserRepo = {
+    create: jest.fn(),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
     const module: TestingModule = await Test.createTestingModule({
@@ -68,6 +73,7 @@ describe('AuthService', () => {
         { provide: ConfigService, useValue: mockConfigService },
         { provide: TokenBlacklistService, useValue: mockBlacklistService },
         { provide: getDataSourceToken(), useValue: mockDataSource },
+        { provide: getRepositoryToken(User), useValue: mockUserRepo },
       ],
     }).compile();
 

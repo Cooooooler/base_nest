@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { getRepositoryToken } from '@nestjs/typeorm';
+import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import { fromPartial } from '@total-typescript/shoehorn';
 import { App } from '../chat/entities/app.entity';
 import * as cryptoUtil from '../common/crypto.util';
@@ -96,6 +96,19 @@ describe('ProvidersService', () => {
     count: jest.fn().mockResolvedValue(0),
   };
 
+  const mockDataSource = {
+    createQueryRunner: jest.fn().mockReturnValue({
+      connect: jest.fn(),
+      startTransaction: jest.fn(),
+      commitTransaction: jest.fn(),
+      rollbackTransaction: jest.fn(),
+      release: jest.fn(),
+      manager: {
+        delete: jest.fn(),
+      },
+    }),
+  };
+
   beforeEach(async () => {
     jest.clearAllMocks();
     // Default: modelRepo.findOne returns null (not found) — tests that need it must override
@@ -106,6 +119,7 @@ describe('ProvidersService', () => {
         { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
         { provide: getRepositoryToken(Model), useValue: mockModelRepo },
         { provide: getRepositoryToken(App), useValue: mockAppRepo },
+        { provide: getDataSourceToken(), useValue: mockDataSource },
       ],
     }).compile();
 
@@ -201,7 +215,22 @@ describe('ProvidersService', () => {
 
   describe('deleteApiKey', () => {
     it('should delete an API key', async () => {
-      await service.deleteApiKey(mockApiKey.id);
+      const localApiKeyRepo = {
+        ...mockApiKeyRepo,
+        findOne: jest.fn().mockResolvedValue({ ...mockApiKey, provider: { userId: TEST_USER_ID } }),
+      };
+      const module: TestingModule = await Test.createTestingModule({
+        providers: [
+          ProvidersService,
+          { provide: getRepositoryToken(ModelProvider), useValue: mockRepo },
+          { provide: getRepositoryToken(ApiKey), useValue: localApiKeyRepo },
+          { provide: getRepositoryToken(Model), useValue: mockModelRepo },
+          { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
+        ],
+      }).compile();
+      const svc = module.get<ProvidersService>(ProvidersService);
+      await expect(svc.deleteApiKey(mockApiKey.id, TEST_USER_ID)).resolves.not.toThrow();
     });
   });
 
@@ -238,6 +267,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: localModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -268,6 +298,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: mockModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -282,6 +313,7 @@ describe('ProvidersService', () => {
       const mockModel = {
         id: '770e8400-e29b-41d4-a716-446655440002',
         providerId: mockProvider.id,
+        provider: { userId: TEST_USER_ID },
         name: 'gpt-4o',
         displayName: 'GPT-4o',
         contextWindow: 128000,
@@ -291,7 +323,7 @@ describe('ProvidersService', () => {
       };
       const localModelRepo = {
         ...mockModelRepo,
-        findOneBy: jest.fn().mockResolvedValue(mockModel),
+        findOne: jest.fn().mockResolvedValue(mockModel),
         save: jest.fn().mockResolvedValue({ ...mockModel, displayName: 'GPT-4o Updated' }),
       };
       const module: TestingModule = await Test.createTestingModule({
@@ -301,18 +333,23 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: localModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
 
-      const result = await svc.updateModel('770e8400', { displayName: 'GPT-4o Updated' });
+      const result = await svc.updateModel(
+        '770e8400',
+        { displayName: 'GPT-4o Updated' },
+        TEST_USER_ID
+      );
       expect(result.displayName).toBe('GPT-4o Updated');
     });
 
     it('should throw NotFoundException if model not found', async () => {
       const localModelRepo = {
         ...mockModelRepo,
-        findOneBy: jest.fn().mockResolvedValue(null),
+        findOne: jest.fn().mockResolvedValue(null),
       };
       const module: TestingModule = await Test.createTestingModule({
         providers: [
@@ -321,10 +358,11 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: localModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
-      await expect(svc.updateModel('nonexistent', { name: 'new' })).rejects.toThrow(
+      await expect(svc.updateModel('nonexistent', { name: 'new' }, TEST_USER_ID)).rejects.toThrow(
         'Model not found'
       );
     });
@@ -359,6 +397,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: localModelRepo },
           { provide: getRepositoryToken(App), useValue: localAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -382,6 +421,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: localModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -400,6 +440,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: localModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -424,6 +465,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: localModelRepo },
           { provide: getRepositoryToken(App), useValue: localAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -452,6 +494,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: mockModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -480,6 +523,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: mockModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -504,6 +548,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: mockModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -529,6 +574,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: mockModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);
@@ -555,6 +601,7 @@ describe('ProvidersService', () => {
           { provide: getRepositoryToken(ApiKey), useValue: mockApiKeyRepo },
           { provide: getRepositoryToken(Model), useValue: mockModelRepo },
           { provide: getRepositoryToken(App), useValue: mockAppRepo },
+          { provide: getDataSourceToken(), useValue: mockDataSource },
         ],
       }).compile();
       const svc = module.get<ProvidersService>(ProvidersService);

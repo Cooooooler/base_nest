@@ -35,8 +35,8 @@ export class KnowledgeController {
 
   @Get(':id')
   @ApiOperation({ summary: '获取知识库详情' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    return this.knowledgeService.findById(id);
+  async findOne(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+    return this.knowledgeService.findByIdForUser(id, user.id);
   }
 
   @Post()
@@ -47,13 +47,17 @@ export class KnowledgeController {
 
   @Delete(':id')
   @ApiOperation({ summary: '删除知识库' })
-  async remove(@Param('id', ParseUUIDPipe) id: string) {
-    return this.knowledgeService.delete(id);
+  async remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+    return this.knowledgeService.deleteForUser(id, user.id);
   }
 
   @Post(':id/retrieval')
   @ApiOperation({ summary: '检索知识库' })
-  async search(@Param('id', ParseUUIDPipe) id: string, @Body() dto: RetrievalQueryDto) {
-    return this.retrievalService.search(id, dto.query, dto.topK);
+  async search(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: RetrievalQueryDto,
+    @CurrentUser() user: User
+  ) {
+    return this.retrievalService.searchForUser(id, user.id, dto.query, dto.topK);
   }
 }

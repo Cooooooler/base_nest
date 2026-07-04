@@ -1,6 +1,8 @@
 import { Module, ValidationPipe } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD, APP_PIPE } from '@nestjs/core';
+import { EventEmitterModule } from '@nestjs/event-emitter';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
@@ -18,6 +20,8 @@ import { UsersModule } from './users/users.module';
       load: [databaseConfig],
       envFilePath: '.env',
     }),
+    ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 60 }]),
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
@@ -36,7 +40,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     AuthModule,
     ProvidersModule,
-    LocalAIModule.forRoot(),
+    LocalAIModule,
     ChatModule,
     KnowledgeModule,
   ],
