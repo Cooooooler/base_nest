@@ -1,5 +1,6 @@
 'use client';
 
+import { FadeIn } from '@/components/animated/fade-in';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldLabel } from '@/components/ui/field';
@@ -72,106 +73,108 @@ export default function NewKnowledgeBasePage() {
 
   return (
     <div className='mx-auto max-w-lg'>
-      <Card>
-        <CardHeader>
-          <CardTitle>创建知识库</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
-            <Controller
-              name='name'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor='kb-name'>名称</FieldLabel>
-                  <Input
-                    {...field}
-                    id='kb-name'
-                    placeholder='产品文档库'
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+      <FadeIn direction='up'>
+        <Card>
+          <CardHeader>
+            <CardTitle>创建知识库</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-4'>
+              <Controller
+                name='name'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor='kb-name'>名称</FieldLabel>
+                    <Input
+                      {...field}
+                      id='kb-name'
+                      placeholder='产品文档库'
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name='description'
+                control={control}
+                render={({ field }) => (
+                  <Field>
+                    <FieldLabel htmlFor='kb-description'>描述</FieldLabel>
+                    <Textarea {...field} id='kb-description' placeholder='知识库用途说明' />
+                  </Field>
+                )}
+              />
+              <Controller
+                name='embeddingModel'
+                control={control}
+                render={({ field }) => (
+                  <Field>
+                    <FieldLabel htmlFor='kb-embed-model'>嵌入模型</FieldLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id='kb-embed-model'>
+                        <SelectValue placeholder='选择嵌入模型' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {EMBED_MODELS.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>
+                            {m.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              />
+              <div className='grid grid-cols-2 gap-4'>
+                <Controller
+                  name='chunkSize'
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field>
+                      <FieldLabel htmlFor='kb-chunk-size'>分块大小</FieldLabel>
+                      <Input
+                        {...field}
+                        id='kb-chunk-size'
+                        type='number'
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                      )}
+                    </Field>
                   )}
-                </Field>
-              )}
-            />
-            <Controller
-              name='description'
-              control={control}
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor='kb-description'>描述</FieldLabel>
-                  <Textarea {...field} id='kb-description' placeholder='知识库用途说明' />
-                </Field>
-              )}
-            />
-            <Controller
-              name='embeddingModel'
-              control={control}
-              render={({ field }) => (
-                <Field>
-                  <FieldLabel htmlFor='kb-embed-model'>嵌入模型</FieldLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id='kb-embed-model'>
-                      <SelectValue placeholder='选择嵌入模型' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EMBED_MODELS.map((m) => (
-                        <SelectItem key={m.value} value={m.value}>
-                          {m.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
-            />
-            <div className='grid grid-cols-2 gap-4'>
-              <Controller
-                name='chunkSize'
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field>
-                    <FieldLabel htmlFor='kb-chunk-size'>分块大小</FieldLabel>
-                    <Input
-                      {...field}
-                      id='kb-chunk-size'
-                      type='number'
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.invalid && (
-                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                    )}
-                  </Field>
-                )}
-              />
-              <Controller
-                name='chunkOverlap'
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field>
-                    <FieldLabel htmlFor='kb-chunk-overlap'>分块重叠</FieldLabel>
-                    <Input
-                      {...field}
-                      id='kb-chunk-overlap'
-                      type='number'
-                      aria-invalid={fieldState.invalid}
-                    />
-                    {fieldState.invalid && (
-                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                    )}
-                  </Field>
-                )}
-              />
-            </div>
-            <Button type='submit' disabled={isSubmitting}>
-              {isSubmitting && <Spinner data-icon='inline-start' />}
-              创建
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+                />
+                <Controller
+                  name='chunkOverlap'
+                  control={control}
+                  render={({ field, fieldState }) => (
+                    <Field>
+                      <FieldLabel htmlFor='kb-chunk-overlap'>分块重叠</FieldLabel>
+                      <Input
+                        {...field}
+                        id='kb-chunk-overlap'
+                        type='number'
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                      )}
+                    </Field>
+                  )}
+                />
+              </div>
+              <Button type='submit' disabled={isSubmitting}>
+                {isSubmitting && <Spinner data-icon='inline-start' />}
+                创建
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      </FadeIn>
     </div>
   );
 }

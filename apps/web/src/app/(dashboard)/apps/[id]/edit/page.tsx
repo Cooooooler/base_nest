@@ -1,5 +1,6 @@
 'use client';
 
+import { FadeIn } from '@/components/animated/fade-in';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -88,16 +89,18 @@ export default function EditAppPage() {
   if (isLoading) {
     return (
       <div className='mx-auto max-w-2xl'>
-        <Card>
-          <CardHeader>
-            <Skeleton className='h-6 w-32' />
-          </CardHeader>
-          <CardContent className='flex flex-col gap-4'>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className='h-10 w-full' />
-            ))}
-          </CardContent>
-        </Card>
+        <FadeIn direction='up'>
+          <Card>
+            <CardHeader>
+              <Skeleton className='h-6 w-32' />
+            </CardHeader>
+            <CardContent className='flex flex-col gap-4'>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className='h-10 w-full' />
+              ))}
+            </CardContent>
+          </Card>
+        </FadeIn>
       </div>
     );
   }
@@ -107,78 +110,80 @@ export default function EditAppPage() {
   return (
     <>
       <form onSubmit={handleSubmit} className='mx-auto max-w-2xl'>
-        <Card>
-          <CardHeader>
-            <CardTitle>编辑应用</CardTitle>
-          </CardHeader>
-          <CardContent className='flex flex-col gap-4'>
-            <Field>
-              <FieldLabel>名称</FieldLabel>
-              <Input value={name} onChange={(e) => setName(e.target.value)} />
-            </Field>
-            <Field>
-              <FieldLabel>描述</FieldLabel>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
-            </Field>
-            <Field>
-              <FieldLabel>系统提示词</FieldLabel>
-              <Textarea
-                value={systemPrompt}
-                onChange={(e) => setSystemPrompt(e.target.value)}
-                rows={4}
-              />
-            </Field>
-            <Field>
-              <FieldLabel>温度 ({temperature})</FieldLabel>
-              <Input
-                type='range'
-                min='0'
-                max='2'
-                step='0.1'
-                value={temperature}
-                onChange={(e) => setTemperature(e.target.value)}
-              />
-            </Field>
+        <FadeIn direction='up'>
+          <Card>
+            <CardHeader>
+              <CardTitle>编辑应用</CardTitle>
+            </CardHeader>
+            <CardContent className='flex flex-col gap-4'>
+              <Field>
+                <FieldLabel>名称</FieldLabel>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </Field>
+              <Field>
+                <FieldLabel>描述</FieldLabel>
+                <Textarea value={description} onChange={(e) => setDescription(e.target.value)} />
+              </Field>
+              <Field>
+                <FieldLabel>系统提示词</FieldLabel>
+                <Textarea
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  rows={4}
+                />
+              </Field>
+              <Field>
+                <FieldLabel>温度 ({temperature})</FieldLabel>
+                <Input
+                  type='range'
+                  min='0'
+                  max='2'
+                  step='0.1'
+                  value={temperature}
+                  onChange={(e) => setTemperature(e.target.value)}
+                />
+              </Field>
 
-            <Field>
-              <FieldLabel>关联知识库（可选）</FieldLabel>
-              <Select
-                value={knowledgeBaseId}
-                onValueChange={(v) => {
-                  if (v) setKnowledgeBaseId(v);
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder='不关联知识库' />
-                </SelectTrigger>
-                <SelectContent>
-                  {knowledgeBases?.map((kb) => (
-                    <SelectItem key={kb.id} value={kb.id}>
-                      {kb.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </Field>
+              <Field>
+                <FieldLabel>关联知识库（可选）</FieldLabel>
+                <Select
+                  value={knowledgeBaseId}
+                  onValueChange={(v) => {
+                    if (v) setKnowledgeBaseId(v);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder='不关联知识库' />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {knowledgeBases?.map((kb) => (
+                      <SelectItem key={kb.id} value={kb.id}>
+                        {kb.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </Field>
 
-            <div className='flex gap-3'>
-              <Button type='submit' disabled={saving}>
-                {saving ? '保存中...' : '保存'}
-              </Button>
-              <Button variant='outline' type='button' onClick={() => router.back()}>
-                取消
-              </Button>
-              <Button
-                className='ml-auto'
-                variant='destructive'
-                type='button'
-                onClick={() => setShowDelete(true)}
-              >
-                删除应用
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <div className='flex gap-3'>
+                <Button type='submit' disabled={saving}>
+                  {saving ? '保存中...' : '保存'}
+                </Button>
+                <Button variant='outline' type='button' onClick={() => router.back()}>
+                  取消
+                </Button>
+                <Button
+                  className='ml-auto'
+                  variant='destructive'
+                  type='button'
+                  onClick={() => setShowDelete(true)}
+                >
+                  删除应用
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </FadeIn>
       </form>
 
       <Dialog open={showDelete} onOpenChange={setShowDelete}>

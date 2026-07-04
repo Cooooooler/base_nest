@@ -1,5 +1,6 @@
 'use client';
 
+import { FadeIn } from '@/components/animated/fade-in';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Field, FieldLabel } from '@/components/ui/field';
@@ -64,81 +65,83 @@ export default function NewProviderPage() {
 
   return (
     <div className='mx-auto max-w-lg'>
-      <Card>
-        <CardHeader>
-          <CardTitle>添加模型提供商</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
-            <Controller
-              name='name'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor='provider-name'>名称</FieldLabel>
-                  <Input
-                    {...field}
-                    id='provider-name'
-                    placeholder='OpenAI'
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                  )}
-                </Field>
-              )}
-            />
-            <Controller
-              name='type'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor='provider-type'>类型</FieldLabel>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger id='provider-type' aria-invalid={fieldState.invalid}>
-                      <SelectValue placeholder='选择类型' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {providerTypes.map((t) => (
-                        <SelectItem key={t.value} value={t.value}>
-                          {t.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && (
-                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                  )}
-                </Field>
-              )}
-            />
-            <Controller
-              name='baseUrl'
-              control={control}
-              render={({ field, fieldState }) => (
-                <Field>
-                  <FieldLabel htmlFor='provider-base-url'>API 端点（可选）</FieldLabel>
-                  <Input
-                    {...field}
-                    id='provider-base-url'
-                    placeholder='https://api.openai.com/v1'
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
-                  )}
-                </Field>
-              )}
-            />
-            <div className='flex items-center justify-end gap-2'>
-              <Button type='submit' disabled={isSubmitting}>
-                {isSubmitting && <Spinner data-icon='inline-start' />}
-                创建
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+      <FadeIn direction='up'>
+        <Card>
+          <CardHeader>
+            <CardTitle>添加模型提供商</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit(onSubmit)} className='space-y-4'>
+              <Controller
+                name='name'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor='provider-name'>名称</FieldLabel>
+                    <Input
+                      {...field}
+                      id='provider-name'
+                      placeholder='OpenAI'
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name='type'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor='provider-type'>类型</FieldLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id='provider-type' aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder='选择类型' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {providerTypes.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {fieldState.invalid && (
+                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                    )}
+                  </Field>
+                )}
+              />
+              <Controller
+                name='baseUrl'
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Field>
+                    <FieldLabel htmlFor='provider-base-url'>API 端点（可选）</FieldLabel>
+                    <Input
+                      {...field}
+                      id='provider-base-url'
+                      placeholder='https://api.openai.com/v1'
+                      aria-invalid={fieldState.invalid}
+                    />
+                    {fieldState.invalid && (
+                      <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                    )}
+                  </Field>
+                )}
+              />
+              <div className='flex items-center justify-end gap-2'>
+                <Button type='submit' disabled={isSubmitting}>
+                  {isSubmitting && <Spinner data-icon='inline-start' />}
+                  创建
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </FadeIn>
     </div>
   );
 }
