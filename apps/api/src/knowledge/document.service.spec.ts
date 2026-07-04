@@ -2,32 +2,33 @@ import { NotFoundException } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { EmbeddingFactory } from '../common/embeddings/embedding-factory.service';
 import { ChromaVectorStoreService } from '../common/vectore-store/chroma-vector-store.service';
 import { ChunkProcessorService } from './chunking/chunk-processor.service';
 import { DocumentService } from './document.service';
 import { DocumentSegment } from './entities/document-segment.entity';
-import { Document, DocumentStatus } from './entities/document.entity';
+import { Document } from './entities/document.entity';
 import { KnowledgeBase } from './entities/knowledge-base.entity';
 import { FileStorageService } from './storage/file-storage.service';
 
 describe('DocumentService', () => {
   let service: DocumentService;
 
-  const mockDoc = {
+  const mockDoc = fromPartial<Document>({
     id: 'doc-1',
     knowledgeBaseId: 'kb-1',
     fileName: 'test.txt',
     fileType: 'txt',
     fileSize: 100,
     storagePath: '/storage/test.txt',
-    status: 'pending' as DocumentStatus,
+    status: 'pending',
     errorMessage: null,
     charCount: 0,
     tokenCount: null,
     processedAt: null,
     createdAt: new Date(),
-  };
+  });
 
   const mockDocRepo = {
     find: jest.fn().mockResolvedValue([mockDoc]),

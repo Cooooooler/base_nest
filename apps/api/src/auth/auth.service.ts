@@ -119,7 +119,7 @@ export class AuthService {
   async logout(accessToken: string, refreshToken?: string) {
     const blacklistToken = async (token: string) => {
       try {
-        const payload = this.jwtService.decode(token);
+        const payload: { exp?: number } | null = this.jwtService.decode(token);
         if (payload?.exp) {
           await this.tokenBlacklistService.addToBlacklist(token, new Date(payload.exp * 1000));
         }
@@ -141,12 +141,12 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId, email, type: 'access' } as any,
-        { secret, expiresIn: accessExpires } as any
+        { sub: userId, email, type: 'access' },
+        { secret, expiresIn: accessExpires }
       ),
       this.jwtService.signAsync(
-        { sub: userId, email, type: 'refresh', jti: crypto.randomUUID() } as any,
-        { secret, expiresIn: refreshExpires } as any
+        { sub: userId, email, type: 'refresh', jti: crypto.randomUUID() },
+        { secret, expiresIn: refreshExpires }
       ),
     ]);
 

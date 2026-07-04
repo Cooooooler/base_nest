@@ -1,5 +1,6 @@
 import { CallHandler, ExecutionContext } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { of } from 'rxjs';
 import { ResponseInterceptor } from './response.interceptor';
 
@@ -20,7 +21,7 @@ describe('ResponseInterceptor', () => {
 
   it('should wrap plain data as { code: 1, data, msg: "ok" }', (done) => {
     const payload = { id: 1, name: 'test' };
-    const mockContext = {} as ExecutionContext;
+    const mockContext = fromPartial<ExecutionContext>({});
     const mockCallHandler: CallHandler = {
       handle: () => of(payload),
     };
@@ -34,7 +35,7 @@ describe('ResponseInterceptor', () => {
   });
 
   it('should wrap primitive values', (done) => {
-    const mockContext = {} as ExecutionContext;
+    const mockContext = fromPartial<ExecutionContext>({});
     const mockCallHandler: CallHandler = {
       handle: () => of('hello'),
     };
@@ -49,7 +50,7 @@ describe('ResponseInterceptor', () => {
 
   it('should pass through if response already has code and data', (done) => {
     const alreadyFormatted = { code: 1, data: { foo: 'bar' }, msg: 'custom' };
-    const mockContext = {} as ExecutionContext;
+    const mockContext = fromPartial<ExecutionContext>({});
     const mockCallHandler: CallHandler = {
       handle: () => of(alreadyFormatted),
     };
@@ -63,7 +64,7 @@ describe('ResponseInterceptor', () => {
   });
 
   it('should handle null data', (done) => {
-    const mockContext = {} as ExecutionContext;
+    const mockContext = fromPartial<ExecutionContext>({});
     const mockCallHandler: CallHandler = {
       handle: () => of(null),
     };

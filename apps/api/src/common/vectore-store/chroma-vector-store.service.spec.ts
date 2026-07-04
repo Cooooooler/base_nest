@@ -1,10 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { ChromaVectorStoreService } from './chroma-vector-store.service';
 
 describe('ChromaVectorStoreService', () => {
   let service: ChromaVectorStoreService;
 
-  const mockDefaultEmbeddings = {};
+  const mockDefaultEmbeddings = fromPartial({});
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -12,7 +13,7 @@ describe('ChromaVectorStoreService', () => {
         {
           provide: ChromaVectorStoreService,
           useFactory: () =>
-            new ChromaVectorStoreService(mockDefaultEmbeddings as any, {
+            new ChromaVectorStoreService(mockDefaultEmbeddings, {
               collectionName: 'test_collection',
               url: 'http://localhost:8000',
               numDimensions: 1024,

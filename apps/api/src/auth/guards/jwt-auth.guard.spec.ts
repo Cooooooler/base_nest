@@ -1,5 +1,6 @@
 import { ExecutionContext } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { TokenBlacklistService } from '../token-blacklist.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 
@@ -28,11 +29,11 @@ describe('JwtAuthGuard', () => {
       const request = {
         headers: authHeader ? { authorization: authHeader } : {},
       };
-      return {
+      return fromPartial<ExecutionContext>({
         switchToHttp: () => ({
           getRequest: () => request,
         }),
-      } as unknown as ExecutionContext;
+      });
     };
 
     it('should return true if token is valid and not blacklisted', async () => {

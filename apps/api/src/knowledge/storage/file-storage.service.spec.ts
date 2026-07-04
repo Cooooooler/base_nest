@@ -27,8 +27,8 @@ describe('FileStorageService', () => {
 
   describe('save', () => {
     it('should write file to storage and return path', async () => {
-      (fs.mkdir as jest.Mock).mockResolvedValue(undefined);
-      (fs.writeFile as jest.Mock).mockResolvedValue(undefined);
+      jest.mocked(fs.mkdir).mockResolvedValue(undefined);
+      jest.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       const buffer = Buffer.from('test content');
       const result = await service.save('myfile.txt', buffer);
@@ -46,18 +46,18 @@ describe('FileStorageService', () => {
       }).compile();
       const svc = module.get<FileStorageService>(FileStorageService);
 
-      (fs.mkdir as jest.Mock).mockResolvedValue(undefined);
-      (fs.writeFile as jest.Mock).mockResolvedValue(undefined);
+      jest.mocked(fs.mkdir).mockResolvedValue(undefined);
+      jest.mocked(fs.writeFile).mockResolvedValue(undefined);
 
       await svc.save('test.txt', Buffer.from('test'));
-      const mkdirCall = (fs.mkdir as jest.Mock).mock.calls[0][0];
+      const mkdirCall = jest.mocked(fs.mkdir).mock.calls[0][0];
       expect(mkdirCall).toContain(pathSep + 'custom' + pathSep + 'storage');
     });
   });
 
   describe('read', () => {
     it('should read file from disk', async () => {
-      (fs.readFile as jest.Mock).mockResolvedValue(Buffer.from('file content'));
+      jest.mocked(fs.readFile).mockResolvedValue(Buffer.from('file content'));
 
       const result = await service.read('/path/to/file.txt');
       expect(result.toString()).toBe('file content');
@@ -67,14 +67,14 @@ describe('FileStorageService', () => {
 
   describe('delete', () => {
     it('should unlink file', async () => {
-      (fs.unlink as jest.Mock).mockResolvedValue(undefined);
+      jest.mocked(fs.unlink).mockResolvedValue(undefined);
 
       await service.delete('/path/to/file.txt');
       expect(fs.unlink).toHaveBeenCalledWith('/path/to/file.txt');
     });
 
     it('should not throw if file does not exist', async () => {
-      (fs.unlink as jest.Mock).mockRejectedValue(new Error('ENOENT'));
+      jest.mocked(fs.unlink).mockRejectedValue(new Error('ENOENT'));
 
       await expect(service.delete('/nonexistent')).resolves.not.toThrow();
     });

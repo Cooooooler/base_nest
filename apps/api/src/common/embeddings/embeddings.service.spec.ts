@@ -1,16 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { fromPartial } from '@total-typescript/shoehorn';
 import { EmbeddingsService } from './embeddings.service';
 
 describe('EmbeddingsService', () => {
   let service: EmbeddingsService;
 
-  const mockEmbeddings = {
+  const mockEmbeddings = fromPartial({
     embedDocuments: jest.fn().mockResolvedValue([
       [0.1, 0.2],
       [0.3, 0.4],
     ]),
     embedQuery: jest.fn().mockResolvedValue([0.5, 0.6]),
-  };
+  });
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,7 +20,7 @@ describe('EmbeddingsService', () => {
           provide: EmbeddingsService,
           useFactory: () => {
             const svc = new EmbeddingsService();
-            svc.setEmbeddings(mockEmbeddings as any);
+            svc.setEmbeddings(mockEmbeddings);
             return svc;
           },
         },
