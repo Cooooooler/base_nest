@@ -1,5 +1,7 @@
 'use client';
 
+import { FadeIn } from '@/components/animated/fade-in';
+import { StaggerList } from '@/components/animated/stagger-list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -57,15 +59,17 @@ export default function AppsPage() {
           ))}
         </div>
       ) : !apps || apps.length === 0 ? (
-        <Card>
-          <CardContent className='flex flex-col items-center gap-3 py-12'>
-            <MessageSquare className='size-12 text-muted-foreground' />
-            <p className='text-muted-foreground'>还没有对话应用</p>
-            <Button onClick={() => router.push('/apps/new')}>创建第一个应用</Button>
-          </CardContent>
-        </Card>
+        <FadeIn direction='up'>
+          <Card>
+            <CardContent className='flex flex-col items-center gap-3 py-12'>
+              <MessageSquare className='size-12 text-muted-foreground' />
+              <p className='text-muted-foreground'>还没有对话应用</p>
+              <Button onClick={() => router.push('/apps/new')}>创建第一个应用</Button>
+            </CardContent>
+          </Card>
+        </FadeIn>
       ) : (
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        <StaggerList className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
           {apps.map((app) => (
             <Card
               key={app.id}
@@ -100,7 +104,7 @@ export default function AppsPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </StaggerList>
       )}
 
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

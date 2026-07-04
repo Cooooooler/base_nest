@@ -1,5 +1,7 @@
 'use client';
 
+import { FadeIn } from '@/components/animated/fade-in';
+import { StaggerList } from '@/components/animated/stagger-list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -60,21 +62,23 @@ export default function KnowledgePage() {
       </div>
 
       {!knowledgeBases || knowledgeBases.length === 0 ? (
-        <Card className='border-dashed'>
-          <CardContent className='flex flex-col items-center gap-4 py-16'>
-            <div className='flex size-12 items-center justify-center rounded-full bg-muted'>
-              <FileText className='size-6 text-muted-foreground' />
-            </div>
-            <div className='text-center'>
-              <p className='text-sm text-muted-foreground'>还没有创建知识库</p>
-            </div>
-            <Button onClick={() => router.push('/knowledge/new')}>
-              <Plus data-icon /> 创建知识库
-            </Button>
-          </CardContent>
-        </Card>
+        <FadeIn direction='up'>
+          <Card className='border-dashed'>
+            <CardContent className='flex flex-col items-center gap-4 py-16'>
+              <div className='flex size-12 items-center justify-center rounded-full bg-muted'>
+                <FileText className='size-6 text-muted-foreground' />
+              </div>
+              <div className='text-center'>
+                <p className='text-sm text-muted-foreground'>还没有创建知识库</p>
+              </div>
+              <Button onClick={() => router.push('/knowledge/new')}>
+                <Plus data-icon /> 创建知识库
+              </Button>
+            </CardContent>
+          </Card>
+        </FadeIn>
       ) : (
-        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        <StaggerList className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
           {knowledgeBases.map((kb) => (
             <Card
               key={kb.id}
@@ -121,7 +125,7 @@ export default function KnowledgePage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </StaggerList>
       )}
 
       <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>

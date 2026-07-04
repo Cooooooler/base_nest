@@ -1,5 +1,7 @@
 'use client';
 
+import { FadeIn } from '@/components/animated/fade-in';
+import { StaggerList } from '@/components/animated/stagger-list';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,24 +66,26 @@ export default function ProvidersPage() {
       </div>
 
       {!providers || providers.length === 0 ? (
-        <Card className='border-dashed'>
-          <CardContent className='flex flex-col items-center gap-4 py-16'>
-            <div className='flex size-12 items-center justify-center rounded-full bg-muted'>
-              <Server className='size-6 text-muted-foreground' />
-            </div>
-            <div className='text-center'>
-              <p className='text-sm text-muted-foreground'>
-                还没有配置模型提供商。点击下方按钮开始。
-              </p>
-            </div>
-            <Button onClick={() => router.push('/providers/new')}>
-              <Plus data-icon='inline-start' />
-              添加提供商
-            </Button>
-          </CardContent>
-        </Card>
+        <FadeIn direction='up'>
+          <Card className='border-dashed'>
+            <CardContent className='flex flex-col items-center gap-4 py-16'>
+              <div className='flex size-12 items-center justify-center rounded-full bg-muted'>
+                <Server className='size-6 text-muted-foreground' />
+              </div>
+              <div className='text-center'>
+                <p className='text-sm text-muted-foreground'>
+                  还没有配置模型提供商。点击下方按钮开始。
+                </p>
+              </div>
+              <Button onClick={() => router.push('/providers/new')}>
+                <Plus data-icon='inline-start' />
+                添加提供商
+              </Button>
+            </CardContent>
+          </Card>
+        </FadeIn>
       ) : (
-        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        <StaggerList className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
           {providers.map((p) => (
             <Card
               key={p.id}
@@ -135,7 +139,7 @@ export default function ProvidersPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+        </StaggerList>
       )}
 
       <Dialog
