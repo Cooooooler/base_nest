@@ -4,7 +4,6 @@ import {
   addEdge,
   Background,
   type Connection,
-  Controls,
   type Edge,
   MiniMap,
   type Node,
@@ -285,51 +284,30 @@ export default function WorkflowEditPage() {
         </div>
       </div>
 
-      {/* ---- Body: palette + canvas ---- */}
-      <div className='flex flex-1 min-h-0'>
-        {/* Left: node palette */}
-        <div className='w-56 shrink-0'>
-          <NodePalette onAddNode={handleAddNode} />
-        </div>
-
-        {/* Canvas */}
-        <div className='flex-1' ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onSelectionChange={onSelectionChange}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            isValidConnection={isValidConnection}
-            nodeTypes={nodeTypes}
-            deleteKeyCode={['Delete', 'Backspace']}
-            fitView
-            className='bg-muted/20'
-          >
-            <MiniMap pannable zoomable className='!bottom-4 !right-4' />
-            <Controls className='!bottom-4 !right-28' />
-            <Background gap={20} size={1} />
-
-            {/* Floating panel: node count hint */}
-            <Panel position='top-left' className='ml-2 mt-2'>
-              <span className='text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded shadow-sm'>
-                {nodes.length} 个节点, {edges.length} 条边
-              </span>
-            </Panel>
-
-            {/* Floating panel: save shortcut hint */}
-            <Panel position='bottom-center' className='mb-2'>
-              <span className='text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded shadow-sm'>
-                {'拖拽左侧节点到画布 · 拖拽圆点连线 · 选中节点编辑 · Delete 删除 · Ctrl+S 保存'}
-              </span>
-            </Panel>
-          </ReactFlow>
-        </div>
+      {/* ---- Body: canvas ---- */}
+      <div className='flex-1 relative' ref={reactFlowWrapper}>
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onSelectionChange={onSelectionChange}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          isValidConnection={isValidConnection}
+          nodeTypes={nodeTypes}
+          deleteKeyCode={['Delete', 'Backspace']}
+          fitView
+          className='bg-muted/20'
+        >
+          <MiniMap pannable zoomable />
+          <Background gap={20} size={1} />
+          <Panel position='top-left'>
+            <NodePalette onAddNode={handleAddNode} />
+          </Panel>
+        </ReactFlow>
       </div>
-
       {/* Node Config Panel (Sheet drawer) */}
       {selectedNodeData && (
         <NodeConfigPanel
