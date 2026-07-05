@@ -1,5 +1,5 @@
-import { StartNodeExecutor } from './start-node.executor';
 import { ContextService } from '../context.service';
+import { StartNodeExecutor } from './start-node.executor';
 
 describe('StartNodeExecutor', () => {
   let executor: StartNodeExecutor;

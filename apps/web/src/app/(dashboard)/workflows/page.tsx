@@ -1,18 +1,87 @@
 'use client';
 
-import { workflowApi, type Workflow } from '@/api/workflow';
+import { type Workflow, workflowApi } from '@/api/workflow';
+import { FadeIn } from '@/components/animated/fade-in';
+import { StaggerList } from '@/components/animated/stagger-list';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Plus, Trash2, Workflow as WfIcon } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Plus, Trash2, Workflow as WfIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
+
+const formSchema = z.object({
+  name: z.string().min(1, '请输入名称'),
+  description: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export default function WorkflowsPage() {
   const router = useRouter();
   const [workflows, setWorkflows] = useState<Workflow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  const handleCreate = async (data: FormData) => {
+    try {
+      const wf = await workflowApi.create({
+        name: data.name,
+        description: data.description || undefined,
+        graph: {
+          nodes: [
+            { id: 'start', type: 'start', label: '开始', position: { x: 50, y: 200 }, config: {} },
+            {
+              id: 'end',
+              type: 'end',
+              label: '结束',
+              position: { x: 500, y: 200 },
+              config: { output: '' },
+            },
+          ],
+          edges: [{ id: 'e1', source: 'start', target: 'end' }],
+        },
+      });
+      toast.success('工作流已创建');
+      setCreateDialogOpen(false);
+      reset();
+      router.push(`/workflows/${wf.id}/edit`);
+    } catch {
+      toast.error('创建失败');
+    }
+  };
+
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+    },
+  });
 
   const fetch = () => {
     setLoading(true);
@@ -27,12 +96,14 @@ export default function WorkflowsPage() {
     fetch();
   }, []);
 
-  const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`确定删除 "${name}"？此操作不可撤销。`)) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await workflowApi.delete(id);
-      setWorkflows((prev) => prev.filter((w) => w.id !== id));
+      await workflowApi.delete(deleteTarget.id);
+      setWorkflows((prev) => prev.filter((w) => w.id !== deleteTarget.id));
       toast.success('已删除');
+      setDeleteDialogOpen(false);
+      setTimeout(() => setDeleteTarget(null), 200);
     } catch {
       toast.error('删除失败');
     }
@@ -43,60 +114,76 @@ export default function WorkflowsPage() {
 
   if (loading) {
     return (
-      <div className='p-6 flex items-center justify-center h-64'>
-        <Loader2 className='w-6 h-6 animate-spin text-muted-foreground' />
+      <div className='space-y-6'>
+        <div className='flex items-center justify-between'>
+          <Skeleton className='h-9 w-32' />
+          <Skeleton className='h-10 w-28' />
+        </div>
+        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className='h-40 rounded-xl' />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className='p-6'>
-      <div className='flex items-center justify-between mb-6'>
-        <div>
-          <h1 className='text-2xl font-bold'>工作流</h1>
-          <p className='text-sm text-muted-foreground mt-1'>创建和管理 AI 工作流编排</p>
-        </div>
-        <Button onClick={() => router.push('/workflows/new')}>
-          <Plus className='w-4 h-4 mr-1' />
-          新建工作流
+    <div className='space-y-6'>
+      <div className='flex items-center justify-between'>
+        <p className='mt-1 text-sm text-muted-foreground'>创建和管理 AI 工作流编排</p>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus data-icon /> 新建工作流
         </Button>
       </div>
 
       {workflows.length === 0 ? (
-        <Card className='border-dashed'>
-          <CardContent className='flex flex-col items-center justify-center py-16'>
-            <WfIcon className='w-12 h-12 text-muted-foreground/40 mb-4' />
-            <h3 className='text-lg font-medium text-muted-foreground'>暂无工作流</h3>
-            <p className='text-sm text-muted-foreground/60 mt-1 mb-4'>创建第一个工作流开始编排</p>
-            <Button onClick={() => router.push('/workflows/new')}>
-              <Plus className='w-4 h-4 mr-1' />
-              新建工作流
-            </Button>
-          </CardContent>
-        </Card>
+        <FadeIn direction='up'>
+          <Card className='border-dashed'>
+            <CardContent className='flex flex-col items-center gap-4 py-16'>
+              <div className='flex size-12 items-center justify-center rounded-full bg-muted'>
+                <WfIcon className='size-6 text-muted-foreground' />
+              </div>
+              <div className='text-center'>
+                <p className='text-sm text-muted-foreground'>还没有创建工作流</p>
+              </div>
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus data-icon /> 新建工作流
+              </Button>
+            </CardContent>
+          </Card>
+        </FadeIn>
       ) : (
-        <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
+        <StaggerList className='grid gap-4 md:grid-cols-2 lg:grid-cols-3'>
           {workflows.map((wf) => (
             <Link key={wf.id} href={`/workflows/${wf.id}/edit`} className='block group'>
-              <Card className='hover:shadow-md transition-shadow cursor-pointer h-full relative'>
-                <CardHeader className='pb-2'>
+              <Card className='transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg h-full relative'>
+                <CardHeader className='pb-3'>
                   <div className='flex items-start justify-between'>
-                    <CardTitle className='text-base group-hover:text-primary transition-colors'>
-                      {wf.name}
-                    </CardTitle>
-                    <button
+                    <div className='min-w-0 flex-1'>
+                      <CardTitle className='truncate text-base group-hover:text-primary transition-colors'>
+                        {wf.name}
+                      </CardTitle>
+                      {wf.description && (
+                        <p className='mt-1.5 line-clamp-2 text-sm text-muted-foreground'>
+                          {wf.description}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      aria-label={`删除 ${wf.name}`}
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        handleDelete(wf.id, wf.name);
+                        setDeleteTarget({ id: wf.id, name: wf.name });
+                        setDeleteDialogOpen(true);
                       }}
-                      className='p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity'
-                      title='删除'
                     >
-                      <Trash2 className='w-4 h-4' />
-                    </button>
+                      <Trash2 className='size-4' />
+                    </Button>
                   </div>
-                  {wf.description && <CardDescription>{wf.description}</CardDescription>}
                 </CardHeader>
                 <CardContent>
                   <div className='flex items-center gap-4 text-xs text-muted-foreground'>
@@ -110,8 +197,106 @@ export default function WorkflowsPage() {
               </Card>
             </Link>
           ))}
-        </div>
+        </StaggerList>
       )}
+
+      <Dialog
+        open={createDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCreateDialogOpen(false);
+            reset();
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>新建工作流</DialogTitle>
+            <DialogDescription>创建一个新的 AI 工作流</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(handleCreate)} className='flex flex-col gap-4 py-4'>
+            <Controller
+              name='name'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor='wf-name' required>
+                    名称
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id='wf-name'
+                    placeholder='我的工作流'
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name='description'
+              control={control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel htmlFor='wf-description'>描述</FieldLabel>
+                  <Textarea {...field} id='wf-description' placeholder='工作流用途说明' />
+                </Field>
+              )}
+            />
+          </form>
+          <DialogFooter>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => {
+                setCreateDialogOpen(false);
+                reset();
+              }}
+            >
+              取消
+            </Button>
+            <Button type='submit' disabled={isSubmitting}>
+              {isSubmitting && <Spinner data-icon='inline-start' />}
+              创建并编辑
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteDialogOpen(false);
+            setTimeout(() => setDeleteTarget(null), 200);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>确认删除</DialogTitle>
+            <DialogDescription>
+              确定要删除工作流 &ldquo;{deleteTarget?.name}&rdquo; 吗？此操作不可撤销。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant='outline'
+              onClick={() => {
+                setDeleteDialogOpen(false);
+                setTimeout(() => setDeleteTarget(null), 200);
+              }}
+            >
+              取消
+            </Button>
+            <Button variant='destructive' onClick={handleDelete}>
+              确认删除
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

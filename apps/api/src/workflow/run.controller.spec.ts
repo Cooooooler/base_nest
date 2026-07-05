@@ -39,7 +39,9 @@ describe('RunController', () => {
   });
 
   it('executeDebug should return full result', async () => {
-    const result = await controller.executeDebug('wf-1', { inputs: {} }, { user: { id: 'u1' } } as any);
+    const result = await controller.executeDebug('wf-1', { inputs: {} }, {
+      user: { id: 'u1' },
+    } as any);
     expect(result.runId).toBe('run-1');
     expect(result.nodeExecutions).toEqual([]);
   });

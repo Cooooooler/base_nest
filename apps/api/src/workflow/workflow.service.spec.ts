@@ -1,9 +1,9 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { NotFoundException } from '@nestjs/common';
-import { WorkflowService } from './workflow.service';
 import { Workflow } from './entities/workflow.entity';
+import { WorkflowService } from './workflow.service';
 
 describe('WorkflowService', () => {
   const validGraph = {
@@ -15,7 +15,10 @@ describe('WorkflowService', () => {
   };
 
   const mockWorkflow = fromPartial<Workflow>({
-    id: 'wf-1', name: 'Test', userId: 'user-1', graph: validGraph,
+    id: 'wf-1',
+    name: 'Test',
+    userId: 'user-1',
+    graph: validGraph,
   });
 
   const mockRepo = {
@@ -31,10 +34,7 @@ describe('WorkflowService', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     const module = await Test.createTestingModule({
-      providers: [
-        WorkflowService,
-        { provide: getRepositoryToken(Workflow), useValue: mockRepo },
-      ],
+      providers: [WorkflowService, { provide: getRepositoryToken(Workflow), useValue: mockRepo }],
     }).compile();
     service = module.get(WorkflowService);
   });

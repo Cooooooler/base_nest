@@ -3,29 +3,35 @@
 import {
   addEdge,
   Background,
-  Controls,
-  MiniMap,
-  Panel,
-  ReactFlow,
-  useEdgesState,
-  useNodesState,
   type Connection,
   type Edge,
+  MiniMap,
   type Node,
   type NodeTypes,
   type OnConnect,
   type OnSelectionChangeParams,
+  Panel,
+  ReactFlow,
+  type ReactFlowInstance,
+  useEdgesState,
+  useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useParams, useRouter } from 'next/navigation';
 import { DragEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { workflowApi, type WorkflowNode as WFNode } from '@/api/workflow';
+import { type WorkflowNode as WFNode, workflowApi } from '@/api/workflow';
+import { Button } from '@/components/ui/button';
 import { DebugResultPanel } from '@/components/workflow/debug-result-panel';
 import { NodeConfigPanel } from '@/components/workflow/node-config-panel';
 import { NodePalette } from '@/components/workflow/node-palette';
-import { getNodeHandles, NODE_DEFAULTS, NODE_LABELS } from '@/components/workflow/nodes/constants';
+import {
+  getNodeHandles,
+  NODE_COLORS,
+  NODE_DEFAULTS,
+  NODE_LABELS,
+} from '@/components/workflow/nodes/constants';
 import type { WorkflowNodeData } from '@/components/workflow/nodes/workflow-node';
 import { WorkflowNode } from '@/components/workflow/nodes/workflow-node';
 
@@ -82,6 +88,7 @@ export default function WorkflowEditPage() {
   const params = useParams();
   const router = useRouter();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
 
   // React Flow controlled state
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -89,11 +96,38 @@ export default function WorkflowEditPage() {
 
   // UI state
   const [name, setName] = useState('');
-  const [saving, setSaving] = useState(false);
   const [debugResult, setDebugResult] = useState<any>(null);
   const [configOpen, setConfigOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const initialized = useRef(false);
+
+  // ---- pending node state (Dify-style click to place) ----
+  const [pendingNodeType, setPendingNodeType] = useState<string | null>(null);
+  const [ghostPos, setGhostPos] = useState<{ x: number; y: number } | null>(null);
+  const mouseScreenRef = useRef<{ x: number; y: number } | null>(null);
+  const rafRef = useRef<number>(0);
+
+  // RAF loop: reads ref + bounds once per frame, batches reflow to animation frame
+  useEffect(() => {
+    if (!pendingNodeType) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+      return;
+    }
+    const tick = () => {
+      const screen = mouseScreenRef.current;
+      const bounds = reactFlowWrapper.current?.getBoundingClientRect();
+      if (screen && bounds) {
+        setGhostPos({
+          x: screen.x - bounds.left - 50,
+          y: screen.y - bounds.top - 14,
+        });
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [pendingNodeType]);
 
   // ---- data loading ----
   useEffect(() => {
@@ -149,12 +183,18 @@ export default function WorkflowEditPage() {
     [nodes, setEdges]
   );
 
-  // ---- selection handler ----
+  // ---- selection handler (track selection, don't open panel) ----
   const onSelectionChange = useCallback(({ nodes: selectedNodes }: OnSelectionChangeParams) => {
     if (selectedNodes.length === 1) {
       setSelectedNode(selectedNodes[0]);
-      setConfigOpen(true);
+    } else {
+      setSelectedNode(null);
     }
+  }, []);
+
+  const onNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+    setConfigOpen(true);
   }, []);
 
   // ---- keyboard handler (Delete key) ----
@@ -246,22 +286,40 @@ export default function WorkflowEditPage() {
     [handleAddNode]
   );
 
-  // ---- save ----
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const graph = {
-        nodes: nodes.map(convertFromFlowNode),
-        edges: edges.map(convertFromFlowEdge),
-      };
-      await workflowApi.update(params.id as string, { name, graph });
-      toast.success('保存成功');
-    } catch (err: any) {
-      toast.error(err?.message || '保存失败');
-    } finally {
-      setSaving(false);
-    }
-  };
+  // ---- canvas mouse tracking for pending node ----
+  const onMouseMove = useCallback(
+    (event: React.MouseEvent) => {
+      if (!pendingNodeType) return;
+      mouseScreenRef.current = { x: event.clientX, y: event.clientY };
+    },
+    [pendingNodeType]
+  );
+
+  const onCanvasClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (!pendingNodeType) return;
+      // Don't place if click originated from the palette
+      const target = event.target as HTMLElement;
+      if (target.closest('[data-palette]')) return;
+      const instance = reactFlowInstance.current;
+      if (!instance) return;
+      handleAddNode(
+        pendingNodeType,
+        instance.screenToFlowPosition({ x: event.clientX, y: event.clientY })
+      );
+      setPendingNodeType(null);
+      setGhostPos(null);
+      mouseScreenRef.current = null;
+    },
+    [pendingNodeType, handleAddNode]
+  );
+
+  const onCanvasContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    setPendingNodeType(null);
+    setGhostPos(null);
+    mouseScreenRef.current = null;
+  }, []);
 
   // ---- debug run ----
   const handleDebug = async () => {
@@ -290,85 +348,72 @@ export default function WorkflowEditPage() {
   return (
     <div className='h-[calc(100vh-60px)] flex flex-col' onKeyDown={onKeyDown} tabIndex={-1}>
       {/* ---- Header bar ---- */}
-      <div className='flex items-center gap-3 px-4 py-2 border-b bg-background shrink-0'>
-        <button
-          onClick={() => router.push('/workflows')}
-          className='text-sm text-muted-foreground hover:text-foreground'
-        >
-          ← 返回
-        </button>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className='text-lg font-semibold bg-transparent border-none outline-none flex-1 min-w-0'
-          placeholder='工作流名称'
-        />
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className='px-3 py-1.5 bg-primary text-primary-foreground rounded text-sm font-medium'
-        >
-          {saving ? '保存中...' : '保存'}
-        </button>
-        <button
-          onClick={handleDebug}
-          className='px-3 py-1.5 bg-secondary text-secondary-foreground rounded text-sm font-medium'
-        >
-          调试运行
-        </button>
-        <button
-          onClick={() => router.push(`/workflows/${params.id}/runs`)}
-          className='px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground'
-        >
-          运行历史
-        </button>
+      <div className='flex items-center justify-between bg-background shrink-0 mb-4'>
+        <h2 className='text-lg font-semibold'>{name}</h2>
+        <div className='flex items-center gap-2'>
+          <Button variant='secondary' onClick={handleDebug}>
+            调试运行
+          </Button>
+          <Button variant='ghost' onClick={() => router.push(`/workflows/${params.id}/runs`)}>
+            运行历史
+          </Button>
+        </div>
       </div>
 
-      {/* ---- Body: palette + canvas ---- */}
-      <div className='flex flex-1 min-h-0'>
-        {/* Left: node palette */}
-        <div className='w-56 shrink-0'>
-          <NodePalette onAddNode={handleAddNode} />
-        </div>
+      {/* ---- Body: canvas ---- */}
+      <div
+        className='flex-1 relative'
+        ref={reactFlowWrapper}
+        onMouseMove={onMouseMove}
+        onClick={onCanvasClick}
+        onContextMenu={onCanvasContextMenu}
+      >
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={onConnect}
+          onSelectionChange={onSelectionChange}
+          onNodeDoubleClick={onNodeDoubleClick}
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+          onInit={(instance) => {
+            reactFlowInstance.current = instance;
+          }}
+          isValidConnection={isValidConnection}
+          nodeTypes={nodeTypes}
+          deleteKeyCode={['Delete', 'Backspace']}
+          fitView
+          className='bg-muted/20'
+        >
+          <MiniMap position='bottom-left' pannable zoomable />
+          <Background gap={20} size={1} />
+          <Panel position='top-left'>
+            <div data-palette>
+              <NodePalette onSelect={setPendingNodeType} activeType={pendingNodeType} />
+            </div>
+          </Panel>
+        </ReactFlow>
 
-        {/* Canvas */}
-        <div className='flex-1' ref={reactFlowWrapper}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onSelectionChange={onSelectionChange}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
-            isValidConnection={isValidConnection}
-            nodeTypes={nodeTypes}
-            deleteKeyCode={['Delete', 'Backspace']}
-            fitView
-            className='bg-muted/20'
+        {/* Pending node ghost (follows cursor) */}
+        {pendingNodeType && ghostPos && (
+          <div
+            className='absolute pointer-events-none z-50'
+            style={{ left: ghostPos.x, top: ghostPos.y, opacity: 0.7 }}
           >
-            <MiniMap pannable zoomable className='!bottom-4 !right-4' />
-            <Controls className='!bottom-4 !right-28' />
-            <Background gap={20} size={1} />
-
-            {/* Floating panel: node count hint */}
-            <Panel position='top-left' className='ml-2 mt-2'>
-              <span className='text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded shadow-sm'>
-                {nodes.length} 个节点, {edges.length} 条边
-              </span>
-            </Panel>
-
-            {/* Floating panel: save shortcut hint */}
-            <Panel position='bottom-center' className='mb-2'>
-              <span className='text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded shadow-sm'>
-                {'拖拽左侧节点到画布 · 拖拽圆点连线 · 选中节点编辑 · Delete 删除 · Ctrl+S 保存'}
-              </span>
-            </Panel>
-          </ReactFlow>
-        </div>
+            <div
+              className='px-3 py-2 rounded-lg text-sm font-medium min-w-[100px] text-center shadow-lg border-2 border-dashed'
+              style={{
+                background: (NODE_COLORS[pendingNodeType] ?? { bg: '#f5f5f5' }).bg,
+                borderColor: (NODE_COLORS[pendingNodeType] ?? { border: '#d9d9d9' }).border,
+              }}
+            >
+              {NODE_LABELS[pendingNodeType] || pendingNodeType}
+            </div>
+          </div>
+        )}
       </div>
-
       {/* Node Config Panel (Sheet drawer) */}
       {selectedNodeData && (
         <NodeConfigPanel

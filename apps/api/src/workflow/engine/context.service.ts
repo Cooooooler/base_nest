@@ -34,9 +34,7 @@ export class ContextService {
       } else if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
         result[key] = this.resolveConfig(value);
       } else if (Array.isArray(value)) {
-        result[key] = value.map(v =>
-          typeof v === 'string' ? this.resolve(v) : v
-        );
+        result[key] = value.map((v) => (typeof v === 'string' ? this.resolve(v) : v));
       } else {
         result[key] = value;
       }

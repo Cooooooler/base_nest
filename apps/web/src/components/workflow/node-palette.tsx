@@ -1,48 +1,62 @@
 'use client';
 
+import { Brain, Code, Database, GitBranch, Globe, Hash, Plus } from 'lucide-react';
 import type { DragEvent, FC } from 'react';
+
 import { NODE_COLORS, NODE_DESCRIPTIONS, NODE_LABELS } from './nodes/constants';
 
 interface Props {
-  onAddNode: (type: string, position: { x: number; y: number }) => void;
+  onSelect: (type: string) => void;
+  activeType: string | null;
 }
 
 const NODE_TYPES = Object.keys(NODE_LABELS).filter((t) => t !== 'start' && t !== 'end');
 
-export const NodePalette: FC<Props> = ({ onAddNode }) => {
+const NODE_ICONS: Record<string, typeof Brain> = {
+  llm: Brain,
+  code: Code,
+  condition: GitBranch,
+  http_request: Globe,
+  knowledge_retrieval: Database,
+  question_classifier: Hash,
+};
+
+export const NodePalette: FC<Props> = ({ onSelect, activeType }) => {
   const onDragStart = (event: DragEvent, nodeType: string) => {
     event.dataTransfer.setData('application/reactflow-type', nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
 
   return (
-    <div className='p-3 space-y-2 h-full overflow-auto bg-background border-r'>
-      <h3 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3'>
-        节点面板
-      </h3>
-
+    <div className='flex flex-col items-center gap-1 p-2 bg-background/95 backdrop-blur-sm border rounded-lg shadow-lg'>
       {NODE_TYPES.map((type) => {
+        const Icon = NODE_ICONS[type] || Plus;
         const colors = NODE_COLORS[type] ?? { bg: '#f5f5f5', border: '#d9d9d9', text: '#333' };
+        const isActive = activeType === type;
         return (
-          <div
+          <button
             key={type}
             draggable
             onDragStart={(e) => onDragStart(e, type)}
-            onClick={() => onAddNode(type, { x: 300, y: 100 + NODE_TYPES.indexOf(type) * 80 })}
-            className='flex items-center gap-3 p-2 rounded-lg border cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow text-sm'
-            style={{ borderColor: colors.border, background: colors.bg }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(type);
+            }}
+            className='relative group flex items-center justify-center w-9 h-9 rounded-md transition-colors hover:bg-accent/50'
+            style={{
+              color: colors.border,
+              backgroundColor: isActive ? `${colors.bg}` : undefined,
+              boxShadow: isActive ? `0 0 0 2px ${colors.border}` : undefined,
+            }}
+            title={NODE_LABELS[type]}
           >
-            <span
-              className='w-3 h-3 rounded-full flex-shrink-0'
-              style={{ background: colors.border }}
-            />
-            <div>
-              <div className='font-medium' style={{ color: colors.text }}>
-                {NODE_LABELS[type]}
-              </div>
-              <div className='text-xs text-muted-foreground'>{NODE_DESCRIPTIONS[type]}</div>
+            <Icon size={18} />
+            {/* Tooltip */}
+            <div className='absolute left-full ml-2 px-2 py-1.5 rounded-md text-xs whitespace-nowrap bg-popover text-popover-foreground shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50'>
+              <div className='font-medium'>{NODE_LABELS[type]}</div>
+              <div className='text-muted-foreground'>{NODE_DESCRIPTIONS[type]}</div>
             </div>
-          </div>
+          </button>
         );
       })}
     </div>

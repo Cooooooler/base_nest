@@ -1,11 +1,19 @@
 import {
-  Body, Controller, Delete, Get, Param, ParseUUIDPipe,
-  Patch, Post, Req, UseGuards,
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { WorkflowService } from './workflow.service';
 import { CreateWorkflowDto, UpdateWorkflowDto } from './dto';
+import { WorkflowService } from './workflow.service';
 
 @ApiTags('Workflows')
 @Controller('workflows')
@@ -37,7 +45,7 @@ export class WorkflowController {
   async update(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: any,
-    @Body() dto: UpdateWorkflowDto,
+    @Body() dto: UpdateWorkflowDto
   ) {
     return this.workflowService.update(id, req.user!.id, dto);
   }

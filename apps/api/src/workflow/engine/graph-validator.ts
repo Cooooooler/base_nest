@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { WorkflowGraph, WorkflowNode, WorkflowEdge } from '../entities/workflow.entity';
+import { WorkflowEdge, WorkflowGraph, WorkflowNode } from '../entities/workflow.entity';
 import { NODE_TYPES, NodeType } from '../types';
 
 export interface ValidationError {
@@ -15,17 +15,23 @@ export function validateGraph(graph: WorkflowGraph): void {
     throw new BadRequestException('Nodes array must not be empty');
   }
 
-  const starts = nodes.filter(n => n.type === 'start');
+  const starts = nodes.filter((n) => n.type === 'start');
   if (starts.length !== 1) {
-    errors.push({ field: 'nodes', message: `Must have exactly one start node, found ${starts.length}` });
+    errors.push({
+      field: 'nodes',
+      message: `Must have exactly one start node, found ${starts.length}`,
+    });
   }
 
-  const ends = nodes.filter(n => n.type === 'end');
+  const ends = nodes.filter((n) => n.type === 'end');
   if (ends.length !== 1) {
-    errors.push({ field: 'nodes', message: `Must have exactly one end node, found ${ends.length}` });
+    errors.push({
+      field: 'nodes',
+      message: `Must have exactly one end node, found ${ends.length}`,
+    });
   }
 
-  const ids = nodes.map(n => n.id);
+  const ids = nodes.map((n) => n.id);
   if (new Set(ids).size !== ids.length) {
     errors.push({ field: 'nodes', message: 'Node IDs must be unique' });
   }
@@ -39,19 +45,28 @@ export function validateGraph(graph: WorkflowGraph): void {
   const idSet = new Set(ids);
   for (const edge of edges) {
     if (!idSet.has(edge.source)) {
-      errors.push({ field: `edges.${edge.id}.source`, message: `Source node ${edge.source} not found` });
+      errors.push({
+        field: `edges.${edge.id}.source`,
+        message: `Source node ${edge.source} not found`,
+      });
     }
     if (!idSet.has(edge.target)) {
-      errors.push({ field: `edges.${edge.id}.target`, message: `Target node ${edge.target} not found` });
+      errors.push({
+        field: `edges.${edge.id}.target`,
+        message: `Target node ${edge.target} not found`,
+      });
     }
   }
 
   for (const node of nodes) {
     if (node.type === 'condition') {
-      const outEdges = edges.filter(e => e.source === node.id);
+      const outEdges = edges.filter((e) => e.source === node.id);
       for (const edge of outEdges) {
         if (!edge.sourceHandle) {
-          errors.push({ field: `edges.${edge.id}.sourceHandle`, message: 'Condition node edges must have sourceHandle' });
+          errors.push({
+            field: `edges.${edge.id}.sourceHandle`,
+            message: 'Condition node edges must have sourceHandle',
+          });
         }
       }
     }
@@ -63,14 +78,14 @@ export function validateGraph(graph: WorkflowGraph): void {
     errors.push({ field: 'graph', message: 'Workflow contains a cycle' });
   }
 
-  const startNode = nodes.find(n => n.type === 'start');
-  const endNode = nodes.find(n => n.type === 'end');
+  const startNode = nodes.find((n) => n.type === 'start');
+  const endNode = nodes.find((n) => n.type === 'end');
   if (startNode && endNode && !isReachable(startNode.id, endNode.id, edges, idSet)) {
     errors.push({ field: 'graph', message: 'Start node cannot reach end node' });
   }
 
   if (errors.length > 0) {
-    throw new BadRequestException(errors.map(e => e.message).join('; '));
+    throw new BadRequestException(errors.map((e) => e.message).join('; '));
   }
 }
 
@@ -92,7 +107,7 @@ export function topologicalSort(nodes: WorkflowNode[], edges: WorkflowEdge[]): s
   }
 
   const layers: string[][] = [];
-  let queue = nodes.filter(n => inDegree[n.id] === 0).map(n => n.id);
+  let queue = nodes.filter((n) => inDegree[n.id] === 0).map((n) => n.id);
 
   while (queue.length > 0) {
     layers.push([...queue]);
@@ -118,7 +133,7 @@ function isReachable(
   startId: string,
   endId: string,
   edges: WorkflowEdge[],
-  idSet: Set<string>,
+  idSet: Set<string>
 ): boolean {
   const visited = new Set<string>();
   const queue = [startId];

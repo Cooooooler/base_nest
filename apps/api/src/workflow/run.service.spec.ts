@@ -1,16 +1,18 @@
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { fromPartial } from '@total-typescript/shoehorn';
-import { RunService } from './run.service';
-import { WorkflowRun } from './entities/workflow-run.entity';
-import { WorkflowNodeExecution } from './entities/workflow-node-execution.entity';
-import { WorkflowService } from './workflow.service';
 import { DagEngineService } from './engine/dag-engine.service';
+import { WorkflowNodeExecution } from './entities/workflow-node-execution.entity';
+import { WorkflowRun } from './entities/workflow-run.entity';
+import { RunService } from './run.service';
+import { WorkflowService } from './workflow.service';
 
 describe('RunService', () => {
   const mockRunRepo = {
     find: jest.fn().mockResolvedValue([]),
-    findOneBy: jest.fn().mockResolvedValue(fromPartial<WorkflowRun>({ id: 'run-1', status: 'succeeded' })),
+    findOneBy: jest
+      .fn()
+      .mockResolvedValue(fromPartial<WorkflowRun>({ id: 'run-1', status: 'succeeded' })),
   };
   const mockNodeExecRepo = {
     find: jest.fn().mockResolvedValue([]),
@@ -19,7 +21,9 @@ describe('RunService', () => {
     findOne: jest.fn().mockResolvedValue({ id: 'wf-1', graph: { nodes: [], edges: [] } }),
   };
   const mockDagEngine = {
-    executeWorkflow: jest.fn().mockResolvedValue(fromPartial<WorkflowRun>({ id: 'run-1', status: 'running' })),
+    executeWorkflow: jest
+      .fn()
+      .mockResolvedValue(fromPartial<WorkflowRun>({ id: 'run-1', status: 'running' })),
     executeWorkflowDebug: jest.fn().mockResolvedValue({
       run: fromPartial<WorkflowRun>({ id: 'run-1', status: 'succeeded' }),
       nodeExecutions: [],
