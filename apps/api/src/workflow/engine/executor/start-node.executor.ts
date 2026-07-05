@@ -1,0 +1,23 @@
+import { Injectable } from '@nestjs/common';
+import { NodeExecutor, NodeExecutionResult } from './node-executor.interface';
+import { ContextService } from '../context.service';
+
+@Injectable()
+export class StartNodeExecutor implements NodeExecutor {
+  readonly type = 'start';
+
+  async execute(
+    _nodeId: string,
+    _config: Record<string, any>,
+    context: ContextService,
+  ): Promise<NodeExecutionResult> {
+    const snapshot = context.snapshot();
+    const inputs: Record<string, any> = {};
+    for (const [key, value] of snapshot) {
+      if (key.startsWith('inputs.') && key !== 'inputs') {
+        inputs[key.slice(7)] = value;
+      }
+    }
+    return { outputs: inputs };
+  }
+}
