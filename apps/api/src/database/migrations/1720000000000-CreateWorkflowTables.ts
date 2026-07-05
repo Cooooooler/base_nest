@@ -66,6 +66,14 @@ export class CreateWorkflowTables1720000000000 implements MigrationInterface {
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `ALTER TABLE "workflow_node_executions" DROP CONSTRAINT "FK_workflow_node_executions_run"`
+    );
+    await queryRunner.query(
+      `ALTER TABLE "workflow_runs" DROP CONSTRAINT "FK_workflow_runs_workflow"`
+    );
+    await queryRunner.query(`DROP INDEX "IDX_workflow_node_executions_run"`);
+    await queryRunner.query(`DROP INDEX "IDX_workflow_runs_workflow"`);
     await queryRunner.query(`DROP TABLE "workflow_node_executions"`);
     await queryRunner.query(`DROP TABLE "workflow_runs"`);
     await queryRunner.query(`DROP TABLE "workflows"`);
