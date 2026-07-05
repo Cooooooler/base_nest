@@ -5,6 +5,7 @@ import { FadeIn } from '@/components/animated/fade-in';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DataTable } from '@/components/ui/data-table';
 import {
   Dialog,
   DialogContent,
@@ -22,15 +23,15 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import {
   useDeleteDocument,
@@ -38,9 +39,11 @@ import {
   useKnowledgeBase,
   useRetrieval,
 } from '@/hooks/use-knowledge';
+import type { Document } from '@base/shared';
+import { type ColumnDef } from '@tanstack/react-table';
 import { FileText, Search, Trash2, Upload } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
@@ -83,6 +86,59 @@ export default function KnowledgeBaseDetailPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; fileName: string } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const isMobile = useIsMobile();
+
+  const fileTypes = useMemo(() => {
+    if (!documents) return [];
+    return [...new Set(documents.map((d) => d.fileType))].sort();
+  }, [documents]);
+
+  const columns: ColumnDef<Document>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'fileName',
+        header: '文件名',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-2 font-medium'>
+            <FileText className='size-4 text-muted-foreground' />
+            {row.original.fileName}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'fileType',
+        header: '类型',
+        cell: ({ row }) => row.original.fileType,
+        filterFn: 'equals',
+      },
+      {
+        accessorKey: 'fileSize',
+        header: '大小',
+        cell: ({ row }) => `${(row.original.fileSize / 1024).toFixed(1)} KB`,
+      },
+      {
+        accessorKey: 'status',
+        header: '状态',
+        cell: ({ row }) => statusBadge(row.original.status),
+      },
+      {
+        id: 'actions',
+        header: '操作',
+        cell: ({ row }) => (
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => {
+              setDeleteTarget({ id: row.original.id, fileName: row.original.fileName });
+              setDeleteDialogOpen(true);
+            }}
+          >
+            <Trash2 className='size-4' />
+          </Button>
+        ),
+      },
+    ],
+    []
+  );
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -278,44 +334,40 @@ export default function KnowledgeBaseDetailPage() {
             {!documents || documents.length === 0 ? (
               <p className='text-sm text-muted-foreground'>暂无文档</p>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>文件名</TableHead>
-                    <TableHead>类型</TableHead>
-                    <TableHead>大小</TableHead>
-                    <TableHead>状态</TableHead>
-                    <TableHead>操作</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {documents.map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell className='font-medium'>
-                        <div className='flex items-center gap-2'>
-                          <FileText className='size-4 text-muted-foreground' />
-                          {doc.fileName}
-                        </div>
-                      </TableCell>
-                      <TableCell>{doc.fileType}</TableCell>
-                      <TableCell>{(doc.fileSize / 1024).toFixed(1)} KB</TableCell>
-                      <TableCell>{statusBadge(doc.status)}</TableCell>
-                      <TableCell>
-                        <Button
-                          variant='ghost'
-                          size='icon'
-                          onClick={() => {
-                            setDeleteTarget({ id: doc.id, fileName: doc.fileName });
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className='size-4' />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <DataTable
+                columns={columns}
+                data={documents}
+                toolbar={(table) => (
+                  <div className='flex items-center gap-2'>
+                    <Input
+                      placeholder='搜索文件名...'
+                      value={(table.getColumn('fileName')?.getFilterValue() as string) ?? ''}
+                      onChange={(e) => table.getColumn('fileName')?.setFilterValue(e.target.value)}
+                      className='h-8 max-w-60'
+                    />
+                    <Select
+                      value={(table.getColumn('fileType')?.getFilterValue() as string) ?? ''}
+                      onValueChange={(value) =>
+                        table
+                          .getColumn('fileType')
+                          ?.setFilterValue(value === '__all__' ? '' : value)
+                      }
+                    >
+                      <SelectTrigger className='h-8 w-32'>
+                        <SelectValue placeholder='全部类型' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='__all__'>全部类型</SelectItem>
+                        {fileTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.toUpperCase()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
             )}
           </CardContent>
         </Card>
