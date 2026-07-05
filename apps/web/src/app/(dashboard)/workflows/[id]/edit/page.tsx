@@ -90,7 +90,6 @@ export default function WorkflowEditPage() {
 
   // UI state
   const [name, setName] = useState('');
-  const [saving, setSaving] = useState(false);
   const [debugResult, setDebugResult] = useState<any>(null);
   const [configOpen, setConfigOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
@@ -246,23 +245,6 @@ export default function WorkflowEditPage() {
     },
     [handleAddNode]
   );
-
-  // ---- save ----
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      const graph = {
-        nodes: nodes.map(convertFromFlowNode),
-        edges: edges.map(convertFromFlowEdge),
-      };
-      await workflowApi.update(params.id as string, { name, graph });
-      toast.success('保存成功');
-    } catch (err: any) {
-      toast.error(err?.message || '保存失败');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   // ---- debug run ----
   const handleDebug = async () => {
