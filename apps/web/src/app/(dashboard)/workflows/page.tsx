@@ -13,12 +13,26 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2, Workflow as WfIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import * as z from 'zod';
+
+const formSchema = z.object({
+  name: z.string().min(1, '请输入名称'),
+  description: z.string().optional(),
+});
+
+type FormData = z.infer<typeof formSchema>;
 
 export default function WorkflowsPage() {
   const router = useRouter();
@@ -26,6 +40,48 @@ export default function WorkflowsPage() {
   const [loading, setLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+
+  const handleCreate = async (data: FormData) => {
+    try {
+      const wf = await workflowApi.create({
+        name: data.name,
+        description: data.description || undefined,
+        graph: {
+          nodes: [
+            { id: 'start', type: 'start', label: '开始', position: { x: 50, y: 200 }, config: {} },
+            {
+              id: 'end',
+              type: 'end',
+              label: '结束',
+              position: { x: 500, y: 200 },
+              config: { output: '' },
+            },
+          ],
+          edges: [{ id: 'e1', source: 'start', target: 'end' }],
+        },
+      });
+      toast.success('工作流已创建');
+      setCreateDialogOpen(false);
+      reset();
+      router.push(`/workflows/${wf.id}/edit`);
+    } catch {
+      toast.error('创建失败');
+    }
+  };
+
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+    reset,
+  } = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: '',
+      description: '',
+    },
+  });
 
   const fetch = () => {
     setLoading(true);
@@ -79,7 +135,7 @@ export default function WorkflowsPage() {
           <h1 className='text-2xl font-bold'>工作流</h1>
           <p className='mt-1 text-sm text-muted-foreground'>创建和管理 AI 工作流编排</p>
         </div>
-        <Button onClick={() => router.push('/workflows/new')}>
+        <Button onClick={() => setCreateDialogOpen(true)}>
           <Plus data-icon /> 新建工作流
         </Button>
       </div>
@@ -94,7 +150,7 @@ export default function WorkflowsPage() {
               <div className='text-center'>
                 <p className='text-sm text-muted-foreground'>还没有创建工作流</p>
               </div>
-              <Button onClick={() => router.push('/workflows/new')}>
+              <Button onClick={() => setCreateDialogOpen(true)}>
                 <Plus data-icon /> 新建工作流
               </Button>
             </CardContent>
@@ -146,6 +202,71 @@ export default function WorkflowsPage() {
           ))}
         </StaggerList>
       )}
+
+      <Dialog
+        open={createDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setCreateDialogOpen(false);
+            reset();
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>新建工作流</DialogTitle>
+            <DialogDescription>创建一个新的 AI 工作流</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(handleCreate)} className='flex flex-col gap-4 py-4'>
+            <Controller
+              name='name'
+              control={control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor='wf-name' required>
+                    名称
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id='wf-name'
+                    placeholder='我的工作流'
+                    aria-invalid={fieldState.invalid}
+                  />
+                  {fieldState.invalid && (
+                    <p className='text-sm text-destructive'>{fieldState.error?.message}</p>
+                  )}
+                </Field>
+              )}
+            />
+            <Controller
+              name='description'
+              control={control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel htmlFor='wf-description'>描述</FieldLabel>
+                  <Textarea {...field} id='wf-description' placeholder='工作流用途说明' />
+                </Field>
+              )}
+            />
+          </form>
+          <DialogFooter>
+            <Button
+              type='button'
+              variant='outline'
+              onClick={() => {
+                setCreateDialogOpen(false);
+                reset();
+              }}
+            >
+              取消
+            </Button>
+            <Button type='submit' disabled={isSubmitting}>
+              {isSubmitting && <Spinner data-icon='inline-start' />}
+              创建并编辑
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={deleteDialogOpen}
