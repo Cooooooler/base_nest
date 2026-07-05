@@ -12,6 +12,7 @@ import {
   type OnSelectionChangeParams,
   Panel,
   ReactFlow,
+  type ReactFlowInstance,
   useEdgesState,
   useNodesState,
 } from '@xyflow/react';
@@ -25,7 +26,12 @@ import { Button } from '@/components/ui/button';
 import { DebugResultPanel } from '@/components/workflow/debug-result-panel';
 import { NodeConfigPanel } from '@/components/workflow/node-config-panel';
 import { NodePalette } from '@/components/workflow/node-palette';
-import { getNodeHandles, NODE_DEFAULTS, NODE_LABELS } from '@/components/workflow/nodes/constants';
+import {
+  getNodeHandles,
+  NODE_COLORS,
+  NODE_DEFAULTS,
+  NODE_LABELS,
+} from '@/components/workflow/nodes/constants';
 import type { WorkflowNodeData } from '@/components/workflow/nodes/workflow-node';
 import { WorkflowNode } from '@/components/workflow/nodes/workflow-node';
 
@@ -82,6 +88,7 @@ export default function WorkflowEditPage() {
   const params = useParams();
   const router = useRouter();
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
+  const reactFlowInstance = useRef<ReactFlowInstance | null>(null);
 
   // React Flow controlled state
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -93,6 +100,34 @@ export default function WorkflowEditPage() {
   const [configOpen, setConfigOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const initialized = useRef(false);
+
+  // ---- pending node state (Dify-style click to place) ----
+  const [pendingNodeType, setPendingNodeType] = useState<string | null>(null);
+  const [ghostPos, setGhostPos] = useState<{ x: number; y: number } | null>(null);
+  const mouseScreenRef = useRef<{ x: number; y: number } | null>(null);
+  const rafRef = useRef<number>(0);
+
+  // RAF loop: reads ref + bounds once per frame, batches reflow to animation frame
+  useEffect(() => {
+    if (!pendingNodeType) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+      return;
+    }
+    const tick = () => {
+      const screen = mouseScreenRef.current;
+      const bounds = reactFlowWrapper.current?.getBoundingClientRect();
+      if (screen && bounds) {
+        setGhostPos({
+          x: screen.x - bounds.left - 50,
+          y: screen.y - bounds.top - 14,
+        });
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [pendingNodeType]);
 
   // ---- data loading ----
   useEffect(() => {
@@ -245,6 +280,41 @@ export default function WorkflowEditPage() {
     [handleAddNode]
   );
 
+  // ---- canvas mouse tracking for pending node ----
+  const onMouseMove = useCallback(
+    (event: React.MouseEvent) => {
+      if (!pendingNodeType) return;
+      mouseScreenRef.current = { x: event.clientX, y: event.clientY };
+    },
+    [pendingNodeType]
+  );
+
+  const onCanvasClick = useCallback(
+    (event: React.MouseEvent) => {
+      if (!pendingNodeType) return;
+      // Don't place if click originated from the palette
+      const target = event.target as HTMLElement;
+      if (target.closest('[data-palette]')) return;
+      const instance = reactFlowInstance.current;
+      if (!instance) return;
+      handleAddNode(
+        pendingNodeType,
+        instance.screenToFlowPosition({ x: event.clientX, y: event.clientY })
+      );
+      setPendingNodeType(null);
+      setGhostPos(null);
+      mouseScreenRef.current = null;
+    },
+    [pendingNodeType, handleAddNode]
+  );
+
+  const onCanvasContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault();
+    setPendingNodeType(null);
+    setGhostPos(null);
+    mouseScreenRef.current = null;
+  }, []);
+
   // ---- debug run ----
   const handleDebug = async () => {
     try {
@@ -285,7 +355,13 @@ export default function WorkflowEditPage() {
       </div>
 
       {/* ---- Body: canvas ---- */}
-      <div className='flex-1 relative' ref={reactFlowWrapper}>
+      <div
+        className='flex-1 relative'
+        ref={reactFlowWrapper}
+        onMouseMove={onMouseMove}
+        onClick={onCanvasClick}
+        onContextMenu={onCanvasContextMenu}
+      >
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -295,6 +371,9 @@ export default function WorkflowEditPage() {
           onSelectionChange={onSelectionChange}
           onDragOver={onDragOver}
           onDrop={onDrop}
+          onInit={(instance) => {
+            reactFlowInstance.current = instance;
+          }}
           isValidConnection={isValidConnection}
           nodeTypes={nodeTypes}
           deleteKeyCode={['Delete', 'Backspace']}
@@ -304,9 +383,29 @@ export default function WorkflowEditPage() {
           <MiniMap pannable zoomable />
           <Background gap={20} size={1} />
           <Panel position='top-left'>
-            <NodePalette onAddNode={handleAddNode} />
+            <div data-palette>
+              <NodePalette onSelect={setPendingNodeType} activeType={pendingNodeType} />
+            </div>
           </Panel>
         </ReactFlow>
+
+        {/* Pending node ghost (follows cursor) */}
+        {pendingNodeType && ghostPos && (
+          <div
+            className='absolute pointer-events-none z-50'
+            style={{ left: ghostPos.x, top: ghostPos.y, opacity: 0.7 }}
+          >
+            <div
+              className='px-3 py-2 rounded-lg text-sm font-medium min-w-[100px] text-center shadow-lg border-2 border-dashed'
+              style={{
+                background: (NODE_COLORS[pendingNodeType] ?? { bg: '#f5f5f5' }).bg,
+                borderColor: (NODE_COLORS[pendingNodeType] ?? { border: '#d9d9d9' }).border,
+              }}
+            >
+              {NODE_LABELS[pendingNodeType] || pendingNodeType}
+            </div>
+          </div>
+        )}
       </div>
       {/* Node Config Panel (Sheet drawer) */}
       {selectedNodeData && (
