@@ -3,25 +3,26 @@
 import {
   addEdge,
   Background,
-  Controls,
-  MiniMap,
-  Panel,
-  ReactFlow,
-  useEdgesState,
-  useNodesState,
   type Connection,
+  Controls,
   type Edge,
+  MiniMap,
   type Node,
   type NodeTypes,
   type OnConnect,
   type OnSelectionChangeParams,
+  Panel,
+  ReactFlow,
+  useEdgesState,
+  useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useParams, useRouter } from 'next/navigation';
 import { DragEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
-import { workflowApi, type WorkflowNode as WFNode } from '@/api/workflow';
+import { type WorkflowNode as WFNode, workflowApi } from '@/api/workflow';
+import { Button } from '@/components/ui/button';
 import { DebugResultPanel } from '@/components/workflow/debug-result-panel';
 import { NodeConfigPanel } from '@/components/workflow/node-config-panel';
 import { NodePalette } from '@/components/workflow/node-palette';
@@ -290,38 +291,16 @@ export default function WorkflowEditPage() {
   return (
     <div className='h-[calc(100vh-60px)] flex flex-col' onKeyDown={onKeyDown} tabIndex={-1}>
       {/* ---- Header bar ---- */}
-      <div className='flex items-center gap-3 px-4 py-2 border-b bg-background shrink-0'>
-        <button
-          onClick={() => router.push('/workflows')}
-          className='text-sm text-muted-foreground hover:text-foreground'
-        >
-          ← 返回
-        </button>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className='text-lg font-semibold bg-transparent border-none outline-none flex-1 min-w-0'
-          placeholder='工作流名称'
-        />
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className='px-3 py-1.5 bg-primary text-primary-foreground rounded text-sm font-medium'
-        >
-          {saving ? '保存中...' : '保存'}
-        </button>
-        <button
-          onClick={handleDebug}
-          className='px-3 py-1.5 bg-secondary text-secondary-foreground rounded text-sm font-medium'
-        >
-          调试运行
-        </button>
-        <button
-          onClick={() => router.push(`/workflows/${params.id}/runs`)}
-          className='px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground'
-        >
-          运行历史
-        </button>
+      <div className='flex items-center justify-between bg-background shrink-0 mb-4'>
+        <h2 className='text-lg font-semibold'>{name}</h2>
+        <div className='flex items-center gap-2'>
+          <Button variant='secondary' onClick={handleDebug}>
+            调试运行
+          </Button>
+          <Button variant='ghost' onClick={() => router.push(`/workflows/${params.id}/runs`)}>
+            运行历史
+          </Button>
+        </div>
       </div>
 
       {/* ---- Body: palette + canvas ---- */}
