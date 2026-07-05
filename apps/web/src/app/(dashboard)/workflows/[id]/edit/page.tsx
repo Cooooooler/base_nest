@@ -183,12 +183,18 @@ export default function WorkflowEditPage() {
     [nodes, setEdges]
   );
 
-  // ---- selection handler ----
+  // ---- selection handler (track selection, don't open panel) ----
   const onSelectionChange = useCallback(({ nodes: selectedNodes }: OnSelectionChangeParams) => {
     if (selectedNodes.length === 1) {
       setSelectedNode(selectedNodes[0]);
-      setConfigOpen(true);
+    } else {
+      setSelectedNode(null);
     }
+  }, []);
+
+  const onNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    setSelectedNode(node);
+    setConfigOpen(true);
   }, []);
 
   // ---- keyboard handler (Delete key) ----
@@ -369,6 +375,7 @@ export default function WorkflowEditPage() {
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onSelectionChange={onSelectionChange}
+          onNodeDoubleClick={onNodeDoubleClick}
           onDragOver={onDragOver}
           onDrop={onDrop}
           onInit={(instance) => {
@@ -380,7 +387,7 @@ export default function WorkflowEditPage() {
           fitView
           className='bg-muted/20'
         >
-          <MiniMap pannable zoomable />
+          <MiniMap position='bottom-left' pannable zoomable />
           <Background gap={20} size={1} />
           <Panel position='top-left'>
             <div data-palette>

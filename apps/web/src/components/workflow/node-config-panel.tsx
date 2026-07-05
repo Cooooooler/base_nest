@@ -7,7 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Textarea } from '@/components/ui/textarea';
 import { useKnowledgeBases } from '@/hooks/use-knowledge';
 import { useProviders } from '@/hooks/use-providers';
-import { useState, type FC } from 'react';
+import { type FC, useState } from 'react';
 import { NODE_LABELS } from './nodes/constants';
 import type { WorkflowNodeData } from './nodes/workflow-node';
 
@@ -24,7 +24,7 @@ export const NodeConfigPanel: FC<Props> = ({ open, onOpenChange, nodeData, onSav
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className='w-[400px] sm:max-w-[400px] overflow-auto'>
+      <SheetContent overlay={false} className='w-100 sm:max-w-100 overflow-auto rounded-3xl'>
         <SheetHeader>
           <SheetTitle>{NODE_LABELS[nodeData.nodeType] || nodeData.nodeType} 配置</SheetTitle>
         </SheetHeader>
@@ -304,9 +304,6 @@ function NodeConfigFields({
           <pre className='text-xs p-2 bg-muted rounded overflow-auto max-h-40'>
             {JSON.stringify(config, null, 2)}
           </pre>
-          <Button onClick={handleSave} className='w-full'>
-            关闭
-          </Button>
         </div>
       );
   }
