@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthGuardModule } from '../auth/auth-guard.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { ProvidersModule } from '../providers/providers.module';
-import { ContextService } from './engine/context.service';
 import { DagEngineService } from './engine/dag-engine.service';
 import { CodeNodeExecutor } from './engine/executor/code-node.executor';
 import { ConditionNodeExecutor } from './engine/executor/condition-node.executor';
@@ -33,7 +32,6 @@ import { WorkflowService } from './workflow.service';
     WorkflowService,
     RunService,
     DagEngineService,
-    ContextService,
     StartNodeExecutor,
     EndNodeExecutor,
     LLMNodeExecutor,

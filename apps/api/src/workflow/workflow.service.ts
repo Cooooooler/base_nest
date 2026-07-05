@@ -1,22 +1,29 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Workflow } from './entities/workflow.entity';
 import { CreateWorkflowDto, UpdateWorkflowDto } from './dto';
 import { validateGraph } from './engine/graph-validator';
+import { Workflow } from './entities/workflow.entity';
 
 @Injectable()
 export class WorkflowService {
   constructor(
     @InjectRepository(Workflow)
-    private readonly repo: Repository<Workflow>,
+    private readonly repo: Repository<Workflow>
   ) {}
 
   async findAll(userId: string): Promise<Workflow[]> {
     return this.repo.find({
       where: { userId },
       order: { updatedAt: 'DESC' },
-      select: ['id', 'name', 'description', 'userId', 'createdAt', 'updatedAt'],
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        userId: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
