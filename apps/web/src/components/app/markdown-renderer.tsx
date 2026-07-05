@@ -170,7 +170,9 @@ const COMPONENTS: Components = {
   hr: (props) => <hr className='my-4 border-t border-border/50' {...props} />,
 
   // ====== Images ======
+
   img: ({ alt, src, ...props }) => (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       alt={alt || ''}
       src={src}

@@ -5,6 +5,7 @@ import { FadeIn } from '@/components/animated/fade-in';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DataTable } from '@/components/ui/data-table';
 import {
   Dialog,
   DialogContent,
@@ -13,15 +14,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import {
   useDeleteDocument,
@@ -29,9 +39,13 @@ import {
   useKnowledgeBase,
   useRetrieval,
 } from '@/hooks/use-knowledge';
+import type { Document } from '@base/shared';
+import { type ColumnDef } from '@tanstack/react-table';
 import { FileText, Search, Trash2, Upload } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
+
+import { useIsMobile } from '@/hooks/use-mobile';
 import { toast } from 'sonner';
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
@@ -64,12 +78,67 @@ export default function KnowledgeBaseDetailPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [retrievalResults, setRetrievalResults] = useState<
     { content: string; metadata: Record<string, any>; score?: number }[] | null
   >(null);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; fileName: string } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const isMobile = useIsMobile();
+
+  const fileTypes = useMemo(() => {
+    if (!documents) return [];
+    return [...new Set(documents.map((d) => d.fileType))].sort();
+  }, [documents]);
+
+  const columns: ColumnDef<Document>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'fileName',
+        header: '文件名',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-2 font-medium'>
+            <FileText className='size-4 text-muted-foreground' />
+            {row.original.fileName}
+          </div>
+        ),
+      },
+      {
+        accessorKey: 'fileType',
+        header: '类型',
+        cell: ({ row }) => row.original.fileType,
+        filterFn: 'equals',
+      },
+      {
+        accessorKey: 'fileSize',
+        header: '大小',
+        cell: ({ row }) => `${(row.original.fileSize / 1024).toFixed(1)} KB`,
+      },
+      {
+        accessorKey: 'status',
+        header: '状态',
+        cell: ({ row }) => statusBadge(row.original.status),
+      },
+      {
+        id: 'actions',
+        header: '操作',
+        cell: ({ row }) => (
+          <Button
+            variant='ghost'
+            size='icon'
+            onClick={() => {
+              setDeleteTarget({ id: row.original.id, fileName: row.original.fileName });
+              setDeleteDialogOpen(true);
+            }}
+          >
+            <Trash2 className='size-4' />
+          </Button>
+        ),
+      },
+    ],
+    []
+  );
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -125,14 +194,6 @@ export default function KnowledgeBaseDetailPage() {
     }
   };
 
-  function statusBadge(status: string) {
-    return (
-      <Badge variant={STATUS_VARIANTS[status] || 'outline'}>
-        {STATUS_LABELS[status] || status}
-      </Badge>
-    );
-  }
-
   if (isLoading) {
     return (
       <FadeIn direction='up'>
@@ -173,127 +234,143 @@ export default function KnowledgeBaseDetailPage() {
   return (
     <FadeIn direction='up'>
       <div className='flex flex-col gap-6'>
-        <div>
-          <h2 className='text-2xl font-bold'>{kb.name}</h2>
-          {kb.description && <p className='text-sm text-muted-foreground'>{kb.description}</p>}
-          <p className='mt-1 text-xs text-muted-foreground'>嵌入模型: {kb.embeddingModel}</p>
-        </div>
-
-        <div className='grid grid-cols-1 gap-6 lg:grid-cols-3'>
-          {/* Documents section */}
-          <div className='flex flex-col gap-4 lg:col-span-2'>
-            <Card>
-              <CardHeader>
-                <div className='flex items-center justify-between'>
-                  <CardTitle className='text-lg'>文档</CardTitle>
-                  <div>
-                    <input
-                      type='file'
-                      ref={fileInputRef}
-                      className='hidden'
-                      accept='.pdf,.txt,.md,.html'
-                      multiple
-                      onChange={handleUpload}
-                    />
-                    <Button
-                      size='sm'
-                      disabled={uploading}
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      <Upload data-icon />
-                      {uploading ? '上传中...' : '上传文档'}
+        <div className='flex items-center justify-between'>
+          <div className='w-full'>
+            <div className='flex items-center justify-between'>
+              <h2 className='text-2xl font-bold'>{kb.name}</h2>
+              <Drawer
+                open={drawerOpen}
+                onOpenChange={setDrawerOpen}
+                swipeDirection={isMobile ? 'down' : 'right'}
+              >
+                <DrawerTrigger
+                  render={
+                    <Button variant='outline'>
+                      <Search data-icon />
+                      检索测试
                     </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                {!documents || documents.length === 0 ? (
-                  <p className='text-sm text-muted-foreground'>暂无文档</p>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>文件名</TableHead>
-                        <TableHead>类型</TableHead>
-                        <TableHead>大小</TableHead>
-                        <TableHead>状态</TableHead>
-                        <TableHead>操作</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {documents.map((doc) => (
-                        <TableRow key={doc.id}>
-                          <TableCell className='font-medium'>
-                            <div className='flex items-center gap-2'>
-                              <FileText className='size-4 text-muted-foreground' />
-                              {doc.fileName}
-                            </div>
-                          </TableCell>
-                          <TableCell>{doc.fileType}</TableCell>
-                          <TableCell>{(doc.fileSize / 1024).toFixed(1)} KB</TableCell>
-                          <TableCell>{statusBadge(doc.status)}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant='ghost'
-                              size='icon'
-                              onClick={() => {
-                                setDeleteTarget({ id: doc.id, fileName: doc.fileName });
-                                setDeleteDialogOpen(true);
-                              }}
-                            >
-                              <Trash2 className='size-4' />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Retrieval section */}
-          <div className='flex flex-col gap-4'>
-            <Card>
-              <CardHeader>
-                <CardTitle className='text-lg'>检索测试</CardTitle>
-              </CardHeader>
-              <CardContent className='flex flex-col gap-3'>
-                <label htmlFor='retrieval-query' className='sr-only'>
-                  检索查询
-                </label>
-                <Textarea
-                  id='retrieval-query'
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder='输入查询内容...'
-                  rows={3}
+                  }
                 />
-                <Button className='w-full' onClick={handleSearch} disabled={retrieval.isPending}>
-                  <Search data-icon />
-                  {retrieval.isPending ? '检索中...' : '检索'}
-                </Button>
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle>检索测试</DrawerTitle>
+                    <DrawerDescription>输入查询内容进行相似度检索</DrawerDescription>
+                  </DrawerHeader>
+                  <div className='flex-1 overflow-y-auto p-4'>
+                    <div className='flex flex-col gap-3'>
+                      <Textarea
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        placeholder='输入查询内容...'
+                        rows={3}
+                      />
+                      <Button
+                        className='w-full'
+                        onClick={handleSearch}
+                        disabled={retrieval.isPending}
+                      >
+                        <Search data-icon />
+                        {retrieval.isPending ? '检索中...' : '检索'}
+                      </Button>
 
-                {retrievalResults && (
-                  <div className='flex flex-col gap-3'>
-                    <p className='text-sm font-medium'>检索结果 ({retrievalResults.length})</p>
-                    {retrievalResults.map((r, i) => (
-                      <div key={i} className='rounded-lg border p-3 text-sm'>
-                        {r.score !== undefined && (
-                          <p className='mb-1 text-xs text-muted-foreground'>
-                            相似度: {(r.score * 100).toFixed(1)}%
+                      {retrievalResults && (
+                        <div className='flex flex-col gap-3'>
+                          <p className='text-sm font-medium'>
+                            检索结果 ({retrievalResults.length})
                           </p>
-                        )}
-                        <p className='line-clamp-4'>{r.content}</p>
-                      </div>
-                    ))}
+                          {retrievalResults.map((r, i) => (
+                            <div key={i} className='rounded-lg border p-3 text-sm'>
+                              {r.score !== undefined && (
+                                <p className='mb-1 text-xs text-muted-foreground'>
+                                  相似度: {(r.score * 100).toFixed(1)}%
+                                </p>
+                              )}
+                              <p className='line-clamp-4'>{r.content}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <DrawerFooter>
+                    <Button variant='outline' onClick={() => setDrawerOpen(false)}>
+                      关闭
+                    </Button>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            </div>
+            {kb.description && <p className='text-sm text-muted-foreground'>{kb.description}</p>}
+            <p className='mt-1 text-xs text-muted-foreground'>嵌入模型: {kb.embeddingModel}</p>
           </div>
         </div>
+
+        {/* Documents section */}
+        <Card>
+          <CardHeader>
+            <div className='flex items-center justify-between'>
+              <CardTitle className='text-lg'>文档</CardTitle>
+              <div>
+                <input
+                  type='file'
+                  ref={fileInputRef}
+                  className='hidden'
+                  accept='.pdf,.txt,.md,.html'
+                  multiple
+                  onChange={handleUpload}
+                />
+                <Button
+                  size='sm'
+                  disabled={uploading}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload data-icon />
+                  {uploading ? '上传中...' : '上传文档'}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {!documents || documents.length === 0 ? (
+              <p className='text-sm text-muted-foreground'>暂无文档</p>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={documents}
+                toolbar={(table) => (
+                  <div className='flex items-center gap-2'>
+                    <Input
+                      placeholder='搜索文件名...'
+                      value={(table.getColumn('fileName')?.getFilterValue() as string) ?? ''}
+                      onChange={(e) => table.getColumn('fileName')?.setFilterValue(e.target.value)}
+                      className='h-8 max-w-60'
+                    />
+                    <Select
+                      value={(table.getColumn('fileType')?.getFilterValue() as string) ?? ''}
+                      onValueChange={(value) =>
+                        table
+                          .getColumn('fileType')
+                          ?.setFilterValue(value === '__all__' ? '' : value)
+                      }
+                    >
+                      <SelectTrigger className='h-8 w-32'>
+                        <SelectValue placeholder='全部类型' />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value='__all__'>全部类型</SelectItem>
+                        {fileTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type.toUpperCase()}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+              />
+            )}
+          </CardContent>
+        </Card>
 
         {/* Delete document dialog */}
         <Dialog

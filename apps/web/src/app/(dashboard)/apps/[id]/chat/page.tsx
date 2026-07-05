@@ -160,7 +160,7 @@ export default function ChatPage() {
             const next = [...prev];
             if (next[aiIdx]) {
               next[aiIdx] = {
-                role: 'assistant',
+                ...next[aiIdx],
                 content: fullContent || '（模型未返回内容）',
                 reasoning: fullReasoning || undefined,
               };
@@ -173,7 +173,7 @@ export default function ChatPage() {
           const next = [...prev];
           if (next[aiIdx]) {
             next[aiIdx] = {
-              role: 'assistant',
+              ...next[aiIdx],
               content: fullContent,
               reasoning: fullReasoning || undefined,
             };
