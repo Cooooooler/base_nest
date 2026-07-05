@@ -12,6 +12,7 @@ import databaseConfig from './config/database.config';
 import { KnowledgeModule } from './knowledge/knowledge.module';
 import { ProvidersModule } from './providers/providers.module';
 import { UsersModule } from './users/users.module';
+import { WorkflowModule } from './workflow/workflow.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { UsersModule } from './users/users.module';
     LocalAIModule,
     ChatModule,
     KnowledgeModule,
+    WorkflowModule,
   ],
   providers: [
     {
