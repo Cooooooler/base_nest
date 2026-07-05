@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ProvidersService } from '../../../providers/providers.service';
-import { NodeExecutor, NodeExecutionResult } from './node-executor.interface';
 import { ContextService } from '../context.service';
+import { NodeExecutionResult, NodeExecutor } from './node-executor.interface';
 
 @Injectable()
 export class LLMNodeExecutor implements NodeExecutor {
@@ -13,7 +13,7 @@ export class LLMNodeExecutor implements NodeExecutor {
   async execute(
     _nodeId: string,
     config: Record<string, any>,
-    context: ContextService,
+    context: ContextService
   ): Promise<NodeExecutionResult> {
     const resolved = context.resolveConfig(config);
     const { providerId, model, prompt, temperature = 0.7, maxTokens = 4096 } = resolved;
@@ -31,7 +31,11 @@ export class LLMNodeExecutor implements NodeExecutor {
       outputs: {
         content: response.content,
         tokens: response.usage
-          ? { prompt: response.usage.promptTokens, completion: response.usage.completionTokens, total: response.usage.totalTokens }
+          ? {
+              prompt: response.usage.promptTokens,
+              completion: response.usage.completionTokens,
+              total: response.usage.totalTokens,
+            }
           : { prompt: 0, completion: 0, total: 0 },
       },
     };

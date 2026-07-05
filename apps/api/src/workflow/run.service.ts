@@ -1,10 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { WorkflowRun } from './entities/workflow-run.entity';
-import { WorkflowNodeExecution } from './entities/workflow-node-execution.entity';
-import { WorkflowService } from './workflow.service';
 import { DagEngineService } from './engine/dag-engine.service';
+import { WorkflowNodeExecution } from './entities/workflow-node-execution.entity';
+import { WorkflowRun } from './entities/workflow-run.entity';
+import { WorkflowService } from './workflow.service';
 
 @Injectable()
 export class RunService {
@@ -14,7 +14,7 @@ export class RunService {
     @InjectRepository(WorkflowNodeExecution)
     private readonly nodeExecRepo: Repository<WorkflowNodeExecution>,
     private readonly workflowService: WorkflowService,
-    private readonly dagEngine: DagEngineService,
+    private readonly dagEngine: DagEngineService
   ) {}
 
   async execute(workflowId: string, inputs: Record<string, any>): Promise<WorkflowRun> {

@@ -10,6 +10,6 @@ export interface NodeExecutor {
   execute(
     nodeId: string,
     config: Record<string, any>,
-    context: ContextService,
+    context: ContextService
   ): Promise<NodeExecutionResult>;
 }

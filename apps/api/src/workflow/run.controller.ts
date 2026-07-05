@@ -1,11 +1,18 @@
 import {
-  Body, Controller, Get, HttpCode, Param, ParseUUIDPipe,
-  Post, Req, UseGuards,
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RunService } from './run.service';
 import { ExecuteWorkflowDto } from './dto';
+import { RunService } from './run.service';
 
 @ApiTags('Workflows - Runs')
 @Controller('workflows/:workflowId/runs')
@@ -20,7 +27,7 @@ export class RunController {
   async execute(
     @Param('workflowId', ParseUUIDPipe) workflowId: string,
     @Body() dto: ExecuteWorkflowDto,
-    @Req() _req: any,
+    @Req() _req: any
   ) {
     const run = await this.runService.execute(workflowId, dto.inputs);
     return { runId: run.id, status: run.status };
@@ -32,14 +39,14 @@ export class RunController {
   async executeDebug(
     @Param('workflowId', ParseUUIDPipe) workflowId: string,
     @Body() dto: ExecuteWorkflowDto,
-    @Req() _req: any,
+    @Req() _req: any
   ) {
     const { run, nodeExecutions } = await this.runService.executeDebug(workflowId, dto.inputs);
     return {
       runId: run.id,
       status: run.status,
       outputs: run.outputs,
-      nodeExecutions: nodeExecutions.map(ne => ({
+      nodeExecutions: nodeExecutions.map((ne) => ({
         nodeId: ne.nodeId,
         nodeType: ne.nodeType,
         status: ne.status,

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RetrievalService } from '../../../knowledge/retrieval.service';
-import { NodeExecutor, NodeExecutionResult } from './node-executor.interface';
 import { ContextService } from '../context.service';
+import { NodeExecutionResult, NodeExecutor } from './node-executor.interface';
 
 @Injectable()
 export class KnowledgeRetrievalNodeExecutor implements NodeExecutor {
@@ -12,7 +12,7 @@ export class KnowledgeRetrievalNodeExecutor implements NodeExecutor {
   async execute(
     _nodeId: string,
     config: Record<string, any>,
-    context: ContextService,
+    context: ContextService
   ): Promise<NodeExecutionResult> {
     const resolved = context.resolveConfig(config);
     const { knowledgeBaseId, query, topK = 4 } = resolved;
@@ -20,7 +20,7 @@ export class KnowledgeRetrievalNodeExecutor implements NodeExecutor {
     const results = await this.retrievalService.searchWithScore(knowledgeBaseId, query, topK);
     return {
       outputs: {
-        segments: results.map(r => ({
+        segments: results.map((r) => ({
           content: r.content,
           metadata: r.metadata,
           score: r.score,
