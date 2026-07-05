@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 export type NodeExecutionStatus = 'pending' | 'running' | 'succeeded' | 'failed' | 'skipped';
 
@@ -36,4 +36,7 @@ export class WorkflowNodeExecution {
 
   @Column('timestamptz', { nullable: true })
   completedAt: Date | null;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }
