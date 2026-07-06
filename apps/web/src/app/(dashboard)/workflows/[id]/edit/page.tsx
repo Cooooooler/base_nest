@@ -223,6 +223,7 @@ export default function WorkflowEditPage() {
   }, []);
 
   const onNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    if (node.data?.nodeType === 'start' || node.data?.nodeType === 'end') return;
     setSelectedNode(node);
     setConfigOpen(true);
   }, []);

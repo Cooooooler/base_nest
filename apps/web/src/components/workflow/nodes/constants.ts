@@ -38,7 +38,7 @@ export const NODE_DESCRIPTIONS: Record<string, string> = {
 
 export const NODE_DEFAULTS: Record<string, Record<string, any>> = {
   start: {},
-  end: { output: '' },
+  end: {},
   llm: { providerId: '', model: '', prompt: '', temperature: 0.7, maxTokens: 4096 },
   code: { code: 'return inputs;', inputs: {} },
   condition: { expression: '' },
