@@ -17,6 +17,7 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { useDebounceEffect } from 'ahooks';
 import { useParams, useRouter } from 'next/navigation';
 import { DragEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -101,6 +102,34 @@ export default function WorkflowEditPage() {
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
   const initialized = useRef(false);
 
+  // ---- auto-save state ----
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const prevGraphRef = useRef<string>('');
+
+  // ---- auto-save: debounce 2s after graph changes (ahooks) ----
+  useDebounceEffect(
+    () => {
+      if (nodes.length === 0) return;
+
+      const graphKey = JSON.stringify({
+        nodes: nodes.map(convertFromFlowNode),
+        edges: edges.map(convertFromFlowEdge),
+      });
+      if (graphKey === prevGraphRef.current) return;
+      prevGraphRef.current = graphKey;
+
+      workflowApi
+        .update(params.id as string, {
+          name,
+          graph: JSON.parse(graphKey),
+        })
+        .then(() => setLastSavedAt(new Date()))
+        .catch((err) => console.error('Auto-save failed:', err));
+    },
+    [nodes, edges, name, params.id],
+    { wait: 2000 }
+  );
+
   // ---- pending node state (Dify-style click to place) ----
   const [pendingNodeType, setPendingNodeType] = useState<string | null>(null);
   const [ghostPos, setGhostPos] = useState<{ x: number; y: number } | null>(null);
@@ -138,6 +167,7 @@ export default function WorkflowEditPage() {
       .get(params.id as string)
       .then((wf) => {
         setName(wf.name);
+        setLastSavedAt(new Date(wf.updatedAt));
         setNodes((wf.graph.nodes || []).map((n) => convertToFlowNode(n)));
         setEdges(
           (wf.graph.edges || []).map((e) => ({
@@ -213,6 +243,9 @@ export default function WorkflowEditPage() {
         setNodes((nds) => nds.filter((n) => !n.selected));
         setEdges((eds) =>
           eds.filter((e) => {
+            // Remove selected edges directly
+            if (e.selected) return false;
+            // Also remove edges connected to selected nodes
             const anyNodeSelected = nodes.some(
               (n) => n.selected && (n.id === e.source || n.id === e.target)
             );
@@ -349,7 +382,20 @@ export default function WorkflowEditPage() {
     <div className='h-[calc(100vh-60px)] flex flex-col' onKeyDown={onKeyDown} tabIndex={-1}>
       {/* ---- Header bar ---- */}
       <div className='flex items-center justify-between bg-background shrink-0 mb-4'>
-        <h2 className='text-lg font-semibold'>{name}</h2>
+        <h2 className='text-lg font-semibold'>
+          {name}
+          {lastSavedAt && (
+            <span className='text-xs text-muted-foreground ml-3'>
+              上次保存：
+              {lastSavedAt.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })}
+            </span>
+          )}
+        </h2>
+
         <div className='flex items-center gap-2'>
           <Button variant='secondary' onClick={handleDebug}>
             调试运行

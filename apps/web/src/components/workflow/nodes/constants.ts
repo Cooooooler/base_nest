@@ -9,6 +9,7 @@ export const NODE_COLORS: Record<string, { bg: string; border: string; text: str
   http_request: { bg: '#fff7e6', border: '#fa8c16', text: '#612500' },
   knowledge_retrieval: { bg: '#e6fffb', border: '#13c2c2', text: '#002329' },
   question_classifier: { bg: '#fff0f6', border: '#eb2f96', text: '#520339' },
+  user_input: { bg: '#f0f5ff', border: '#2f54eb', text: '#061178' },
 };
 
 export const NODE_LABELS: Record<string, string> = {
@@ -20,6 +21,7 @@ export const NODE_LABELS: Record<string, string> = {
   http_request: 'HTTP 请求',
   knowledge_retrieval: '知识库检索',
   question_classifier: '问题分类',
+  user_input: '用户输入',
 };
 
 export const NODE_DESCRIPTIONS: Record<string, string> = {
@@ -31,6 +33,7 @@ export const NODE_DESCRIPTIONS: Record<string, string> = {
   http_request: '调用外部 HTTP API',
   knowledge_retrieval: '从知识库检索相关内容',
   question_classifier: '用 LLM 对用户问题分类',
+  user_input: '在工作流运行时收集用户输入',
 };
 
 export const NODE_DEFAULTS: Record<string, Record<string, any>> = {
@@ -42,6 +45,7 @@ export const NODE_DEFAULTS: Record<string, Record<string, any>> = {
   http_request: { url: '', method: 'GET', headers: {}, body: '' },
   knowledge_retrieval: { knowledgeBaseId: '', query: '', topK: 4 },
   question_classifier: { providerId: '', model: '', instruction: '', categories: [], input: '' },
+  user_input: { fieldName: '', fieldLabel: '', fieldType: 'text', placeholder: '', required: true },
 };
 
 export type NodeType = keyof typeof NODE_LABELS;
