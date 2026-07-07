@@ -102,7 +102,7 @@ export default function NewAppPage() {
   return (
     <div className='mx-auto max-w-2xl'>
       <FadeIn direction='up'>
-        <Card>
+        <Card className='min-w-96'>
           <CardHeader>
             <CardTitle>新建对话应用</CardTitle>
           </CardHeader>

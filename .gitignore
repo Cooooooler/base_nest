@@ -48,9 +48,6 @@ Thumbs.db
 # Ignore dev docs
 docs/
 
-# Misc dev
-.mcp.json
-
 # Env
 .env
 .env.local

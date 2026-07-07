@@ -4,7 +4,12 @@ import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 
 import { Input } from '@/components/ui/input';
-import { NodePanel } from '@/components/workflow/node-panel';
+import {
+  NodePanel,
+  NodePanelHeader,
+  NodePanelLeftTitle,
+  NodePanelRightTitle,
+} from '@/components/workflow/node-panel';
 import { useKnowledgeBases } from '@/hooks/use-knowledge';
 import { useProviders } from '@/hooks/use-providers';
 import { NODE_CONFIGS } from '../nodes/constants';
@@ -36,15 +41,19 @@ export const NodeConfigPanel: FC<NodeConfigPanelProps> = ({
 
   return (
     <NodePanel open={open} onClose={() => onOpenChange(false)}>
-      <div className='p-4 pb-2'>
-        <Input
-          value={label}
-          onChange={(e) => setLabel(e.target.value)}
-          onBlur={handleLabelBlur}
-          className='text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0'
-          placeholder='节点名称'
-        />
-      </div>
+      <NodePanelHeader>
+        <NodePanelLeftTitle>
+          <Input
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+            onBlur={handleLabelBlur}
+            className='text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0'
+            placeholder='节点名称'
+          />
+        </NodePanelLeftTitle>
+        <NodePanelRightTitle />
+      </NodePanelHeader>
+
       <div className='p-4 flex-1 overflow-y-auto'>
         {ConfigComponent ? (
           <ConfigComponent

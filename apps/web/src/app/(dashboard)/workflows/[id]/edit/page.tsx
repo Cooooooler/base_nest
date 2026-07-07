@@ -9,7 +9,6 @@ import {
   type Node,
   type NodeTypes,
   type OnConnect,
-  type OnSelectionChangeParams,
   Panel,
   ReactFlow,
   type ReactFlowInstance,
@@ -183,6 +182,37 @@ export default function WorkflowEditPage() {
       });
   }, [params.id, setNodes, setEdges]);
 
+  // ---- node click/drag handling ----
+  // Track drag state: React Flow may fire onNodeClick synchronously
+  // after a drag. We suppress it and schedule a flag clear for the next click.
+  const dragOccurred = useRef(false);
+
+  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
+    if (dragOccurred.current) return;
+    if (node.data?.nodeType === 'start' || node.data?.nodeType === 'end') return;
+    setSelectedNode(node);
+    setConfigOpen(true);
+  }, []);
+
+  const onNodeDragStart = useCallback(() => {
+    dragOccurred.current = true;
+    setSelectedNode(null);
+    setConfigOpen(false);
+  }, []);
+
+  const onNodeDragStop = useCallback(() => {
+    // Clear asynchronously so any synchronous onNodeClick (from this mouseup)
+    // still sees dragOccurred === true and gets suppressed.
+    setTimeout(() => {
+      dragOccurred.current = false;
+    }, 0);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null);
+    setConfigOpen(false);
+  }, []);
+
   // ---- connection handler ----
   const onConnect: OnConnect = useCallback(
     (conn: Connection) => {
@@ -212,21 +242,6 @@ export default function WorkflowEditPage() {
     },
     [nodes, setEdges]
   );
-
-  // ---- selection handler (track selection, don't open panel) ----
-  const onSelectionChange = useCallback(({ nodes: selectedNodes }: OnSelectionChangeParams) => {
-    if (selectedNodes.length === 1) {
-      setSelectedNode(selectedNodes[0]);
-    } else {
-      setSelectedNode(null);
-    }
-  }, []);
-
-  const onNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    if (node.data?.nodeType === 'start' || node.data?.nodeType === 'end') return;
-    setSelectedNode(node);
-    setConfigOpen(true);
-  }, []);
 
   // ---- keyboard handler (Delete key) ----
   const onKeyDown = useCallback(
@@ -421,8 +436,10 @@ export default function WorkflowEditPage() {
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onSelectionChange={onSelectionChange}
-          onNodeDoubleClick={onNodeDoubleClick}
+          onNodeClick={onNodeClick}
+          onNodeDragStart={onNodeDragStart}
+          onNodeDragStop={onNodeDragStop}
+          onPaneClick={onPaneClick}
           onDragOver={onDragOver}
           onDrop={onDrop}
           onInit={(instance) => {
