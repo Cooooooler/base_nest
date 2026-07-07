@@ -450,7 +450,7 @@ export default function WorkflowEditPage() {
             style={{ left: ghostPos.x, top: ghostPos.y, opacity: 0.7 }}
           >
             <div
-              className='px-3 py-2 rounded-lg text-sm font-medium min-w-[100px] text-center shadow-lg border-2 border-dashed'
+              className='px-3 py-2 rounded-lg text-sm font-medium min-w-25 text-center shadow-lg border-2 border-dashed'
               style={{
                 background: (NODE_COLORS[pendingNodeType] ?? { bg: '#f5f5f5' }).bg,
                 borderColor: (NODE_COLORS[pendingNodeType] ?? { border: '#d9d9d9' }).border,
@@ -461,7 +461,7 @@ export default function WorkflowEditPage() {
           </div>
         )}
       </div>
-      {/* Node Config Panel (Sheet drawer) */}
+      {/* Node Config Panel inside the flow container */}
       {selectedNodeData && (
         <NodeConfigPanel
           open={configOpen}

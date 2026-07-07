@@ -1,6 +1,5 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CommonFields } from './shared';
 import type { NodeConfigProps } from './types';
 
 export function KnowledgeRetrievalConfig({ config, onSave, knowledgeBases }: NodeConfigProps) {
@@ -8,7 +7,6 @@ export function KnowledgeRetrievalConfig({ config, onSave, knowledgeBases }: Nod
 
   return (
     <div className='space-y-3'>
-      <CommonFields label={(config.label as string) || ''} onChange={(v) => set('label', v)} />
       <div>
         <Label>知识库</Label>
         <select

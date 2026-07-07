@@ -1,6 +1,5 @@
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { CommonFields } from './shared';
 import type { NodeConfigProps } from './types';
 
 export function CodeConfig({ config, onSave }: NodeConfigProps) {
@@ -8,7 +7,6 @@ export function CodeConfig({ config, onSave }: NodeConfigProps) {
 
   return (
     <div className='space-y-3'>
-      <CommonFields label={(config.label as string) || ''} onChange={(v) => set('label', v)} />
       <div>
         <Label>JavaScript 代码</Label>
         <Textarea

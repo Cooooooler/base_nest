@@ -1,6 +1,5 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CommonFields } from './shared';
 import type { NodeConfigProps } from './types';
 
 export function HttpRequestConfig({ config, onSave }: NodeConfigProps) {
@@ -8,7 +7,6 @@ export function HttpRequestConfig({ config, onSave }: NodeConfigProps) {
 
   return (
     <div className='space-y-3'>
-      <CommonFields label={(config.label as string) || ''} onChange={(v) => set('label', v)} />
       <div>
         <Label>Method</Label>
         <select
