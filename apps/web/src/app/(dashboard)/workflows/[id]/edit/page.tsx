@@ -49,7 +49,6 @@ function isValidConnection(conn: Connection | Edge): boolean {
 
 // ---- helpers ----
 function convertToFlowNode(n: WFNode, selected?: boolean): Node {
-  const handles = getNodeHandles(n.type);
   return {
     id: n.id,
     type: 'workflow',
@@ -276,10 +275,17 @@ export default function WorkflowEditPage() {
   );
 
   // ---- keyboard handler (Delete key) ----
+  const deleteSelected = useCallback((nds: Node[], eds: Edge[]) => {
+    const selectedNodeIds = new Set(nds.filter((n) => n.selected).map((n) => n.id));
+    return eds.filter((e) => {
+      if (e.selected) return false;
+      return !selectedNodeIds.has(e.source) && !selectedNodeIds.has(e.target);
+    });
+  }, []);
+
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       if (event.key === 'Delete' || event.key === 'Backspace') {
-        // Don't delete when typing in inputs
         const target = event.target as HTMLElement;
         if (
           target.tagName === 'INPUT' ||
@@ -289,20 +295,10 @@ export default function WorkflowEditPage() {
           return;
 
         setNodes((nds) => nds.filter((n) => !n.selected));
-        setEdges((eds) =>
-          eds.filter((e) => {
-            // Remove selected edges directly
-            if (e.selected) return false;
-            // Also remove edges connected to selected nodes
-            const anyNodeSelected = nodes.some(
-              (n) => n.selected && (n.id === e.source || n.id === e.target)
-            );
-            return !anyNodeSelected;
-          })
-        );
+        setEdges((eds) => deleteSelected(nodes, eds));
       }
     },
-    [nodes, setNodes, setEdges]
+    [nodes, setNodes, setEdges, deleteSelected]
   );
 
   // ---- node config save ----
@@ -461,6 +457,11 @@ export default function WorkflowEditPage() {
         onMouseMove={onMouseMove}
         onClick={onCanvasClick}
         onContextMenu={onCanvasContextMenu}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') setPendingNodeType(null);
+        }}
+        role='region'
+        tabIndex={-1}
       >
         <ReactFlow
           nodes={nodes}

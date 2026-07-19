@@ -6,7 +6,7 @@ import { ProvidersService } from '../../providers/providers.service';
 import { WorkflowNodeExecution } from '../entities/workflow-node-execution.entity';
 import { WorkflowRun } from '../entities/workflow-run.entity';
 import { Workflow } from '../entities/workflow.entity';
-import { DagEngineService } from './dag-engine.service';
+import { ALL_EXECUTORS, DagEngineService } from './dag-engine.service';
 import { CodeNodeExecutor } from './executor/code-node.executor';
 import { ConditionNodeExecutor } from './executor/condition-node.executor';
 import { EndNodeExecutor } from './executor/end-node.executor';
@@ -54,12 +54,32 @@ describe('DagEngineService', () => {
         ConditionNodeExecutor,
         HttpRequestNodeExecutor,
         {
-          provide: KnowledgeRetrievalNodeExecutor,
-          useFactory: () => new KnowledgeRetrievalNodeExecutor(mockRetrievalService as any),
-        },
-        {
-          provide: QuestionClassifierNodeExecutor,
-          useFactory: () => new QuestionClassifierNodeExecutor(mockProvidersService as any),
+          provide: ALL_EXECUTORS,
+          useFactory: (
+            startNodeExecutor: StartNodeExecutor,
+            endNodeExecutor: EndNodeExecutor,
+            llmNodeExecutor: LLMNodeExecutor,
+            codeNodeExecutor: CodeNodeExecutor,
+            conditionNodeExecutor: ConditionNodeExecutor,
+            httpRequestNodeExecutor: HttpRequestNodeExecutor
+          ) => [
+            startNodeExecutor,
+            endNodeExecutor,
+            llmNodeExecutor,
+            codeNodeExecutor,
+            conditionNodeExecutor,
+            httpRequestNodeExecutor,
+            new KnowledgeRetrievalNodeExecutor(mockRetrievalService as any),
+            new QuestionClassifierNodeExecutor(mockProvidersService as any),
+          ],
+          inject: [
+            StartNodeExecutor,
+            EndNodeExecutor,
+            LLMNodeExecutor,
+            CodeNodeExecutor,
+            ConditionNodeExecutor,
+            HttpRequestNodeExecutor,
+          ],
         },
         { provide: ProvidersService, useValue: mockProvidersService },
         { provide: RetrievalService, useValue: mockRetrievalService },
@@ -101,7 +121,7 @@ describe('DagEngineService', () => {
 
     const { run, nodeExecutions } = await engine.executeWorkflowDebug(wf, { query: 'test' });
     expect(run.status).toBe('succeeded');
-    expect(nodeExecutions.length).toBe(3);
+    expect(nodeExecutions).toHaveLength(3);
     expect(nodeExecutions.every((n) => n.status === 'succeeded')).toBe(true);
     // The run.outputs should contain the end node result
     expect(run.outputs).toBeDefined();
@@ -177,7 +197,7 @@ describe('DagEngineService', () => {
     });
 
     const { nodeExecutions } = await engine.executeWorkflowDebug(wf, {});
-    expect(nodeExecutions.length).toBe(4);
+    expect(nodeExecutions).toHaveLength(4);
     expect(nodeExecutions.every((n) => n.status === 'succeeded')).toBe(true);
   });
 });

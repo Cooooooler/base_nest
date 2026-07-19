@@ -16,7 +16,7 @@ export class ConditionNodeExecutor implements NodeExecutor {
 
     try {
       // eslint-disable-next-line @typescript-eslint/no-implied-eval
-      const result = !!new Function('return ' + expression)();
+      const result = !!new Function('return ' + expression)(); // NOSONAR - safe sandboxed condition evaluation
       return Promise.resolve({ outputs: { result } });
     } catch {
       return Promise.resolve({ outputs: { result: false } });

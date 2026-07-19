@@ -16,7 +16,7 @@ interface UseChatStreamReturn {
   messages: ChatMessage[];
   sending: boolean;
   streamingMsgIdx: number | null;
-  streamingRef: React.MutableRefObject<boolean>;
+  streamingRef: { current: boolean };
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   sendMessage: (content: string, aiIdx?: number) => Promise<void>;
 }

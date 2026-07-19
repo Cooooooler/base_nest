@@ -89,7 +89,7 @@ export default function KnowledgeBaseDetailPage() {
 
   const fileTypes = useMemo(() => {
     if (!documents) return [];
-    return [...new Set(documents.map((d) => d.fileType))].sort();
+    return [...new Set(documents.map((d) => d.fileType))].sort((a, b) => a.localeCompare(b));
   }, [documents]);
 
   const columns: ColumnDef<Document>[] = useMemo(

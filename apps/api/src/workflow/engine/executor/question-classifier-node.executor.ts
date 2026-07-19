@@ -18,7 +18,10 @@ export class QuestionClassifierNodeExecutor implements NodeExecutor {
     const { providerId, model, instruction, categories, input } = resolved;
 
     const categoryList = (categories as Array<{ id: string; name: string; description?: string }>)
-      .map((c) => `- ${c.id}: ${c.name}${c.description ? ` — ${c.description}` : ''}`)
+      .map((c) => {
+        const desc = c.description ? ` — ${c.description}` : '';
+        return `- ${c.id}: ${c.name}${desc}`;
+      })
       .join('\n');
 
     const prompt = `${instruction}\n\n类别：\n${categoryList}\n\n用户输入：${input}\n\n请只返回类别 ID，不要有其他内容。`;

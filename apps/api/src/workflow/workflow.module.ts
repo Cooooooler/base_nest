@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthGuardModule } from '../auth/auth-guard.module';
 import { KnowledgeModule } from '../knowledge/knowledge.module';
 import { ProvidersModule } from '../providers/providers.module';
-import { DagEngineService } from './engine/dag-engine.service';
+import { ALL_EXECUTORS, DagEngineService } from './engine/dag-engine.service';
 import { CodeNodeExecutor } from './engine/executor/code-node.executor';
 import { ConditionNodeExecutor } from './engine/executor/condition-node.executor';
 import { EndNodeExecutor } from './engine/executor/end-node.executor';
@@ -40,6 +40,38 @@ import { WorkflowService } from './workflow.service';
     HttpRequestNodeExecutor,
     KnowledgeRetrievalNodeExecutor,
     QuestionClassifierNodeExecutor,
+    {
+      provide: ALL_EXECUTORS,
+      inject: [
+        StartNodeExecutor,
+        EndNodeExecutor,
+        LLMNodeExecutor,
+        CodeNodeExecutor,
+        ConditionNodeExecutor,
+        HttpRequestNodeExecutor,
+        KnowledgeRetrievalNodeExecutor,
+        QuestionClassifierNodeExecutor,
+      ],
+      useFactory: (
+        startNodeExecutor: StartNodeExecutor,
+        endNodeExecutor: EndNodeExecutor,
+        llmNodeExecutor: LLMNodeExecutor,
+        codeNodeExecutor: CodeNodeExecutor,
+        conditionNodeExecutor: ConditionNodeExecutor,
+        httpRequestNodeExecutor: HttpRequestNodeExecutor,
+        knowledgeRetrievalNodeExecutor: KnowledgeRetrievalNodeExecutor,
+        questionClassifierNodeExecutor: QuestionClassifierNodeExecutor
+      ) => [
+        startNodeExecutor,
+        endNodeExecutor,
+        llmNodeExecutor,
+        codeNodeExecutor,
+        conditionNodeExecutor,
+        httpRequestNodeExecutor,
+        knowledgeRetrievalNodeExecutor,
+        questionClassifierNodeExecutor,
+      ],
+    },
   ],
 })
 export class WorkflowModule {}

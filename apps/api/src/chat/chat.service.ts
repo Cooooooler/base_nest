@@ -134,7 +134,7 @@ export class ChatService {
             // 如果 content 为空但 reasoning 有内容，从 reasoning 末段提取有效内容
             if (!fullContent && fullReasoning) {
               const paragraphs = fullReasoning.split('\n').filter(Boolean);
-              fullContent = paragraphs[paragraphs.length - 1] || '（模型未返回明确回答）';
+              fullContent = paragraphs.at(-1) || '（模型未返回明确回答）';
             }
             const msgData: Partial<Message> = {
               conversationId: convId,
@@ -214,9 +214,7 @@ export class ChatService {
       selected.push({ role: msg.role, content: msg.content });
     }
 
-    // 恢复时间顺序（最早的在前），再追加当前消息
-    result.push(...selected.reverse());
-    result.push(userMsg);
+    result.push(...selected.toReversed(), userMsg);
     return result;
   }
 

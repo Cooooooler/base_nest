@@ -7,14 +7,7 @@ export interface ValidationError {
   message: string;
 }
 
-export function validateGraph(graph: WorkflowGraph): void {
-  const errors: ValidationError[] = [];
-  const { nodes, edges } = graph;
-
-  if (!nodes || nodes.length === 0) {
-    throw new BadRequestException('Nodes array must not be empty');
-  }
-
+function validateNodeCount(nodes: WorkflowNode[], errors: ValidationError[]): void {
   const starts = nodes.filter((n) => n.type === 'start');
   if (starts.length !== 1) {
     errors.push({
@@ -30,7 +23,9 @@ export function validateGraph(graph: WorkflowGraph): void {
       message: `Must have exactly one end node, found ${ends.length}`,
     });
   }
+}
 
+function validateNodeIds(nodes: WorkflowNode[], errors: ValidationError[]): void {
   const ids = nodes.map((n) => n.id);
   if (new Set(ids).size !== ids.length) {
     errors.push({ field: 'nodes', message: 'Node IDs must be unique' });
@@ -41,8 +36,13 @@ export function validateGraph(graph: WorkflowGraph): void {
       errors.push({ field: `nodes.${node.id}.type`, message: `Invalid node type: ${node.type}` });
     }
   }
+}
 
-  const idSet = new Set(ids);
+function validateEdgeRefs(
+  edges: WorkflowEdge[],
+  idSet: Set<string>,
+  errors: ValidationError[]
+): void {
   for (const edge of edges) {
     if (!idSet.has(edge.source)) {
       errors.push({
@@ -57,20 +57,43 @@ export function validateGraph(graph: WorkflowGraph): void {
       });
     }
   }
+}
 
+function validateConditionEdges(
+  nodes: WorkflowNode[],
+  edges: WorkflowEdge[],
+  errors: ValidationError[]
+): void {
   for (const node of nodes) {
-    if (node.type === 'condition') {
-      const outEdges = edges.filter((e) => e.source === node.id);
-      for (const edge of outEdges) {
-        if (!edge.sourceHandle) {
-          errors.push({
-            field: `edges.${edge.id}.sourceHandle`,
-            message: 'Condition node edges must have sourceHandle',
-          });
-        }
+    if (node.type !== 'condition') continue;
+    const outEdges = edges.filter((e) => e.source === node.id);
+    for (const edge of outEdges) {
+      if (!edge.sourceHandle) {
+        errors.push({
+          field: `edges.${edge.id}.sourceHandle`,
+          message: 'Condition node edges must have sourceHandle',
+        });
       }
     }
   }
+}
+
+export function validateGraph(graph: WorkflowGraph): void {
+  const errors: ValidationError[] = [];
+  const { nodes, edges } = graph;
+
+  if (!nodes || nodes.length === 0) {
+    throw new BadRequestException('Nodes array must not be empty');
+  }
+
+  validateNodeCount(nodes, errors);
+
+  validateNodeIds(nodes, errors);
+
+  const idSet = new Set(nodes.map((n) => n.id));
+  validateEdgeRefs(edges, idSet, errors);
+
+  validateConditionEdges(nodes, edges, errors);
 
   try {
     topologicalSort(nodes, edges);
@@ -89,7 +112,7 @@ export function validateGraph(graph: WorkflowGraph): void {
   }
 }
 
-export function topologicalSort(nodes: WorkflowNode[], edges: WorkflowEdge[]): string[][] {
+function buildGraph(nodes: WorkflowNode[], edges: WorkflowEdge[]) {
   const inDegree: Record<string, number> = {};
   const adjList: Record<string, string[]> = {};
 
@@ -105,6 +128,12 @@ export function topologicalSort(nodes: WorkflowNode[], edges: WorkflowEdge[]): s
       inDegree[e.target]++;
     }
   }
+
+  return { adjList, inDegree };
+}
+
+export function topologicalSort(nodes: WorkflowNode[], edges: WorkflowEdge[]): string[][] {
+  const { adjList, inDegree } = buildGraph(nodes, edges);
 
   const layers: string[][] = [];
   let queue = nodes.filter((n) => inDegree[n.id] === 0).map((n) => n.id);

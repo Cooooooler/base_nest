@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, type ReactNode, useContext } from 'react';
+import { createContext, type ReactNode, useContext, useMemo } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -31,17 +31,24 @@ interface NodePanelProps {
  * Does NOT close on outside click — only the close button or parent control.
  */
 export function NodePanel({ open, onClose, children, className }: NodePanelProps) {
+  const contextValue = useMemo(() => ({ onClose }), [onClose]);
+
   if (!open) return null;
 
   return (
-    <NodePanelContext.Provider value={{ onClose }}>
+    <NodePanelContext.Provider value={contextValue}>
       <div
         className={cn(
           'absolute right-0 top-0 z-50 flex h-full w-100 flex-col overflow-auto rounded-l-xl bg-popover bg-clip-padding text-sm text-popover-foreground shadow-lg',
           className
         )}
+        role='dialog'
+        aria-label='Node configuration panel'
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          if (e.key === 'Escape') onClose();
+        }}
       >
         {children}
       </div>

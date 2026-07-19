@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 import { LessThanOrEqual, Repository } from 'typeorm';
 import { BlacklistedToken } from './entities/blacklisted-token.entity';
 

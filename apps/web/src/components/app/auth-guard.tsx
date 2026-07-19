@@ -5,9 +5,9 @@ import { useMount } from 'ahooks';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-const publicPaths = ['/login', '/register'];
+const publicPaths = new Set(['/login', '/register']);
 
-export function AuthGuard({ children }: { children: React.ReactNode }) {
+export function AuthGuard({ children }: Readonly<{ children: React.ReactNode }>) {
   const [hydrated, setHydrated] = useState(false);
   const accessToken = useAuthStore((s) => s.accessToken);
   const router = useRouter();
@@ -18,22 +18,22 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
       setHydrated(true);
       return;
     }
-    const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
-    return unsub;
+
+    return useAuthStore.persist.onFinishHydration(() => setHydrated(true));
   });
 
   useEffect(() => {
     if (!hydrated) return;
-    if (!accessToken && !publicPaths.includes(pathname)) {
+    if (!accessToken && !publicPaths.has(pathname)) {
       router.replace('/login');
     }
-    if (accessToken && publicPaths.includes(pathname)) {
+    if (accessToken && publicPaths.has(pathname)) {
       router.replace('/');
     }
   }, [hydrated, accessToken, pathname, router]);
 
   if (!hydrated) return null;
-  if (!accessToken && !publicPaths.includes(pathname)) return null;
+  if (!accessToken && !publicPaths.has(pathname)) return null;
 
   return <>{children}</>;
 }
