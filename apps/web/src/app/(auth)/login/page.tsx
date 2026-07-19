@@ -59,7 +59,7 @@ export default function LoginPage() {
   return (
     <div className='flex min-h-screen items-center justify-center p-4'>
       <FadeIn direction='up'>
-        <Card className='min-w-96 max-w-sm'>
+        <Card className='min-w-96'>
           <CardHeader className='space-y-1 text-center'>
             <div className='mb-2 flex justify-center'>
               <div className='flex size-10 items-center justify-center rounded-lg bg-primary'>

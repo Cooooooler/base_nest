@@ -5,28 +5,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```sh
-pnpm run build           # Build with nest build
-pnpm run start:dev       # Start in watch mode (hot-reload)
-pnpm run start:debug     # Start with debugger + watch
-pnpm run start:prod      # Run compiled dist/main.js
-pnpm run format          # Prettier: src/ test/ and *.json
-pnpm run lint            # ESLint with --fix
-pnpm run test            # Unit tests (Jest, *.spec.ts)
-pnpm run test:cov        # Unit tests with coverage
-pnpm run test:e2e        # E2E tests (test/jest-e2e.json)
-pnpm run test:watch      # Unit tests in watch mode
+pnpm run build           # Turbo build (all packages)
+pnpm run dev             # Turbo dev (all packages in parallel)
+pnpm run start:dev       # API only: Nest watch mode (hot-reload)
+pnpm run start:debug     # API only: debugger + watch
+pnpm run start:prod      # API only: run compiled dist/main.js
+pnpm run format          # Prettier across all files
+pnpm run lint            # Turbo lint (all packages)
+pnpm run test            # Turbo test (all packages)
+pnpm run test:api        # API unit tests only
+pnpm run test:e2e        # API E2E tests (test/jest-e2e.json)
 pnpm run migration:run   # Run pending TypeORM migrations (needs DB)
 pnpm run migration:generate -- src/database/migrations/<name>  # Generate migration from entities
 pnpm run migration:revert # Revert last migration (needs DB)
+pnpm run clean           # Clean build artifacts
 ```
 
-Single test file: `pnpm run test -- app.controller.spec.ts`
-Single E2E test: `pnpm run test:e2e -- app.e2e-spec.ts`
+Single test file: `pnpm run test -- app.controller.spec.ts` (from `apps/api/`)
+Single E2E test: `pnpm run test:e2e -- app.e2e-spec.ts` (from `apps/api/`)
+Single frontend dev: `pnpm --filter @base/web dev` (port 3001)
+Single API dev: `pnpm --filter @base/api start:dev` (port 3000)
 
 ## Design Documents
 
 - [类 Dify AI 平台开发计划](docs/superpowers/specs/2026-06-13-dify-like-platform-design.md) — 6 阶段后端开发路线图（模型管理 → 知识库 → 对话应用 → 工作流引擎 → 应用发布 → 插件生态）
 - [前端开发计划](docs/superpowers/specs/2026-06-13-frontend-development-plan.md) — Next.js + Monorepo 前端配套方案，含 6 阶段页面设计、组件树、关键交互
+- [对话应用设计](docs/superpowers/specs/2026-06-18-chat-app-design.md)
+- [模型管理设计](docs/superpowers/specs/2026-06-18-model-management-design.md)
+- [RAG 来源引用设计](docs/superpowers/specs/2026-06-21-rag-source-citation-design.md)
+- [动画系统设计](docs/superpowers/specs/2026-07-05-animation-system-design.md)
+- [工作流引擎设计](docs/superpowers/specs/2026-07-05-workflow-engine-design.md)
 
 ## Architecture
 
@@ -42,11 +50,13 @@ Root scripts proxy to packages via `pnpm --filter` and `turbo` (see root `packag
 
 ### Backend Modules (`apps/api/src/`)
 
-- **AppModule** (`app.module.ts`) — root, imports ConfigModule, TypeOrmModule (entities: `User`, `BlacklistedToken`), UsersModule, AuthModule, ProvidersModule, KnowledgeModule, LocalAIModule. Global `ValidationPipe` with `{ whitelist: true, forbidNonWhitelisted: true, transform: true }`.
+- **AppModule** (`app.module.ts`) — root, imports ConfigModule, TypeOrmModule, UsersModule, AuthModule, ProvidersModule, LocalAIModule, ChatModule, KnowledgeModule, WorkflowModule. Global `ValidationPipe` (`whitelist: true, forbidNonWhitelisted: true, transform: true`). Global `ThrottlerGuard` (60 req/min). `ScheduleModule` + `EventEmitterModule` for scheduled/event-driven tasks.
 - **AuthModule** (`auth/`) — register (bcrypt + DB transaction), login, refresh (token rotation), logout (token blacklisting), `/auth/profile` (JWT-guarded). PassportStrategy with access token type validation + blacklist check.
 - **UsersModule** (`users/`) — CRUD on `User` entity (UUID PK, unique email, `@Exclude()` on password). Guarded write endpoints.
 - **ProvidersModule** (`providers/`) — LLM provider management: CRUD for `ModelProvider`, `Model`, `ApiKey` entities. Uses a **strategy pattern** (`providers/strategies/`) with implementations for OpenAI, Anthropic (Claude), Ollama, OpenAI-compatible, and LangChain Ollama. API keys encrypted at rest via AES-256-GCM (`ENCRYPTION_KEY` env var).
-- **KnowledgeModule** (`knowledge/`) — RAG pipeline: knowledge bases, document management, document chunking (`chunk-processor.service.ts`), retrieval (`retrieval.service.ts`), file storage (`storage/`). Uses ChromaDB as vector store and Ollama embeddings via `LocalAIModule`.
+- **ChatModule** (`chat/`) — App management (CRUD), conversation management, streaming chat (`ChatService` uses LangChain for model invocation). Endpoints: `/apps`, `/conversations`, `/chat/stream`.
+- **WorkflowModule** (`workflow/`) — DAG-based workflow engine: workflow CRUD, runs, node execution (`DagEngineService`). 8 node executors: Start, End, LLM, Code, Condition, HTTP Request, Knowledge Retrieval, Question Classifier. Endpoints: `/workflows`, `/workflows/:id/run`.
+- **KnowledgeModule** (`knowledge/`) — RAG pipeline: knowledge bases, document management, document chunking (`ChunkProcessorService`), retrieval (`RetrievalService`), file storage (`FileStorageService`). Uses ChromaDB as vector store and Ollama embeddings via `LocalAIModule`. Events: `DocumentProcessingListener` for async processing.
 - **LocalAIModule** (`common/local-ai.module.ts`) — Global `@Global()` module providing `EmbeddingsService` and `ChromaVectorStoreService` wired to local Ollama + ChromaDB instances.
 
 ### Global Response Format (`apps/api/src/common/`)
@@ -77,15 +87,35 @@ API keys are encrypted at rest using AES-256-GCM. Requires `ENCRYPTION_KEY` as a
 
 Next.js 15 app with App Router, Tailwind CSS v4, and shadcn/ui components.
 
-- **Pages**: Login/Register under `(auth)/`, dashboard under `(dashboard)/` with knowledge base and provider management views.
-- **API Client** (`src/api/client.ts`) — ky-based HTTP client with automatic Bearer token injection and 401 → refresh token rotation via `afterResponse` hooks. All responses unwrapped from `{ code, data, msg }` envelope.
-- **State Management**: Zustand (`src/store/`) + React Query for server state.
+- **Pages**: Login/Register under `(auth)/`, dashboard under `(dashboard)/` with knowledge base, provider management, app management, workflow editor, and settings views.
+- **API Client** (`src/api/client.ts`) — ky-based HTTP client with automatic Bearer token injection and 401 → refresh token rotation via `afterResponse` hooks. All responses unwrapped from `{ code, data, msg }` envelope. Includes `apiUpload` for multipart file uploads.
+- **State Management**: Zustand (`src/store/auth-store.ts`, `src/store/sidebar-store.ts`) for client state (auth tokens, sidebar visibility), React Query (`@tanstack/react-query`) for server state via hooks in `src/hooks/` (`use-chat.ts`, `use-providers.ts`, `use-knowledge.ts`, `use-chat-stream.ts`).
 - **UI**: shadcn/ui components in `src/components/ui/`, app-level components (sidebar, auth guard, providers wrapper) in `src/components/app/`.
+- **Animated components** (`src/components/animated/`): `FadeIn`, `StaggerList` for page transitions using framer-motion-style spring animations.
+- **Workflow Editor**: `@xyflow/react` (React Flow v12) based canvas with custom nodes, minimap, and controls in `src/components/workflow/`.
 - **Styling**: Tailwind CSS v4 (`tailwindcss`), `tw-animate-css`, `next-themes` for dark mode.
+- **Dev server**: port 3001 (`pnpm --filter @base/web dev`).
+
+### Workflow Engine (`apps/api/src/workflow/`)
+
+DAG-based workflow engine with a directed acyclic graph execution model:
+
+- **Entities**: `Workflow` (definition with nodes/edges JSON), `WorkflowRun` (execution instance with status/run_id), `WorkflowNodeExecution` (per-node execution state).
+- **DagEngineService** (`engine/dag-engine.service.ts`) — orchestrates DAG execution: topological sort, node dispatch, cycle detection, error handling, retry logic.
+- **Node Executors** (`engine/executor/`) — each node type has a dedicated executor:
+  - `StartNodeExecutor` / `EndNodeExecutor` — entry/exit
+  - `LLMNodeExecutor` — LLM inference via configured provider
+  - `CodeNodeExecutor` — sandboxed code execution
+  - `ConditionNodeExecutor` — branching logic
+  - `HttpRequestNodeExecutor` — external API calls
+  - `KnowledgeRetrievalNodeExecutor` — RAG retrieval
+  - `QuestionClassifierNodeExecutor` — routing/classification
+- **Controllers**: `WorkflowController` (CRUD), `RunController` (execution trigger/status).
+- **Frontend**: React Flow v12 canvas in `apps/web/src/components/workflow/` with shadcn-based node config panels.
 
 ### Shared Types (`packages/shared/src/types/`)
 
-TypeScript types shared between frontend and backend: `api.ts` (generic `ApiResponse<T>`), `auth.ts`, `knowledge.ts`, `provider.ts`.
+TypeScript types shared between frontend and backend: `api.ts` (generic `ApiResponse<T>`), `auth.ts`, `knowledge.ts`, `provider.ts`, `chat.ts` (App, Conversation, Message interfaces).
 
 ## Testing Patterns
 

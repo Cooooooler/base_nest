@@ -1,6 +1,6 @@
 'use client';
 
-import { Brain, Code, Database, GitBranch, Globe, Hash, Plus } from 'lucide-react';
+import { Brain, Code, Database, GitBranch, Globe, Hash, Plus, TextCursorInput } from 'lucide-react';
 import type { DragEvent, FC } from 'react';
 
 import { NODE_COLORS, NODE_DESCRIPTIONS, NODE_LABELS } from './nodes/constants';
@@ -19,6 +19,7 @@ const NODE_ICONS: Record<string, typeof Brain> = {
   http_request: Globe,
   knowledge_retrieval: Database,
   question_classifier: Hash,
+  user_input: TextCursorInput,
 };
 
 export const NodePalette: FC<Props> = ({ onSelect, activeType }) => {

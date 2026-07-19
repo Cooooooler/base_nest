@@ -7,9 +7,9 @@ import {
   type Edge,
   MiniMap,
   type Node,
+  type NodeChange,
   type NodeTypes,
   type OnConnect,
-  type OnSelectionChangeParams,
   Panel,
   ReactFlow,
   type ReactFlowInstance,
@@ -17,6 +17,7 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { useDebounceEffect } from 'ahooks';
 import { useParams, useRouter } from 'next/navigation';
 import { DragEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
@@ -94,12 +95,49 @@ export default function WorkflowEditPage() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
+  // ---- suppress select during drag ----
+  const dragOccurred = useRef(false);
+
   // UI state
   const [name, setName] = useState('');
   const [debugResult, setDebugResult] = useState<any>(null);
   const [configOpen, setConfigOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  // Synced ref so handleNodesChange can read panel state without recreating.
+  const panelOpenRef = useRef(false);
+  useEffect(() => {
+    panelOpenRef.current = configOpen && !!selectedNode;
+  }, [configOpen, selectedNode]);
   const initialized = useRef(false);
+
+  // ---- auto-save state ----
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+  const prevGraphRef = useRef<string>('');
+
+  // ---- auto-save: debounce 2s after graph changes (ahooks) ----
+  useDebounceEffect(
+    () => {
+      if (nodes.length === 0) return;
+
+      const graphKey = JSON.stringify({
+        nodes: nodes.map(convertFromFlowNode),
+        edges: edges.map(convertFromFlowEdge),
+      });
+      if (graphKey === prevGraphRef.current) return;
+      prevGraphRef.current = graphKey;
+
+      workflowApi
+        .update(params.id as string, {
+          name,
+          graph: JSON.parse(graphKey),
+        })
+        .then(() => setLastSavedAt(new Date()))
+        .catch((err) => console.error('Auto-save failed:', err));
+    },
+    [nodes, edges, name, params.id],
+    { wait: 2000 }
+  );
 
   // ---- pending node state (Dify-style click to place) ----
   const [pendingNodeType, setPendingNodeType] = useState<string | null>(null);
@@ -138,6 +176,7 @@ export default function WorkflowEditPage() {
       .get(params.id as string)
       .then((wf) => {
         setName(wf.name);
+        setLastSavedAt(new Date(wf.updatedAt));
         setNodes((wf.graph.nodes || []).map((n) => convertToFlowNode(n)));
         setEdges(
           (wf.graph.edges || []).map((e) => ({
@@ -152,6 +191,59 @@ export default function WorkflowEditPage() {
         console.error('Failed to load workflow', err);
       });
   }, [params.id, setNodes, setEdges]);
+
+  // ---- node click/drag handling ----
+  // Track drag state: React Flow may fire onNodeClick synchronously
+  // after a drag. We suppress it and schedule a flag clear for the next click.
+
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      if (dragOccurred.current) {
+        dragOccurred.current = false; // consume the flag for next click
+        return;
+      }
+      if (node.data?.nodeType === 'start' || node.data?.nodeType === 'end') return;
+      // When panel is open, handleNodesChange blocks all React Flow select changes,
+      // so we must manage visual selection explicitly.
+      setSelectedNode(node);
+      setConfigOpen(true);
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          selected: n.id === node.id,
+        }))
+      );
+    },
+    [setNodes]
+  );
+
+  // Intercept NodeChange to protect the panel-open node's selection state.
+  // When the config panel is open, suppress ALL select changes from React Flow
+  // — whether triggered by click, drag, or internal selection management.
+  // Selection is managed exclusively through onNodeClick.
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      if (panelOpenRef.current) {
+        changes = changes.filter((c) => c.type !== 'select');
+      }
+      onNodesChange(changes);
+    },
+    [onNodesChange]
+  );
+
+  const onNodeDragStart = useCallback(() => {
+    dragOccurred.current = true;
+  }, []);
+
+  const onNodeDragStop = useCallback(() => {
+    setTimeout(() => {
+      dragOccurred.current = false;
+    }, 0);
+  }, []);
+
+  const onPaneClick = useCallback(() => {
+    // Do nothing — the panel is only closed via its own close button.
+  }, []);
 
   // ---- connection handler ----
   const onConnect: OnConnect = useCallback(
@@ -183,20 +275,6 @@ export default function WorkflowEditPage() {
     [nodes, setEdges]
   );
 
-  // ---- selection handler (track selection, don't open panel) ----
-  const onSelectionChange = useCallback(({ nodes: selectedNodes }: OnSelectionChangeParams) => {
-    if (selectedNodes.length === 1) {
-      setSelectedNode(selectedNodes[0]);
-    } else {
-      setSelectedNode(null);
-    }
-  }, []);
-
-  const onNodeDoubleClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    setSelectedNode(node);
-    setConfigOpen(true);
-  }, []);
-
   // ---- keyboard handler (Delete key) ----
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
@@ -213,6 +291,9 @@ export default function WorkflowEditPage() {
         setNodes((nds) => nds.filter((n) => !n.selected));
         setEdges((eds) =>
           eds.filter((e) => {
+            // Remove selected edges directly
+            if (e.selected) return false;
+            // Also remove edges connected to selected nodes
             const anyNodeSelected = nodes.some(
               (n) => n.selected && (n.id === e.source || n.id === e.target)
             );
@@ -349,7 +430,20 @@ export default function WorkflowEditPage() {
     <div className='h-[calc(100vh-60px)] flex flex-col' onKeyDown={onKeyDown} tabIndex={-1}>
       {/* ---- Header bar ---- */}
       <div className='flex items-center justify-between bg-background shrink-0 mb-4'>
-        <h2 className='text-lg font-semibold'>{name}</h2>
+        <h2 className='text-lg font-semibold'>
+          {name}
+          {lastSavedAt && (
+            <span className='text-xs text-muted-foreground ml-3'>
+              上次保存：
+              {lastSavedAt.toLocaleTimeString('zh-CN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+              })}
+            </span>
+          )}
+        </h2>
+
         <div className='flex items-center gap-2'>
           <Button variant='secondary' onClick={handleDebug}>
             调试运行
@@ -371,11 +465,13 @@ export default function WorkflowEditPage() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
+          onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onSelectionChange={onSelectionChange}
-          onNodeDoubleClick={onNodeDoubleClick}
+          onNodeClick={onNodeClick}
+          onNodeDragStart={onNodeDragStart}
+          onNodeDragStop={onNodeDragStop}
+          onPaneClick={onPaneClick}
           onDragOver={onDragOver}
           onDrop={onDrop}
           onInit={(instance) => {
@@ -403,7 +499,7 @@ export default function WorkflowEditPage() {
             style={{ left: ghostPos.x, top: ghostPos.y, opacity: 0.7 }}
           >
             <div
-              className='px-3 py-2 rounded-lg text-sm font-medium min-w-[100px] text-center shadow-lg border-2 border-dashed'
+              className='px-3 py-2 rounded-lg text-sm font-medium min-w-25 text-center shadow-lg border-2 border-dashed'
               style={{
                 background: (NODE_COLORS[pendingNodeType] ?? { bg: '#f5f5f5' }).bg,
                 borderColor: (NODE_COLORS[pendingNodeType] ?? { border: '#d9d9d9' }).border,
@@ -414,7 +510,7 @@ export default function WorkflowEditPage() {
           </div>
         )}
       </div>
-      {/* Node Config Panel (Sheet drawer) */}
+      {/* Node Config Panel inside the flow container */}
       {selectedNodeData && (
         <NodeConfigPanel
           open={configOpen}

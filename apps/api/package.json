@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "nest build",
+    "dev": "nest start --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
     "migration:generate": "nest build && typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts src/database/migrations/migration",
