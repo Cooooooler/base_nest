@@ -39,3 +39,4 @@ jobs:
           use-annotations: true
           upload-result: false
           push-fixes: 'none'
+          args: --property=idea.suppressed.plugins.id=com.intellij.gradle

@@ -220,4 +220,6 @@ failureConditions:
     high: 30
 
 # Free community linter — no QODANA_TOKEN required
+# Suppress Gradle plugin to avoid node_modules/react-native-gradle-plugin
+# build failures in a pure JS/TS project.
 linter: jetbrains/qodana-jvm-community:2026.1
