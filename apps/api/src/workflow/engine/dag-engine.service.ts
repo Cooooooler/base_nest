@@ -1,20 +1,14 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { WorkflowNodeExecution } from '../entities/workflow-node-execution.entity';
 import { WorkflowRun } from '../entities/workflow-run.entity';
 import { Workflow, WorkflowEdge, WorkflowNode } from '../entities/workflow.entity';
 import { ContextService } from './context.service';
-import { CodeNodeExecutor } from './executor/code-node.executor';
-import { ConditionNodeExecutor } from './executor/condition-node.executor';
-import { EndNodeExecutor } from './executor/end-node.executor';
-import { HttpRequestNodeExecutor } from './executor/http-request-node.executor';
-import { KnowledgeRetrievalNodeExecutor } from './executor/knowledge-retrieval-node.executor';
-import { LLMNodeExecutor } from './executor/llm-node.executor';
 import { NodeExecutor } from './executor/node-executor.interface';
-import { QuestionClassifierNodeExecutor } from './executor/question-classifier-node.executor';
-import { StartNodeExecutor } from './executor/start-node.executor';
 import { topologicalSort, validateGraph } from './graph-validator';
+
+export const ALL_EXECUTORS = 'ALL_EXECUTORS';
 
 @Injectable()
 export class DagEngineService {
@@ -26,26 +20,10 @@ export class DagEngineService {
     private readonly runRepo: Repository<WorkflowRun>,
     @InjectRepository(WorkflowNodeExecution)
     private readonly nodeExecRepo: Repository<WorkflowNodeExecution>,
-    startNodeExecutor: StartNodeExecutor,
-    endNodeExecutor: EndNodeExecutor,
-    llmNodeExecutor: LLMNodeExecutor,
-    codeNodeExecutor: CodeNodeExecutor,
-    conditionNodeExecutor: ConditionNodeExecutor,
-    httpRequestNodeExecutor: HttpRequestNodeExecutor,
-    knowledgeRetrievalNodeExecutor: KnowledgeRetrievalNodeExecutor,
-    questionClassifierNodeExecutor: QuestionClassifierNodeExecutor
+    @Inject(ALL_EXECUTORS) executors: NodeExecutor[]
   ) {
     this.executorMap = new Map<string, NodeExecutor>();
-    for (const exec of [
-      startNodeExecutor,
-      endNodeExecutor,
-      llmNodeExecutor,
-      codeNodeExecutor,
-      conditionNodeExecutor,
-      httpRequestNodeExecutor,
-      knowledgeRetrievalNodeExecutor,
-      questionClassifierNodeExecutor,
-    ]) {
+    for (const exec of executors) {
       this.executorMap.set(exec.type, exec);
     }
   }
@@ -210,7 +188,7 @@ export class DagEngineService {
     while (queue.length > 0) {
       const targetId = queue.shift()!;
       const existing = nodeExecutions.find((e) => e.nodeId === targetId);
-      if (existing && existing.status === 'pending') {
+      if (existing?.status === 'pending') {
         existing.status = 'skipped';
       }
       queue.push(...edges.filter((e) => e.source === targetId).map((e) => e.target));

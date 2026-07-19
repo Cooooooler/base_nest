@@ -53,7 +53,9 @@ const COMPONENTS: Components = {
   code: ({ className, children, ...props }) => {
     const match = /language-(\w+)/.exec(className || '');
     const isInline = !match && !className;
-    const codeString = String(children).replace(/\n$/, '');
+    const codeString = Array.isArray(children)
+      ? children.join('')
+      : String(children ?? '').replace(/\n$/, '');
 
     if (isInline) {
       return (

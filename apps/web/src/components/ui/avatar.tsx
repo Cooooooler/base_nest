@@ -9,9 +9,11 @@ function Avatar({
   className,
   size = 'default',
   ...props
-}: AvatarPrimitive.Root.Props & {
-  size?: 'default' | 'sm' | 'lg';
-}) {
+}: Readonly<
+  AvatarPrimitive.Root.Props & {
+    size?: 'default' | 'sm' | 'lg';
+  }
+>) {
   return (
     <AvatarPrimitive.Root
       data-slot='avatar'
@@ -25,7 +27,7 @@ function Avatar({
   );
 }
 
-function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
+function AvatarImage({ className, ...props }: Readonly<AvatarPrimitive.Image.Props>) {
   return (
     <AvatarPrimitive.Image
       data-slot='avatar-image'
@@ -35,7 +37,7 @@ function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
   );
 }
 
-function AvatarFallback({ className, ...props }: AvatarPrimitive.Fallback.Props) {
+function AvatarFallback({ className, ...props }: Readonly<AvatarPrimitive.Fallback.Props>) {
   return (
     <AvatarPrimitive.Fallback
       data-slot='avatar-fallback'

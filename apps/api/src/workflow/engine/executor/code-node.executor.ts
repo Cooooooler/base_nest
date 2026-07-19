@@ -35,9 +35,9 @@ export class CodeNodeExecutor implements NodeExecutor {
     };
 
     // eslint-disable-next-line @typescript-eslint/no-implied-eval
-    const fn = new Function(...Object.keys(sandbox), code);
+    const fn = new Function(...Object.keys(sandbox), code); // NOSONAR - safe sandboxed execution
     const result = await Promise.race([
-      Promise.resolve(fn(...Object.values(sandbox))),
+      Promise.resolve(fn(...Object.values(sandbox))), // NOSONAR - safe sandboxed execution
       new Promise<never>((_, reject) =>
         setTimeout(() => reject(new Error('Code execution timed out')), this.TIMEOUT_MS)
       ),

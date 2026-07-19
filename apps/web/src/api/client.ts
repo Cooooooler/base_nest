@@ -99,6 +99,31 @@ export async function apiClient<T>(path: string, options: KyOptions = {}): Promi
   return data.data as T;
 }
 
+async function retryWithRefresh(
+  path: string,
+  headers: Record<string, string>,
+  formData: FormData
+): Promise<{ data: ApiResponse<unknown>; status: number } | null> {
+  const refreshToken = getRefreshToken();
+  if (!refreshToken) return null;
+
+  try {
+    const refreshRes = await ky
+      .post(`${API_BASE}/auth/refresh`, { json: { refreshToken } })
+      .json<ApiResponse<{ accessToken: string; refreshToken: string }>>();
+
+    if (refreshRes.code !== 1 || !refreshRes.data) return null;
+
+    setTokens(refreshRes.data.accessToken, refreshRes.data.refreshToken);
+    headers['Authorization'] = `Bearer ${refreshRes.data.accessToken}`;
+    const retryRes = await ky.post(`${API_BASE}${path}`, { body: formData, headers });
+    const retryData: ApiResponse<unknown> = await retryRes.json();
+    return { data: retryData, status: retryRes.status };
+  } catch {
+    return null;
+  }
+}
+
 export async function apiUpload<T>(path: string, file: File): Promise<T> {
   const formData = new FormData();
   formData.append('file', file);
@@ -115,27 +140,11 @@ export async function apiUpload<T>(path: string, file: File): Promise<T> {
   });
 
   if (response.status === 401) {
-    const refreshToken = getRefreshToken();
-    if (refreshToken) {
-      try {
-        const refreshRes = await ky
-          .post(`${API_BASE}/auth/refresh`, {
-            json: { refreshToken },
-          })
-          .json<ApiResponse<{ accessToken: string; refreshToken: string }>>();
-
-        if (refreshRes.code === 1 && refreshRes.data) {
-          setTokens(refreshRes.data.accessToken, refreshRes.data.refreshToken);
-          headers['Authorization'] = `Bearer ${refreshRes.data.accessToken}`;
-          const retryRes = await ky.post(`${API_BASE}${path}`, { body: formData, headers });
-          const retryData: ApiResponse<T> = await retryRes.json();
-          if (retryData.code !== 1)
-            throw new ApiError(retryRes.status, retryData.code, retryData.msg || 'Upload failed');
-          return retryData.data as T;
-        }
-      } catch {
-        // retry failed
-      }
+    const retried = await retryWithRefresh(path, headers, formData);
+    if (retried) {
+      if (retried.data.code !== 1)
+        throw new ApiError(retried.status, retried.data.code, retried.data.msg || 'Upload failed');
+      return retried.data.data as T;
     }
     clearTokens();
   }

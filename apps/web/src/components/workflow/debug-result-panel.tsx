@@ -2,6 +2,19 @@
 
 import type { FC } from 'react';
 
+function getStatusClass(status: string): string {
+  if (status === 'succeeded') return 'bg-green-100 text-green-700';
+  if (status === 'failed') return 'bg-red-100 text-red-700';
+  return 'bg-blue-100 text-blue-700';
+}
+
+function getDotColor(status: string): string {
+  if (status === 'succeeded') return 'bg-green-500';
+  if (status === 'failed') return 'bg-red-500';
+  if (status === 'skipped') return 'bg-gray-300';
+  return 'bg-blue-400';
+}
+
 interface NodeExecutionData {
   nodeId: string;
   nodeType: string;
@@ -20,12 +33,7 @@ interface Props {
 }
 
 export const DebugResultPanel: FC<Props> = ({ status, outputs, nodeExecutions, onClose }) => {
-  const statusBadge =
-    status === 'succeeded'
-      ? 'bg-green-100 text-green-700'
-      : status === 'failed'
-        ? 'bg-red-100 text-red-700'
-        : 'bg-blue-100 text-blue-700';
+  const statusBadge = getStatusClass(status);
 
   return (
     <div className='border-t bg-muted/30 max-h-[40vh] overflow-auto'>
@@ -34,7 +42,11 @@ export const DebugResultPanel: FC<Props> = ({ status, outputs, nodeExecutions, o
           <h3 className='font-semibold text-sm'>调试结果</h3>
           <span className={`px-2 py-0.5 rounded text-xs ${statusBadge}`}>{status}</span>
         </div>
-        <button onClick={onClose} className='text-xs text-muted-foreground hover:text-foreground'>
+        <button
+          type='button'
+          onClick={onClose}
+          className='text-xs text-muted-foreground hover:text-foreground'
+        >
           关闭
         </button>
       </div>
@@ -58,15 +70,7 @@ export const DebugResultPanel: FC<Props> = ({ status, outputs, nodeExecutions, o
               <details key={`${ne.nodeId}-${i}`} className='text-xs'>
                 <summary className='flex items-center gap-2 cursor-pointer p-1 hover:bg-muted rounded'>
                   <span
-                    className={`w-2 h-2 rounded-full flex-shrink-0 ${
-                      ne.status === 'succeeded'
-                        ? 'bg-green-500'
-                        : ne.status === 'failed'
-                          ? 'bg-red-500'
-                          : ne.status === 'skipped'
-                            ? 'bg-gray-300'
-                            : 'bg-blue-400'
-                    }`}
+                    className={`w-2 h-2 rounded-full flex-shrink-0 ${getDotColor(ne.status)}`}
                   />
                   <span className='font-medium'>{ne.nodeId}</span>
                   <span className='text-muted-foreground'>({ne.nodeType})</span>

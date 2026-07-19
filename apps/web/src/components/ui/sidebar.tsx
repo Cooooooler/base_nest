@@ -271,6 +271,7 @@ function SidebarRail({ className, ...props }: React.ComponentProps<'button'>) {
 
   return (
     <button
+      type='button'
       data-sidebar='rail'
       data-slot='sidebar-rail'
       aria-label='Toggle Sidebar'
@@ -337,7 +338,10 @@ function SidebarFooter({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function SidebarSeparator({ className, ...props }: React.ComponentProps<typeof Separator>) {
+function SidebarSeparator({
+  className,
+  ...props
+}: Readonly<React.ComponentProps<typeof Separator>>) {
   return (
     <Separator
       data-slot='sidebar-separator'

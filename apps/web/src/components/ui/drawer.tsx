@@ -52,19 +52,19 @@ function Drawer({
   );
 }
 
-function DrawerTrigger({ ...props }: DrawerPrimitive.Trigger.Props) {
+function DrawerTrigger({ ...props }: Readonly<DrawerPrimitive.Trigger.Props>) {
   return <DrawerPrimitive.Trigger data-slot='drawer-trigger' {...props} />;
 }
 
-function DrawerPortal({ ...props }: DrawerPrimitive.Portal.Props) {
+function DrawerPortal({ ...props }: Readonly<DrawerPrimitive.Portal.Props>) {
   return <DrawerPrimitive.Portal data-slot='drawer-portal' {...props} />;
 }
 
-function DrawerClose({ ...props }: DrawerPrimitive.Close.Props) {
+function DrawerClose({ ...props }: Readonly<DrawerPrimitive.Close.Props>) {
   return <DrawerPrimitive.Close data-slot='drawer-close' {...props} />;
 }
 
-function DrawerOverlay({ className, ...props }: DrawerPrimitive.Backdrop.Props) {
+function DrawerOverlay({ className, ...props }: Readonly<DrawerPrimitive.Backdrop.Props>) {
   return (
     <DrawerPrimitive.Backdrop
       data-slot='drawer-overlay'
@@ -91,7 +91,7 @@ function DrawerSwipeHandle({ className, ...props }: React.ComponentProps<'div'>)
   );
 }
 
-function DrawerContent({ className, children, ...props }: DrawerPrimitive.Popup.Props) {
+function DrawerContent({ className, children, ...props }: Readonly<DrawerPrimitive.Popup.Props>) {
   const { hasSnapPoints, modal, showSwipeHandle, swipeDirection } = useDrawer();
   const swipeAxis = swipeDirection === 'down' || swipeDirection === 'up' ? 'y' : 'x';
 
@@ -174,7 +174,7 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function DrawerTitle({ className, ...props }: DrawerPrimitive.Title.Props) {
+function DrawerTitle({ className, ...props }: Readonly<DrawerPrimitive.Title.Props>) {
   return (
     <DrawerPrimitive.Title
       data-slot='drawer-title'
@@ -184,7 +184,7 @@ function DrawerTitle({ className, ...props }: DrawerPrimitive.Title.Props) {
   );
 }
 
-function DrawerDescription({ className, ...props }: DrawerPrimitive.Description.Props) {
+function DrawerDescription({ className, ...props }: Readonly<DrawerPrimitive.Description.Props>) {
   return (
     <DrawerPrimitive.Description
       data-slot='drawer-description'

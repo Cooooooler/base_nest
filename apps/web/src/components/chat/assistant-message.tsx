@@ -19,7 +19,10 @@ const StreamingMarkdown = dynamic(
   { ssr: false }
 ) as React.ComponentType<{ content: string }>;
 
-export function AssistantMessage({ msg, streaming }: { msg: ChatMessage; streaming: boolean }) {
+export function AssistantMessage({
+  msg,
+  streaming,
+}: Readonly<{ msg: ChatMessage; streaming: boolean }>) {
   return (
     <>
       {/* 思考中提示 — 仅在没有 reasoning 也没有 content 的流式阶段 */}

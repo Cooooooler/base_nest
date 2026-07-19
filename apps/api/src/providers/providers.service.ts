@@ -215,7 +215,7 @@ export class ProvidersService {
         throw new NotFoundException('No API key found for this provider');
       }
 
-      const activeKey = provider.apiKeys.find((k) => k.isActive);
+      const activeKey = provider.apiKeys.some((k) => k.isActive);
       if (!activeKey) {
         throw new NotFoundException('No active API key found');
       }
@@ -240,6 +240,7 @@ export class ProvidersService {
   ): (model: string) => BaseChatModel {
     switch (type) {
       case 'openai':
+      case 'openai-compatible':
         return (model: string) =>
           new ChatOpenAI({ model, apiKey, configuration: { baseURL: baseUrl } });
       case 'anthropic':
@@ -247,9 +248,6 @@ export class ProvidersService {
           new ChatAnthropic({ model, apiKey, clientOptions: { baseURL: baseUrl } });
       case 'ollama':
         return (model: string) => new ChatOllama({ model, baseUrl });
-      case 'openai-compatible':
-        return (model: string) =>
-          new ChatOpenAI({ model, apiKey, configuration: { baseURL: baseUrl } });
       default:
         throw new Error(`Unsupported provider type: ${type}`);
     }

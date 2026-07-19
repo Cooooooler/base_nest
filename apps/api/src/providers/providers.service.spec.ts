@@ -175,6 +175,9 @@ describe('ProvidersService', () => {
   describe('deleteProvider', () => {
     it('should delete a provider', async () => {
       await service.deleteProvider(mockProvider.id, TEST_USER_ID);
+      expect(mockRepo.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: mockProvider.id, userId: TEST_USER_ID } })
+      );
     });
 
     it('should throw NotFoundException if provider not found', async () => {

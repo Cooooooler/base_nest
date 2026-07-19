@@ -7,23 +7,23 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { XIcon } from 'lucide-react';
 
-function Sheet({ ...props }: SheetPrimitive.Root.Props) {
+function Sheet({ ...props }: Readonly<SheetPrimitive.Root.Props>) {
   return <SheetPrimitive.Root data-slot='sheet' {...props} />;
 }
 
-function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
+function SheetTrigger({ ...props }: Readonly<SheetPrimitive.Trigger.Props>) {
   return <SheetPrimitive.Trigger data-slot='sheet-trigger' {...props} />;
 }
 
-function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
+function SheetClose({ ...props }: Readonly<SheetPrimitive.Close.Props>) {
   return <SheetPrimitive.Close data-slot='sheet-close' {...props} />;
 }
 
-function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
+function SheetPortal({ ...props }: Readonly<SheetPrimitive.Portal.Props>) {
   return <SheetPrimitive.Portal data-slot='sheet-portal' {...props} />;
 }
 
-function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
+function SheetOverlay({ className, ...props }: Readonly<SheetPrimitive.Backdrop.Props>) {
   return (
     <SheetPrimitive.Backdrop
       data-slot='sheet-overlay'
@@ -95,7 +95,7 @@ function SheetFooter({ className, ...props }: React.ComponentProps<'div'>) {
   );
 }
 
-function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
+function SheetTitle({ className, ...props }: Readonly<SheetPrimitive.Title.Props>) {
   return (
     <SheetPrimitive.Title
       data-slot='sheet-title'
@@ -105,7 +105,7 @@ function SheetTitle({ className, ...props }: SheetPrimitive.Title.Props) {
   );
 }
 
-function SheetDescription({ className, ...props }: SheetPrimitive.Description.Props) {
+function SheetDescription({ className, ...props }: Readonly<SheetPrimitive.Description.Props>) {
   return (
     <SheetPrimitive.Description
       data-slot='sheet-description'

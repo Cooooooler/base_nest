@@ -37,6 +37,7 @@ export const NodePalette: FC<Props> = ({ onSelect, activeType }) => {
         return (
           <button
             key={type}
+            type='button'
             draggable
             onDragStart={(e) => onDragStart(e, type)}
             onClick={(e) => {

@@ -35,7 +35,7 @@ export class ChromaVectorStoreService {
     embeddings?: Embeddings
   ): Promise<string[]> {
     const store = this.storeFor(embeddings);
-    return store.addDocuments(
+    return await store.addDocuments(
       docs.map((d) => ({
         pageContent: d.pageContent,
         metadata: d.metadata ?? {},
@@ -45,12 +45,12 @@ export class ChromaVectorStoreService {
 
   async similaritySearch(query: string, k: number = 4, embeddings?: Embeddings) {
     const store = this.storeFor(embeddings);
-    return store.similaritySearch(query, k);
+    return await store.similaritySearch(query, k);
   }
 
   async similaritySearchWithScore(query: string, k: number = 4, embeddings?: Embeddings) {
     const store = this.storeFor(embeddings);
-    return store.similaritySearchWithScore(query, k);
+    return await store.similaritySearchWithScore(query, k);
   }
 
   async deleteDocuments(ids: string[]): Promise<void> {
