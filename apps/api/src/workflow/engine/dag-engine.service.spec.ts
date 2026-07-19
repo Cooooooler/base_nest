@@ -127,6 +127,29 @@ describe('DagEngineService', () => {
     expect(run.outputs).toBeDefined();
   });
 
+  it('should execute workflow asynchronously', async () => {
+    const wf = fromPartial<Workflow>({
+      id: 'wf-async',
+      graph: {
+        nodes: [
+          { id: 'start', type: 'start', label: 'Start', position: { x: 0, y: 0 }, config: {} },
+          {
+            id: 'end',
+            type: 'end',
+            label: 'End',
+            position: { x: 100, y: 0 },
+            config: { output: 'done' },
+          },
+        ],
+        edges: [{ id: 'e1', source: 'start', target: 'end' }],
+      },
+    });
+
+    const run = await engine.executeWorkflow(wf, { q: 'test' }, 'api');
+    expect(run.status).toBe('running');
+    expect(run.triggeredBy).toBe('api');
+  });
+
   it('should handle workflow with condition node', async () => {
     const wf = fromPartial<Workflow>({
       id: 'wf-2',
@@ -199,5 +222,72 @@ describe('DagEngineService', () => {
     const { nodeExecutions } = await engine.executeWorkflowDebug(wf, {});
     expect(nodeExecutions).toHaveLength(4);
     expect(nodeExecutions.every((n) => n.status === 'succeeded')).toBe(true);
+  });
+
+  it('should fail workflow on executor error', async () => {
+    mockProvidersService.getProviderClient.mockRejectedValueOnce(new Error('Provider unavailable'));
+    const wf = fromPartial<Workflow>({
+      id: 'wf-err',
+      graph: {
+        nodes: [
+          { id: 'start', type: 'start', label: 'Start', position: { x: 0, y: 0 }, config: {} },
+          {
+            id: 'bad',
+            type: 'llm',
+            label: 'Bad',
+            position: { x: 100, y: 0 },
+            config: { providerId: 'p1', model: 'gpt-4o', prompt: 'hi' },
+          },
+          {
+            id: 'end',
+            type: 'end',
+            label: 'End',
+            position: { x: 200, y: 0 },
+            config: { output: 'done' },
+          },
+        ],
+        edges: [
+          { id: 'e1', source: 'start', target: 'bad' },
+          { id: 'e2', source: 'bad', target: 'end' },
+        ],
+      },
+    });
+
+    const { run, nodeExecutions } = await engine.executeWorkflowDebug(wf, {});
+    expect(run.status).toBe('failed');
+    expect(nodeExecutions.find((n) => n.nodeId === 'bad')?.status).toBe('failed');
+  });
+
+  it('should handle condition node with no matching edge', async () => {
+    const wf = fromPartial<Workflow>({
+      id: 'wf-cond-nomatch',
+      graph: {
+        nodes: [
+          { id: 'start', type: 'start', label: 'Start', position: { x: 0, y: 0 }, config: {} },
+          {
+            id: 'cond',
+            type: 'condition',
+            label: 'Condition',
+            position: { x: 100, y: 0 },
+            config: { expression: '1 > 2' },
+          },
+          {
+            id: 'end',
+            type: 'end',
+            label: 'End',
+            position: { x: 200, y: 0 },
+            config: { output: 'done' },
+          },
+        ],
+        edges: [
+          { id: 'e1', source: 'start', target: 'cond' },
+          // Only a 'true' edge, but expression evaluates to false
+          { id: 'e2', source: 'cond', target: 'end', sourceHandle: 'true' },
+        ],
+      },
+    });
+
+    const { run } = await engine.executeWorkflowDebug(wf, {});
+    expect(run.status).toBe('succeeded');
   });
 });
