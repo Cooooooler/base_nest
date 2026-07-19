@@ -72,3 +72,6 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 /apps/api/storage/
 /apps/api/coverage/
 /.superpowers/
+/apps/web/coverage/
+/apps/web/playwright-report/
+/apps/web/test-results/

@@ -1,4 +1,6 @@
-import { renderHook, act, waitFor } from '@testing-library/react';import { useChatStream } from './use-chat-stream';
+import type { ChatChunk } from '@/api/chat';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import { useChatStream } from './use-chat-stream';
 
 // mock streamChat
 jest.mock('@/api/chat', () => ({
@@ -16,9 +18,9 @@ async function* makeStream(
     reasoning?: string;
     error?: string;
   }>
-) {
+): AsyncGenerator<ChatChunk> {
   for (const chunk of chunks) {
-    yield chunk;
+    yield chunk as ChatChunk;
     await Promise.resolve();
   }
 }
@@ -77,9 +79,9 @@ describe('useChatStream', () => {
 
   it('sets sending to true during transmission', async () => {
     // Use a delayed stream so intermediate state is observable
-    async function* delayedStream() {
+    async function* delayedStream(): AsyncGenerator<ChatChunk> {
       await new Promise((resolve) => setTimeout(resolve, 50));
-      yield { content: 'ok', isEnd: true };
+      yield { content: 'ok', isEnd: true } as ChatChunk;
     }
     mockStreamChat.mockReturnValue(delayedStream());
 

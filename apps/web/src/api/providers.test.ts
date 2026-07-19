@@ -1,5 +1,18 @@
-import { getProviders, getProvider, createProvider, deleteProvider, getProviderApiKeys, createApiKey, deleteApiKey, getProviderModels, createModel, updateModel, deleteModel, getPresetModels } from './providers';
 import { apiClient } from './client';
+import {
+  createApiKey,
+  createModel,
+  createProvider,
+  deleteApiKey,
+  deleteModel,
+  deleteProvider,
+  getPresetModels,
+  getProvider,
+  getProviderApiKeys,
+  getProviderModels,
+  getProviders,
+  updateModel,
+} from './providers';
 
 // ky 是纯 ESM 模块，mock 它以避免 Jest 解析错误
 jest.mock('ky', () => ({
@@ -14,7 +27,9 @@ jest.mock('./client', () => ({
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 
 describe('providers API', () => {
-  beforeEach(() => { mockApiClient.mockReset(); });
+  beforeEach(() => {
+    mockApiClient.mockReset();
+  });
 
   it('getProviders', async () => {
     mockApiClient.mockResolvedValue([]);
@@ -50,8 +65,11 @@ describe('providers API', () => {
 
   it('createApiKey', async () => {
     mockApiClient.mockResolvedValue({ id: 'k1', maskedKey: 'sk-****' });
-    await createApiKey('1', { name: 'My Key', key: 'sk-xxx' });
-    expect(mockApiClient).toHaveBeenCalledWith('/providers/1/keys', { method: 'POST', json: { name: 'My Key', key: 'sk-xxx' } });
+    await createApiKey('1', { name: 'My Key', apiKey: 'sk-xxx' });
+    expect(mockApiClient).toHaveBeenCalledWith('/providers/1/keys', {
+      method: 'POST',
+      json: { name: 'My Key', apiKey: 'sk-xxx' },
+    });
   });
 
   it('deleteApiKey', async () => {
@@ -68,14 +86,20 @@ describe('providers API', () => {
 
   it('createModel', async () => {
     mockApiClient.mockResolvedValue({ id: 'm1', name: 'gpt-4' });
-    await createModel('1', { name: 'gpt-4', model: 'gpt-4' });
-    expect(mockApiClient).toHaveBeenCalledWith('/providers/1/models', { method: 'POST', json: { name: 'gpt-4', model: 'gpt-4' } });
+    await createModel('1', { name: 'gpt-4', displayName: 'gpt-4' });
+    expect(mockApiClient).toHaveBeenCalledWith('/providers/1/models', {
+      method: 'POST',
+      json: { name: 'gpt-4', displayName: 'gpt-4' },
+    });
   });
 
   it('updateModel', async () => {
     mockApiClient.mockResolvedValue({ id: 'm1', name: 'gpt-4-turbo' });
     await updateModel('1', 'm1', { name: 'gpt-4-turbo' });
-    expect(mockApiClient).toHaveBeenCalledWith('/providers/1/models/m1', { method: 'PATCH', json: { name: 'gpt-4-turbo' } });
+    expect(mockApiClient).toHaveBeenCalledWith('/providers/1/models/m1', {
+      method: 'PATCH',
+      json: { name: 'gpt-4-turbo' },
+    });
   });
 
   it('deleteModel', async () => {

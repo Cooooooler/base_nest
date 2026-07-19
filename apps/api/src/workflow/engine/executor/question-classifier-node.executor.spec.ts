@@ -5,14 +5,16 @@ import { QuestionClassifierNodeExecutor } from './question-classifier-node.execu
 describe('QuestionClassifierNodeExecutor', () => {
   let executor: QuestionClassifierNodeExecutor;
   let mockProvidersService: jest.Mocked<ProvidersService>;
+  const mockChatFn = jest.fn().mockResolvedValue({
+    content: 'tech_support',
+    usage: { promptTokens: 10, completionTokens: 2, totalTokens: 12 },
+  });
 
   beforeEach(() => {
+    mockChatFn.mockClear();
     mockProvidersService = {
       getProviderClient: jest.fn().mockResolvedValue({
-        chat: jest.fn().mockResolvedValue({
-          content: 'tech_support',
-          usage: { promptTokens: 10, completionTokens: 2, totalTokens: 12 },
-        }),
+        chat: mockChatFn,
       }),
     } as any;
 
