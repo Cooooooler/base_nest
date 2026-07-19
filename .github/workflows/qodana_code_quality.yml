@@ -32,11 +32,13 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: 'Qodana Scan'
         uses: JetBrains/qodana-action@v2026.1.3
+        env:
+          QODANA_TOKEN: ${{ secrets.QODANA_TOKEN }}
         with:
           pr-mode: false
           use-caches: true
           post-pr-comment: true
           use-annotations: true
-          upload-result: false
+          upload-result: true
           push-fixes: 'none'
           args: --property=idea.suppressed.plugins.id=com.intellij.gradle
