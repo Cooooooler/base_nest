@@ -6,7 +6,7 @@ import { NodeExecutionResult, NodeExecutor } from './node-executor.interface';
 export class ConditionNodeExecutor implements NodeExecutor {
   readonly type = 'condition';
 
-  async execute(
+  execute(
     _nodeId: string,
     config: Record<string, any>,
     context: ContextService
@@ -15,10 +15,11 @@ export class ConditionNodeExecutor implements NodeExecutor {
     const expression = resolved.expression || 'true';
 
     try {
+      // eslint-disable-next-line @typescript-eslint/no-implied-eval
       const result = !!new Function('return ' + expression)();
-      return { outputs: { result } };
+      return Promise.resolve({ outputs: { result } });
     } catch {
-      return { outputs: { result: false } };
+      return Promise.resolve({ outputs: { result: false } });
     }
   }
 }

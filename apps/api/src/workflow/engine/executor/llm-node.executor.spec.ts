@@ -40,7 +40,8 @@ describe('LLMNodeExecutor', () => {
 
   it('should resolve variables in config', async () => {
     const ctx = new ContextService({ query: 'hello' });
-    const result = await executor.execute(
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const _result = await executor.execute(
       'llm_1',
       {
         providerId: 'prov-1',

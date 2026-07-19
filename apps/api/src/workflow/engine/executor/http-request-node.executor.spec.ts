@@ -9,7 +9,7 @@ describe('HttpRequestNodeExecutor', () => {
     jest
       .spyOn(globalThis, 'fetch')
       .mockImplementation((url: string | URL | Request, init?: RequestInit) => {
-        const urlStr = typeof url === 'string' ? url : url.toString();
+        const urlStr = url instanceof URL ? url.href : typeof url === 'string' ? url : '';
         const method = init?.method || 'GET';
         if (method === 'GET') {
           if (urlStr.includes('posts/1')) {

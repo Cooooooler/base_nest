@@ -6,7 +6,6 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -26,8 +25,7 @@ export class RunController {
   @ApiOperation({ summary: '执行工作流（异步）' })
   async execute(
     @Param('workflowId', ParseUUIDPipe) workflowId: string,
-    @Body() dto: ExecuteWorkflowDto,
-    @Req() _req: any
+    @Body() dto: ExecuteWorkflowDto
   ) {
     const run = await this.runService.execute(workflowId, dto.inputs);
     return { runId: run.id, status: run.status };
@@ -38,8 +36,7 @@ export class RunController {
   @ApiOperation({ summary: '调试执行工作流（同步返回全部中间结果）' })
   async executeDebug(
     @Param('workflowId', ParseUUIDPipe) workflowId: string,
-    @Body() dto: ExecuteWorkflowDto,
-    @Req() _req: any
+    @Body() dto: ExecuteWorkflowDto
   ) {
     const { run, nodeExecutions } = await this.runService.executeDebug(workflowId, dto.inputs);
     return {
