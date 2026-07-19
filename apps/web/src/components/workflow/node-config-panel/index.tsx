@@ -41,13 +41,13 @@ export const NodeConfigPanel: FC<NodeConfigPanelProps> = ({
 
   return (
     <NodePanel open={open} onClose={() => onOpenChange(false)}>
-      <NodePanelHeader>
-        <NodePanelLeftTitle>
+      <NodePanelHeader className='gap-x-2'>
+        <NodePanelLeftTitle className='flex-1'>
           <Input
             value={label}
             onChange={(e) => setLabel(e.target.value)}
             onBlur={handleLabelBlur}
-            className='text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0'
+            className='bg-transparent! text-lg font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0'
             placeholder='节点名称'
           />
         </NodePanelLeftTitle>

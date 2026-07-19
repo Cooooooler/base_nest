@@ -7,6 +7,7 @@ import {
   type Edge,
   MiniMap,
   type Node,
+  type NodeChange,
   type NodeTypes,
   type OnConnect,
   Panel,
@@ -94,11 +95,20 @@ export default function WorkflowEditPage() {
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
+  // ---- suppress select during drag ----
+  const dragOccurred = useRef(false);
+
   // UI state
   const [name, setName] = useState('');
   const [debugResult, setDebugResult] = useState<any>(null);
   const [configOpen, setConfigOpen] = useState(false);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  // Synced ref so handleNodesChange can read panel state without recreating.
+  const panelOpenRef = useRef(false);
+  useEffect(() => {
+    panelOpenRef.current = configOpen && !!selectedNode;
+  }, [configOpen, selectedNode]);
   const initialized = useRef(false);
 
   // ---- auto-save state ----
@@ -185,32 +195,54 @@ export default function WorkflowEditPage() {
   // ---- node click/drag handling ----
   // Track drag state: React Flow may fire onNodeClick synchronously
   // after a drag. We suppress it and schedule a flag clear for the next click.
-  const dragOccurred = useRef(false);
 
-  const onNodeClick = useCallback((_event: React.MouseEvent, node: Node) => {
-    if (dragOccurred.current) return;
-    if (node.data?.nodeType === 'start' || node.data?.nodeType === 'end') return;
-    setSelectedNode(node);
-    setConfigOpen(true);
-  }, []);
+  const onNodeClick = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      if (dragOccurred.current) {
+        dragOccurred.current = false; // consume the flag for next click
+        return;
+      }
+      if (node.data?.nodeType === 'start' || node.data?.nodeType === 'end') return;
+      // When panel is open, handleNodesChange blocks all React Flow select changes,
+      // so we must manage visual selection explicitly.
+      setSelectedNode(node);
+      setConfigOpen(true);
+      setNodes((nds) =>
+        nds.map((n) => ({
+          ...n,
+          selected: n.id === node.id,
+        }))
+      );
+    },
+    [setNodes]
+  );
+
+  // Intercept NodeChange to protect the panel-open node's selection state.
+  // When the config panel is open, suppress ALL select changes from React Flow
+  // — whether triggered by click, drag, or internal selection management.
+  // Selection is managed exclusively through onNodeClick.
+  const handleNodesChange = useCallback(
+    (changes: NodeChange[]) => {
+      if (panelOpenRef.current) {
+        changes = changes.filter((c) => c.type !== 'select');
+      }
+      onNodesChange(changes);
+    },
+    [onNodesChange]
+  );
 
   const onNodeDragStart = useCallback(() => {
     dragOccurred.current = true;
-    setSelectedNode(null);
-    setConfigOpen(false);
   }, []);
 
   const onNodeDragStop = useCallback(() => {
-    // Clear asynchronously so any synchronous onNodeClick (from this mouseup)
-    // still sees dragOccurred === true and gets suppressed.
     setTimeout(() => {
       dragOccurred.current = false;
     }, 0);
   }, []);
 
   const onPaneClick = useCallback(() => {
-    setSelectedNode(null);
-    setConfigOpen(false);
+    // Do nothing — the panel is only closed via its own close button.
   }, []);
 
   // ---- connection handler ----
@@ -433,7 +465,7 @@ export default function WorkflowEditPage() {
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
+          onNodesChange={handleNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
           onNodeClick={onNodeClick}
