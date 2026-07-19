@@ -1,6 +1,5 @@
-name: SonarCloud
+name: Build
 on:
-  workflow_dispatch:
   push:
     branches:
       - master
@@ -8,11 +7,11 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  sonarcloud:
-    name: SonarCloud Scan
-    runs-on: ubuntu-latest
+  build:
+    name: Build & Test
+    runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           fetch-depth: 0
 
@@ -25,11 +24,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build
+        run: pnpm run build
+
       - name: Run tests with coverage
         run: pnpm --filter @base/api run test:cov
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v5
+        uses: SonarSource/sonarcloud-github-action@7006c4492b2e0ee0f816d36501671557c97f5995 # v5.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
