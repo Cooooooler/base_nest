@@ -6,7 +6,7 @@ import { NodeExecutionResult, NodeExecutor } from './node-executor.interface';
 export class StartNodeExecutor implements NodeExecutor {
   readonly type = 'start';
 
-  async execute(
+  execute(
     _nodeId: string,
     _config: Record<string, any>,
     context: ContextService
@@ -18,6 +18,6 @@ export class StartNodeExecutor implements NodeExecutor {
         inputs[key.slice(7)] = value;
       }
     }
-    return { outputs: inputs };
+    return Promise.resolve({ outputs: inputs });
   }
 }

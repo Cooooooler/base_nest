@@ -34,6 +34,7 @@ export class CodeNodeExecutor implements NodeExecutor {
       Set,
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const fn = new Function(...Object.keys(sandbox), code);
     const result = await Promise.race([
       Promise.resolve(fn(...Object.values(sandbox))),
