@@ -216,4 +216,4 @@ failureConditions:
     critical: 10
     high: 30
 
-linter: jetbrains/qodana-js:2026.2
+linter: jetbrains/qodana-js:2026.1
