@@ -69,8 +69,6 @@ function InputGroupAddon({
       data-align={align}
       className={cn(inputGroupAddonVariants({ align }), className)}
       onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={0}
       {...props}
     />
   );

@@ -46,7 +46,6 @@ export default function WorkflowRunsPage() {
                 router.push(`/workflows/${params.id}/runs/${run.id}`);
               }
             }}
-            role='button'
             tabIndex={0}
           >
             <span className={`font-medium ${statusColor[run.status] || 'text-gray-500'}`}>
