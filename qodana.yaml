@@ -5,11 +5,17 @@
 
 version: '1.0'
 
-# Use recommended profile (covers WebStorm default inspections)
+# Use free community linter (no QODANA_TOKEN required).
+# jetbrains/qodana-jvm-community bundles JS/TS inspections since v2023.2
+# but disables them by default — enabled explicitly below.
 profile:
   name: qodana.recommended
+  inspections:
+    - group: 'category:JavaScript and TypeScript'
+      enabled: true
 
 # === Additional Inspections ===
+# These are now meaningful because the JS/TS category is registered above.
 include:
   # ── Code Quality Tools ───────────────────────────────────────────────────
   - name: Eslint
@@ -216,4 +222,5 @@ failureConditions:
     critical: 10
     high: 30
 
-linter: jetbrains/qodana-js:2026.1
+# Free community linter — no QODANA_TOKEN required
+linter: jetbrains/qodana-jvm-community:2026.1
