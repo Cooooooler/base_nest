@@ -212,9 +212,6 @@ exclude:
       - '**/*.spec.ts'
       - '**/*.e2e-spec.ts'
 
-# Bootstrap: ensures dependencies for ESLint + TS resolution
-bootstrap: pnpm install --frozen-lockfile
-
 # === Quality Gate ===
 failureConditions:
   severityThresholds:
