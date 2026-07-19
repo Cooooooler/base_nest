@@ -1,7 +1,7 @@
+import { getApp, getApps, getConversations, getMessages } from '@/api/chat';
 import { renderHook, waitFor } from '@testing-library/react';
-import { useApps, useApp, useConversations, useMessages } from './use-chat';
-import { getApps, getApp, getConversations, getMessages } from '@/api/chat';
 import { createWrapper } from './__tests__/test-utils';
+import { useApps, useConversations } from './use-chat';
 
 // ky is pure ESM — mock it to avoid Jest parse errors
 jest.mock('ky', () => ({
@@ -16,9 +16,7 @@ jest.mock('@/api/chat');
 
 const mockGetApps = getApps as jest.MockedFunction<typeof getApps>;
 const mockGetApp = getApp as jest.MockedFunction<typeof getApp>;
-const mockGetConversations = getConversations as jest.MockedFunction<
-  typeof getConversations
->;
+const mockGetConversations = getConversations as jest.MockedFunction<typeof getConversations>;
 const mockGetMessages = getMessages as jest.MockedFunction<typeof getMessages>;
 
 describe('useApps', () => {

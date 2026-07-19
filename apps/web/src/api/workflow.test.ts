@@ -1,5 +1,5 @@
-import { workflowApi } from './workflow';
 import { apiClient } from './client';
+import { workflowApi } from './workflow';
 
 // ky 是纯 ESM 模块，mock 它以避免 Jest 解析错误
 jest.mock('ky', () => ({
@@ -14,13 +14,18 @@ jest.mock('./client', () => ({
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 
 const mockWorkflow = {
-  id: 'wf-1', name: 'Test', description: 'Desc',
+  id: 'wf-1',
+  name: 'Test',
+  description: 'Desc',
   graph: { nodes: [], edges: [] },
-  createdAt: '2024-01-01', updatedAt: '2024-01-01',
+  createdAt: '2024-01-01',
+  updatedAt: '2024-01-01',
 };
 
 describe('workflowApi', () => {
-  beforeEach(() => { mockApiClient.mockReset(); });
+  beforeEach(() => {
+    mockApiClient.mockReset();
+  });
 
   it('list', async () => {
     mockApiClient.mockResolvedValue([mockWorkflow]);
@@ -45,7 +50,10 @@ describe('workflowApi', () => {
   it('update', async () => {
     mockApiClient.mockResolvedValue(mockWorkflow);
     await workflowApi.update('wf-1', { name: 'Updated' });
-    expect(mockApiClient).toHaveBeenCalledWith('workflows/wf-1', { method: 'PATCH', json: { name: 'Updated' } });
+    expect(mockApiClient).toHaveBeenCalledWith('workflows/wf-1', {
+      method: 'PATCH',
+      json: { name: 'Updated' },
+    });
   });
 
   it('delete', async () => {
@@ -57,7 +65,10 @@ describe('workflowApi', () => {
   it('execute', async () => {
     mockApiClient.mockResolvedValue({ runId: 'run-1', status: 'running' });
     const result = await workflowApi.execute('wf-1', { input: 'x' });
-    expect(mockApiClient).toHaveBeenCalledWith('workflows/wf-1/runs', { method: 'POST', json: { inputs: { input: 'x' } } });
+    expect(mockApiClient).toHaveBeenCalledWith('workflows/wf-1/runs', {
+      method: 'POST',
+      json: { inputs: { input: 'x' } },
+    });
     expect(result.runId).toBe('run-1');
   });
 

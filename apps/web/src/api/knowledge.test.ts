@@ -1,5 +1,15 @@
-import { getKnowledgeBases, getKnowledgeBase, createKnowledgeBase, deleteKnowledgeBase, getDocuments, getDocument, deleteDocument, getDocumentSegments, retrieve } from './knowledge';
 import { apiClient } from './client';
+import {
+  createKnowledgeBase,
+  deleteDocument,
+  deleteKnowledgeBase,
+  getDocument,
+  getDocuments,
+  getDocumentSegments,
+  getKnowledgeBase,
+  getKnowledgeBases,
+  retrieve,
+} from './knowledge';
 
 // ky 是纯 ESM 模块，mock 它以避免 Jest 解析错误
 jest.mock('ky', () => ({
@@ -14,7 +24,9 @@ jest.mock('./client', () => ({
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 
 describe('knowledge API', () => {
-  beforeEach(() => { mockApiClient.mockReset(); });
+  beforeEach(() => {
+    mockApiClient.mockReset();
+  });
 
   it('getKnowledgeBases', async () => {
     mockApiClient.mockResolvedValue([]);
@@ -68,6 +80,9 @@ describe('knowledge API', () => {
   it('retrieve', async () => {
     mockApiClient.mockResolvedValue([]);
     await retrieve('1', 'hello', 5);
-    expect(mockApiClient).toHaveBeenCalledWith('/knowledge/1/retrieval', { method: 'POST', json: { query: 'hello', topK: 5 } });
+    expect(mockApiClient).toHaveBeenCalledWith('/knowledge/1/retrieval', {
+      method: 'POST',
+      json: { query: 'hello', topK: 5 },
+    });
   });
 });

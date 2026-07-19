@@ -1,4 +1,13 @@
-import { getApps, getApp, createApp, updateApp, deleteApp, getConversations, createConversation, deleteConversation, getMessages } from './chat';
+import {
+  createApp,
+  createConversation,
+  deleteApp,
+  getApp,
+  getApps,
+  getConversations,
+  getMessages,
+  updateApp,
+} from './chat';
 import { apiClient } from './client';
 
 // ky 是纯 ESM 模块，mock 它以避免 Jest 解析错误
@@ -15,7 +24,9 @@ jest.mock('./client', () => ({
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 
 describe('chat API — Apps', () => {
-  beforeEach(() => { mockApiClient.mockReset(); });
+  beforeEach(() => {
+    mockApiClient.mockReset();
+  });
 
   it('getApps 调用 GET /apps', async () => {
     mockApiClient.mockResolvedValue([]);
@@ -40,7 +51,10 @@ describe('chat API — Apps', () => {
   it('updateApp 调用 PATCH /apps/:id', async () => {
     mockApiClient.mockResolvedValue({ id: '1', name: 'Updated' });
     await updateApp('1', { name: 'Updated' });
-    expect(mockApiClient).toHaveBeenCalledWith('/apps/1', { method: 'PATCH', json: { name: 'Updated' } });
+    expect(mockApiClient).toHaveBeenCalledWith('/apps/1', {
+      method: 'PATCH',
+      json: { name: 'Updated' },
+    });
   });
 
   it('deleteApp 调用 DELETE /apps/:id', async () => {
@@ -60,7 +74,10 @@ describe('chat API — Conversations', () => {
   it('createConversation 调用 POST /apps/:id/conversations', async () => {
     mockApiClient.mockResolvedValue({ id: 'c1', title: 'Chat' });
     await createConversation('app-1', 'Chat');
-    expect(mockApiClient).toHaveBeenCalledWith('/apps/app-1/conversations', { method: 'POST', json: { title: 'Chat' } });
+    expect(mockApiClient).toHaveBeenCalledWith('/apps/app-1/conversations', {
+      method: 'POST',
+      json: { title: 'Chat' },
+    });
   });
 });
 

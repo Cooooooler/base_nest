@@ -17,7 +17,7 @@ const config: Config = {
     'src/**/*.{ts,tsx}',
     '!src/**/*.test.{ts,tsx}',
     '!src/**/*.d.ts',
-    '!src/components/ui/**',     // shadcn UI components — don't count as own code
+    '!src/components/ui/**', // shadcn UI components — don't count as own code
   ],
 };
 

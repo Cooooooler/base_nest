@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { NodeConfigProps } from './types';
 
-export function ConditionConfig({ config, onSave }: NodeConfigProps) {
+export function ConditionConfig({ config, onSave }: Readonly<NodeConfigProps>) {
   const set = (key: string, value: any) => onSave({ ...config, [key]: value });
 
   return (

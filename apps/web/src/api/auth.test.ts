@@ -1,4 +1,4 @@
-import { login, register, logout } from './auth';
+import { login, logout, register } from './auth';
 import { apiClient } from './client';
 
 // ky 是纯 ESM 模块，mock 它以避免 Jest 解析错误
@@ -14,7 +14,9 @@ jest.mock('./client', () => ({
 const mockApiClient = apiClient as jest.MockedFunction<typeof apiClient>;
 
 describe('auth API', () => {
-  beforeEach(() => { mockApiClient.mockReset(); });
+  beforeEach(() => {
+    mockApiClient.mockReset();
+  });
 
   it('login 调用 POST /auth/login', async () => {
     mockApiClient.mockResolvedValue({
@@ -54,7 +56,9 @@ describe('auth API', () => {
   });
 
   it('login 失败时抛 ApiError', async () => {
-    mockApiClient.mockRejectedValue(new (jest.requireActual('./client').ApiError)(401, 0, '邮箱或密码错误'));
+    mockApiClient.mockRejectedValue(
+      new (jest.requireActual('./client').ApiError)(401, 0, '邮箱或密码错误')
+    );
     await expect(login('bad@b.com', 'wrong')).rejects.toThrow('邮箱或密码错误');
   });
 });

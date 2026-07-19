@@ -1,17 +1,12 @@
-import { renderHook, waitFor } from '@testing-library/react';
 import {
-  useKnowledgeBases,
-  useKnowledgeBase,
-  useDocuments,
-  useDocumentSegments,
-} from './use-knowledge';
-import {
-  getKnowledgeBases,
-  getKnowledgeBase,
   getDocuments,
   getDocumentSegments,
+  getKnowledgeBase,
+  getKnowledgeBases,
 } from '@/api/knowledge';
+import { renderHook, waitFor } from '@testing-library/react';
 import { createWrapper } from './__tests__/test-utils';
+import { useDocuments, useKnowledgeBases } from './use-knowledge';
 
 // ky is pure ESM — mock it to avoid Jest parse errors
 jest.mock('ky', () => ({
@@ -24,12 +19,8 @@ jest.mock('@/api/client', () => ({
 
 jest.mock('@/api/knowledge');
 
-const mockGetKnowledgeBases = getKnowledgeBases as jest.MockedFunction<
-  typeof getKnowledgeBases
->;
-const mockGetKnowledgeBase = getKnowledgeBase as jest.MockedFunction<
-  typeof getKnowledgeBase
->;
+const mockGetKnowledgeBases = getKnowledgeBases as jest.MockedFunction<typeof getKnowledgeBases>;
+const mockGetKnowledgeBase = getKnowledgeBase as jest.MockedFunction<typeof getKnowledgeBase>;
 const mockGetDocuments = getDocuments as jest.MockedFunction<typeof getDocuments>;
 const mockGetDocumentSegments = getDocumentSegments as jest.MockedFunction<
   typeof getDocumentSegments

@@ -2,7 +2,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { NodeConfigProps } from './types';
 
-export function CodeConfig({ config, onSave }: NodeConfigProps) {
+export function CodeConfig({ config, onSave }: Readonly<NodeConfigProps>) {
   const set = (key: string, value: any) => onSave({ ...config, [key]: value });
 
   return (

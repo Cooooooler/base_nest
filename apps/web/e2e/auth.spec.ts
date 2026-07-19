@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('Auth 流程', () => {
   test('login page renders correctly', async ({ page }) => {
@@ -11,10 +11,17 @@ test.describe('Auth 流程', () => {
   test('authenticated user gets redirected from login to dashboard', async ({ page }) => {
     await page.goto('/login');
     await page.evaluate(() => {
-      localStorage.setItem('auth-storage', JSON.stringify({
-        state: { accessToken: 'mock-token', refreshToken: 'mock-refresh', user: { id: '1', email: 'a@b.com', name: 'A' } },
-        version: 0,
-      }));
+      localStorage.setItem(
+        'auth-storage',
+        JSON.stringify({
+          state: {
+            accessToken: 'mock-token',
+            refreshToken: 'mock-refresh',
+            user: { id: '1', email: 'a@b.com', name: 'A' },
+          },
+          version: 0,
+        })
+      );
     });
     await page.goto('/login');
     await expect(page).toHaveURL('http://localhost:3001/');
