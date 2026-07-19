@@ -27,6 +27,9 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      - name: Lint
+        run: pnpm run lint
+
       - name: Run tests with coverage
         run: pnpm --filter @base/api run test:cov
 
