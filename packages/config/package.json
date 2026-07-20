@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "@eslint/js": "^9",
-    "eslint-config-next": "^16",
-    "eslint-plugin-prettier": "^5",
-    "globals": "^17",
-    "typescript-eslint": "^8"
+    "eslint-config-next": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "globals": "catalog:",
+    "typescript-eslint": "catalog:"
   },
   "peerDependencies": {
     "eslint": "^9"
