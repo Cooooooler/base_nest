@@ -47,6 +47,8 @@
     "zustand": "^5"
   },
   "devDependencies": {
+    "@base/config": "workspace:*",
+    "@base/tsconfig": "workspace:*",
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",

@@ -120,6 +120,7 @@
     "tailwind-merge": "^2"
   },
   "devDependencies": {
+    "@base/tsconfig": "workspace:*",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "typescript": "^5.7.3"

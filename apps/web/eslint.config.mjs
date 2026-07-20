@@ -1,11 +1,6 @@
 // @ts-check
-import nextConfig from 'eslint-config-next';
+import nextConfig from '@base/config/eslint/next';
 
 export default [
   ...nextConfig,
-  {
-    rules: {
-      'react-hooks/set-state-in-effect': 'off',
-    },
-  },
 ];
