@@ -2,9 +2,6 @@
   "name": "base_nest",
   "version": "0.0.2",
   "private": true,
-  "description": "",
-  "license": "UNLICENSED",
-  "author": "",
   "scripts": {
     "build": "turbo run build",
     "clean": "node clean.js",
@@ -18,7 +15,6 @@
     "start:dev": "pnpm --filter @base/api run start:dev",
     "start:prod": "pnpm --filter @base/api run start:prod",
     "test": "turbo run test",
-    "test:api": "pnpm --filter @base/api run test",
     "test:e2e": "pnpm --filter @base/api run test:e2e",
     "typecheck": "turbo run typecheck"
   },

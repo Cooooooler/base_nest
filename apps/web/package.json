@@ -60,7 +60,6 @@
     "@types/react-dom": "catalog:",
     "eslint": "catalog:",
     "eslint-config-next": "catalog:",
-    "eslint-plugin-import": "^2.32.0",
     "jest": "catalog:",
     "jest-environment-jsdom": "^30.4.1",
     "postcss": "^8",
