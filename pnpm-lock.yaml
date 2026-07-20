@@ -142,6 +142,12 @@ importers:
         specifier: ^3.4.6
         version: 3.4.6
     devDependencies:
+      '@base/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@base/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
       '@eslint/eslintrc':
         specifier: ^3.2.0
         version: 3.3.5
@@ -320,6 +326,12 @@ importers:
         specifier: ^5
         version: 5.0.14(@types/react@19.2.17)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))
     devDependencies:
+      '@base/config':
+        specifier: workspace:*
+        version: link:../../packages/config
+      '@base/tsconfig':
+        specifier: workspace:*
+        version: link:../../packages/tsconfig
       '@playwright/test':
         specifier: ^1.61.1
         version: 1.61.1
@@ -375,11 +387,37 @@ importers:
         specifier: ^5.7.3
         version: 5.9.3
 
+  packages/config:
+    dependencies:
+      '@eslint/js':
+        specifier: ^9
+        version: 9.39.4
+      eslint:
+        specifier: ^9
+        version: 9.39.4(jiti@2.7.0)
+      eslint-config-next:
+        specifier: ^16
+        version: 16.2.9(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
+      eslint-plugin-prettier:
+        specifier: ^5
+        version: 5.5.6(@types/eslint@9.6.1)(eslint-config-prettier@10.1.8(eslint@9.39.4(jiti@2.7.0)))(eslint@9.39.4(jiti@2.7.0))(prettier@3.8.3)
+      globals:
+        specifier: ^17
+        version: 17.6.0
+      typescript-eslint:
+        specifier: ^8
+        version: 8.60.1(eslint@9.39.4(jiti@2.7.0))(typescript@5.9.3)
+
   packages/shared:
     devDependencies:
+      '@base/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
       typescript:
         specifier: ^5.7.3
         version: 5.9.3
+
+  packages/tsconfig: {}
 
   packages/ui:
     dependencies:
@@ -420,6 +458,9 @@ importers:
         specifier: ^2
         version: 2.6.1
     devDependencies:
+      '@base/tsconfig':
+        specifier: workspace:*
+        version: link:../tsconfig
       '@types/react':
         specifier: ^19
         version: 19.2.17
