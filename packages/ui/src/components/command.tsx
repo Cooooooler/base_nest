@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from './dialog';
 import { InputGroup, InputGroupAddon } from './input-group';
-import { cn } from '../../lib/utils';
+import { cn } from '../lib/utils';
 import { CheckIcon, SearchIcon } from 'lucide-react';
 
 function Command({ className, ...props }: React.ComponentProps<typeof CommandPrimitive>) {

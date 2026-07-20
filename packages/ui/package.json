@@ -8,96 +8,96 @@
       "default": "./dist/index.js"
     },
     "./badge": {
-      "types": "./dist/components/atom/badge.d.ts",
-      "default": "./dist/components/atom/badge.js"
+      "types": "./dist/components/badge.d.ts",
+      "default": "./dist/components/badge.js"
     },
     "./button": {
-      "types": "./dist/components/atom/button.d.ts",
-      "default": "./dist/components/atom/button.js"
+      "types": "./dist/components/button.d.ts",
+      "default": "./dist/components/button.js"
     },
     "./card": {
-      "types": "./dist/components/atom/card.d.ts",
-      "default": "./dist/components/atom/card.js"
+      "types": "./dist/components/card.d.ts",
+      "default": "./dist/components/card.js"
     },
     "./combobox": {
-      "types": "./dist/components/composite/combobox.d.ts",
-      "default": "./dist/components/composite/combobox.js"
+      "types": "./dist/components/combobox.d.ts",
+      "default": "./dist/components/combobox.js"
     },
     "./data-table": {
-      "types": "./dist/components/composite/data-table.d.ts",
-      "default": "./dist/components/composite/data-table.js"
+      "types": "./dist/components/data-table.d.ts",
+      "default": "./dist/components/data-table.js"
     },
     "./dialog": {
-      "types": "./dist/components/composite/dialog.d.ts",
-      "default": "./dist/components/composite/dialog.js"
+      "types": "./dist/components/dialog.d.ts",
+      "default": "./dist/components/dialog.js"
     },
     "./drawer": {
-      "types": "./dist/components/atom/drawer.d.ts",
-      "default": "./dist/components/atom/drawer.js"
+      "types": "./dist/components/drawer.d.ts",
+      "default": "./dist/components/drawer.js"
     },
     "./dropdown-menu": {
-      "types": "./dist/components/atom/dropdown-menu.d.ts",
-      "default": "./dist/components/atom/dropdown-menu.js"
+      "types": "./dist/components/dropdown-menu.d.ts",
+      "default": "./dist/components/dropdown-menu.js"
     },
     "./field": {
-      "types": "./dist/components/composite/field.d.ts",
-      "default": "./dist/components/composite/field.js"
+      "types": "./dist/components/field.d.ts",
+      "default": "./dist/components/field.js"
     },
     "./input": {
-      "types": "./dist/components/atom/input.d.ts",
-      "default": "./dist/components/atom/input.js"
+      "types": "./dist/components/input.d.ts",
+      "default": "./dist/components/input.js"
     },
     "./input-group": {
-      "types": "./dist/components/composite/input-group.d.ts",
-      "default": "./dist/components/composite/input-group.js"
+      "types": "./dist/components/input-group.d.ts",
+      "default": "./dist/components/input-group.js"
     },
     "./label": {
-      "types": "./dist/components/atom/label.d.ts",
-      "default": "./dist/components/atom/label.js"
+      "types": "./dist/components/label.d.ts",
+      "default": "./dist/components/label.js"
     },
     "./marker": {
-      "types": "./dist/components/atom/marker.d.ts",
-      "default": "./dist/components/atom/marker.js"
+      "types": "./dist/components/marker.d.ts",
+      "default": "./dist/components/marker.js"
     },
     "./select": {
-      "types": "./dist/components/atom/select.d.ts",
-      "default": "./dist/components/atom/select.js"
+      "types": "./dist/components/select.d.ts",
+      "default": "./dist/components/select.js"
     },
     "./separator": {
-      "types": "./dist/components/atom/separator.d.ts",
-      "default": "./dist/components/atom/separator.js"
+      "types": "./dist/components/separator.d.ts",
+      "default": "./dist/components/separator.js"
     },
     "./sidebar": {
-      "types": "./dist/components/composite/sidebar.d.ts",
-      "default": "./dist/components/composite/sidebar.js"
+      "types": "./dist/components/sidebar.d.ts",
+      "default": "./dist/components/sidebar.js"
     },
     "./skeleton": {
-      "types": "./dist/components/atom/skeleton.d.ts",
-      "default": "./dist/components/atom/skeleton.js"
+      "types": "./dist/components/skeleton.d.ts",
+      "default": "./dist/components/skeleton.js"
     },
     "./slider": {
-      "types": "./dist/components/atom/slider.d.ts",
-      "default": "./dist/components/atom/slider.js"
+      "types": "./dist/components/slider.d.ts",
+      "default": "./dist/components/slider.js"
     },
     "./sonner": {
-      "types": "./dist/components/atom/sonner.d.ts",
-      "default": "./dist/components/atom/sonner.js"
+      "types": "./dist/components/sonner.d.ts",
+      "default": "./dist/components/sonner.js"
     },
     "./spinner": {
-      "types": "./dist/components/atom/spinner.d.ts",
-      "default": "./dist/components/atom/spinner.js"
+      "types": "./dist/components/spinner.d.ts",
+      "default": "./dist/components/spinner.js"
     },
     "./table": {
-      "types": "./dist/components/atom/table.d.ts",
-      "default": "./dist/components/atom/table.js"
+      "types": "./dist/components/table.d.ts",
+      "default": "./dist/components/table.js"
     },
     "./textarea": {
-      "types": "./dist/components/atom/textarea.d.ts",
-      "default": "./dist/components/atom/textarea.js"
+      "types": "./dist/components/textarea.d.ts",
+      "default": "./dist/components/textarea.js"
     },
     "./tooltip": {
-      "types": "./dist/components/atom/tooltip.d.ts",
-      "default": "./dist/components/atom/tooltip.js"
+      "types": "./dist/components/tooltip.d.ts",
+      "default": "./dist/components/tooltip.js"
     }
   },
   "main": "./dist/index.js",
