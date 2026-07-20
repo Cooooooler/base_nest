@@ -1,0 +1,131 @@
+{
+  "name": "@base/ui",
+  "version": "0.0.1",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./badge": {
+      "types": "./dist/components/atom/badge.d.ts",
+      "default": "./dist/components/atom/badge.js"
+    },
+    "./button": {
+      "types": "./dist/components/atom/button.d.ts",
+      "default": "./dist/components/atom/button.js"
+    },
+    "./card": {
+      "types": "./dist/components/atom/card.d.ts",
+      "default": "./dist/components/atom/card.js"
+    },
+    "./combobox": {
+      "types": "./dist/components/composite/combobox.d.ts",
+      "default": "./dist/components/composite/combobox.js"
+    },
+    "./data-table": {
+      "types": "./dist/components/composite/data-table.d.ts",
+      "default": "./dist/components/composite/data-table.js"
+    },
+    "./dialog": {
+      "types": "./dist/components/composite/dialog.d.ts",
+      "default": "./dist/components/composite/dialog.js"
+    },
+    "./drawer": {
+      "types": "./dist/components/atom/drawer.d.ts",
+      "default": "./dist/components/atom/drawer.js"
+    },
+    "./dropdown-menu": {
+      "types": "./dist/components/atom/dropdown-menu.d.ts",
+      "default": "./dist/components/atom/dropdown-menu.js"
+    },
+    "./field": {
+      "types": "./dist/components/composite/field.d.ts",
+      "default": "./dist/components/composite/field.js"
+    },
+    "./input": {
+      "types": "./dist/components/atom/input.d.ts",
+      "default": "./dist/components/atom/input.js"
+    },
+    "./input-group": {
+      "types": "./dist/components/composite/input-group.d.ts",
+      "default": "./dist/components/composite/input-group.js"
+    },
+    "./label": {
+      "types": "./dist/components/atom/label.d.ts",
+      "default": "./dist/components/atom/label.js"
+    },
+    "./marker": {
+      "types": "./dist/components/atom/marker.d.ts",
+      "default": "./dist/components/atom/marker.js"
+    },
+    "./select": {
+      "types": "./dist/components/atom/select.d.ts",
+      "default": "./dist/components/atom/select.js"
+    },
+    "./separator": {
+      "types": "./dist/components/atom/separator.d.ts",
+      "default": "./dist/components/atom/separator.js"
+    },
+    "./sidebar": {
+      "types": "./dist/components/composite/sidebar.d.ts",
+      "default": "./dist/components/composite/sidebar.js"
+    },
+    "./skeleton": {
+      "types": "./dist/components/atom/skeleton.d.ts",
+      "default": "./dist/components/atom/skeleton.js"
+    },
+    "./slider": {
+      "types": "./dist/components/atom/slider.d.ts",
+      "default": "./dist/components/atom/slider.js"
+    },
+    "./sonner": {
+      "types": "./dist/components/atom/sonner.d.ts",
+      "default": "./dist/components/atom/sonner.js"
+    },
+    "./spinner": {
+      "types": "./dist/components/atom/spinner.d.ts",
+      "default": "./dist/components/atom/spinner.js"
+    },
+    "./table": {
+      "types": "./dist/components/atom/table.d.ts",
+      "default": "./dist/components/atom/table.js"
+    },
+    "./textarea": {
+      "types": "./dist/components/atom/textarea.d.ts",
+      "default": "./dist/components/atom/textarea.js"
+    },
+    "./tooltip": {
+      "types": "./dist/components/atom/tooltip.d.ts",
+      "default": "./dist/components/atom/tooltip.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@base-ui/react": "^1.5.0",
+    "@tanstack/react-table": "^8.21.3",
+    "ahooks": "^3.9.7",
+    "class-variance-authority": "^0.7",
+    "clsx": "^2",
+    "cmdk": "^1.1.1",
+    "lucide-react": "^0.400",
+    "next-themes": "^0.4.6",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^2"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5.7.3"
+  },
+  "peerDependencies": {
+    "react": "^19",
+    "react-dom": "^19"
+  }
+}

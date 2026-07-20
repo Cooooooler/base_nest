@@ -1,7 +1,7 @@
 'use client';
 
-import { Marker, MarkerContent, MarkerIcon } from '@/components/ui/marker';
-import { Spinner } from '@/components/ui/spinner';
+import { Marker, MarkerContent, MarkerIcon } from '@base/ui/marker';
+import { Spinner } from '@base/ui/spinner';
 import dynamic from 'next/dynamic';
 import { ReasoningBlock } from './reasoning-block';
 import { SourceList } from './source-list';

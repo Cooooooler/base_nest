@@ -16,30 +16,6 @@ import {
   MessageScrollerViewport,
 } from '@/components/chat';
 import type { ChatMessage } from '@/components/chat/types';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardAction,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupTextarea,
-} from '@/components/ui/input-group';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   useApp,
   useConversations,
@@ -47,6 +23,23 @@ import {
   useDeleteConversation,
   useMessages,
 } from '@/hooks/use-chat';
+import { Button } from '@base/ui/button';
+import { Card, CardAction, CardContent, CardFooter, CardHeader, CardTitle } from '@base/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@base/ui/dropdown-menu';
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from '@base/ui/input-group';
+import { Separator } from '@base/ui/separator';
+import { Skeleton } from '@base/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@base/ui/tooltip';
 import { MessageSquare, MoreHorizontal, Plus, SendHorizontal, Trash2 } from 'lucide-react';
 import { useParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';

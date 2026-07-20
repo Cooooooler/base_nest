@@ -1,20 +1,14 @@
 'use client';
 
 import { FadeIn } from '@/components/animated/fade-in';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
 import { useCreateKnowledgeBase } from '@/hooks/use-knowledge';
+import { Button } from '@base/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@base/ui/card';
+import { Field, FieldLabel } from '@base/ui/field';
+import { Input } from '@base/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@base/ui/select';
+import { Spinner } from '@base/ui/spinner';
+import { Textarea } from '@base/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Controller, useForm } from 'react-hook-form';

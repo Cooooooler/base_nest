@@ -3,8 +3,8 @@
 import { type Workflow, workflowApi } from '@/api/workflow';
 import { FadeIn } from '@/components/animated/fade-in';
 import { StaggerList } from '@/components/animated/stagger-list';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@base/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@base/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -12,12 +12,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
+} from '@base/ui/dialog';
+import { Field, FieldLabel } from '@base/ui/field';
+import { Input } from '@base/ui/input';
+import { Skeleton } from '@base/ui/skeleton';
+import { Spinner } from '@base/ui/spinner';
+import { Textarea } from '@base/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Plus, Trash2, Workflow as WfIcon } from 'lucide-react';
 import Link from 'next/link';

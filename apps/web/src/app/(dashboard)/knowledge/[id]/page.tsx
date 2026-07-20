@@ -2,10 +2,17 @@
 
 import { apiUpload } from '@/api/client';
 import { FadeIn } from '@/components/animated/fade-in';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table';
+import {
+  useDeleteDocument,
+  useDocuments,
+  useKnowledgeBase,
+  useRetrieval,
+} from '@/hooks/use-knowledge';
+import type { Document } from '@base/shared';
+import { Badge } from '@base/ui/badge';
+import { Button } from '@base/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@base/ui/card';
+import { DataTable } from '@base/ui/data-table';
 import {
   Dialog,
   DialogContent,
@@ -13,7 +20,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@base/ui/dialog';
 import {
   Drawer,
   DrawerContent,
@@ -22,30 +29,17 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from '@/components/ui/drawer';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  useDeleteDocument,
-  useDocuments,
-  useKnowledgeBase,
-  useRetrieval,
-} from '@/hooks/use-knowledge';
-import type { Document } from '@base/shared';
+} from '@base/ui/drawer';
+import { Input } from '@base/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@base/ui/select';
+import { Skeleton } from '@base/ui/skeleton';
+import { Textarea } from '@base/ui/textarea';
 import { type ColumnDef } from '@tanstack/react-table';
 import { FileText, Search, Trash2, Upload } from 'lucide-react';
 import { useParams, useRouter } from 'next/navigation';
 import { useMemo, useRef, useState } from 'react';
 
-import { useIsMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@base/ui';
 import { toast } from 'sonner';
 
 const STATUS_VARIANTS: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {

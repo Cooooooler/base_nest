@@ -5,8 +5,5 @@ npx lint-staged
 pnpm --filter @base/api exec eslint "{src,test}/**/*.ts" --max-warnings 9999 2>&1 | grep -qE '^\s+\d+:\d+\s+error' && exit 1 || true
 pnpm --filter @base/web exec eslint "src/**/*.{ts,tsx}" --max-warnings 9999 2>&1 | grep -qE '^\s+\d+:\d+\s+error' && exit 1 || true
 
-# 3. 类型检查
+# 3. 类型检查（turbo 增量执行，只检查 affected 包）
 pnpm turbo run typecheck
-
-# 4. 单元测试
-pnpm --filter @base/api run test

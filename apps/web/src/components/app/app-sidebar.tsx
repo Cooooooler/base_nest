@@ -1,6 +1,7 @@
 'use client';
 
 import { logout as logoutApi } from '@/api/auth';
+import { useAuthStore } from '@/store/auth-store';
 import {
   Sidebar,
   SidebarContent,
@@ -11,8 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar';
-import { useAuthStore } from '@/store/auth-store';
+} from '@base/ui/sidebar';
 import { useMemoizedFn } from 'ahooks';
 import {
   BookOpen,

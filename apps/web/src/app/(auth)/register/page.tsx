@@ -2,7 +2,8 @@
 
 import { register } from '@/api/auth';
 import { FadeIn } from '@/components/animated/fade-in';
-import { Button } from '@/components/ui/button';
+import { useAuthStore } from '@/store/auth-store';
+import { Button } from '@base/ui/button';
 import {
   Card,
   CardContent,
@@ -10,11 +11,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
-import { useAuthStore } from '@/store/auth-store';
+} from '@base/ui/card';
+import { Field, FieldLabel } from '@base/ui/field';
+import { Input } from '@base/ui/input';
+import { Spinner } from '@base/ui/spinner';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Bot } from 'lucide-react';
 import Link from 'next/link';

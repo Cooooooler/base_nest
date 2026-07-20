@@ -17,7 +17,8 @@
     "test": "jest",
     "test:cov": "jest --coverage",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:watch": "jest --watch"
+    "test:watch": "jest --watch",
+    "typecheck": "tsc --noEmit"
   },
   "jest": {
     "collectCoverageFrom": [
@@ -40,6 +41,7 @@
     ]
   },
   "dependencies": {
+    "@base/shared": "workspace:*",
     "@langchain/anthropic": "^1.5.1",
     "@langchain/community": "^1.1.29",
     "@langchain/core": "^1.2.1",

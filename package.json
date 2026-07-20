@@ -19,24 +19,8 @@
     "start:prod": "pnpm --filter @base/api run start:prod",
     "test": "turbo run test",
     "test:api": "pnpm --filter @base/api run test",
-    "test:e2e": "pnpm --filter @base/api run test:e2e"
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testEnvironment": "node",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    }
+    "test:e2e": "pnpm --filter @base/api run test:e2e",
+    "typecheck": "turbo run typecheck"
   },
   "dependencies": {
     "reflect-metadata": "^0.2.2",

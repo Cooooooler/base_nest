@@ -23,7 +23,6 @@ import { DragEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import { type WorkflowNode as WFNode, workflowApi } from '@/api/workflow';
-import { Button } from '@/components/ui/button';
 import { DebugResultPanel } from '@/components/workflow/debug-result-panel';
 import { NodeConfigPanel } from '@/components/workflow/node-config-panel';
 import { NodePalette } from '@/components/workflow/node-palette';
@@ -35,6 +34,7 @@ import {
 } from '@/components/workflow/nodes/constants';
 import type { WorkflowNodeData } from '@/components/workflow/nodes/workflow-node';
 import { WorkflowNode } from '@/components/workflow/nodes/workflow-node';
+import { Button } from '@base/ui/button';
 
 // ---- nodeTypes outside component (prevents re-renders) ----
 const nodeTypes: NodeTypes = { workflow: WorkflowNode };

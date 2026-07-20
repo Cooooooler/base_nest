@@ -1,6 +1,6 @@
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@base/ui/input';
+import { Label } from '@base/ui/label';
+import { Textarea } from '@base/ui/textarea';
 import type { NodeConfigProps } from './types';
 
 export function LlmConfig({ config, onSave, providers }: NodeConfigProps) {

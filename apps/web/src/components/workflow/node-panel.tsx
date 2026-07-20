@@ -2,8 +2,8 @@
 
 import { createContext, type ReactNode, useContext, useMemo } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn } from '@base/ui';
+import { Button } from '@base/ui/button';
 import { XIcon } from 'lucide-react';
 
 interface NodePanelContextValue {

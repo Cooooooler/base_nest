@@ -1,6 +1,6 @@
 'use client';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@base/ui';
 import { useEffect, useRef } from 'react';
 
 function MessageAnimated({
