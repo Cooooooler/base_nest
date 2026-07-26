@@ -1,5 +1,5 @@
-# 1. 格式化暂存文件
-npx lint-staged
+# 1. 格式化暂存文件（--config 显式指定路径，防止扫描 node_modules）
+npx lint-staged --config .lintstagedrc
 
 # 2. ESLint 检查（仅阻止 errors，warnings 不阻止）
 pnpm --filter @base/api exec eslint "{src,test}/**/*.ts" --max-warnings 9999 2>&1 | grep -qE '^\s+\d+:\d+\s+error' && exit 1 || true
