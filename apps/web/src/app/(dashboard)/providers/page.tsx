@@ -2,9 +2,11 @@
 
 import { FadeIn } from '@/components/animated/fade-in';
 import { StaggerList } from '@/components/animated/stagger-list';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDeleteProvider, useProviders } from '@/hooks/use-providers';
+import { LOCAL_PROVIDER_TYPES } from '@base/shared';
+import { Badge } from '@base/ui/badge';
+import { Button } from '@base/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@base/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -12,10 +14,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useDeleteProvider, useProviders } from '@/hooks/use-providers';
-import { LOCAL_PROVIDER_TYPES } from '@base/shared';
+} from '@base/ui/dialog';
+import { Skeleton } from '@base/ui/skeleton';
 import { useMemoizedFn } from 'ahooks';
 import { Plus, Server, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';

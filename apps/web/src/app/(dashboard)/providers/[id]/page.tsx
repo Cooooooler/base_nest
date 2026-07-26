@@ -1,37 +1,6 @@
 'use client';
 
 import { FadeIn } from '@/components/animated/fade-in';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Spinner } from '@/components/ui/spinner';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   useCreateApiKey,
   useCreateModel,
@@ -45,6 +14,24 @@ import {
 } from '@/hooks/use-providers';
 import type { PresetModel } from '@base/shared';
 import { LOCAL_PROVIDER_TYPES } from '@base/shared';
+import { Badge } from '@base/ui/badge';
+import { Button } from '@base/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@base/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@base/ui/dialog';
+import { Field, FieldLabel } from '@base/ui/field';
+import { Input } from '@base/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@base/ui/select';
+import { Skeleton } from '@base/ui/skeleton';
+import { Spinner } from '@base/ui/spinner';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@base/ui/table';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMemoizedFn } from 'ahooks';
 import { Pencil, Plus, Trash2 } from 'lucide-react';

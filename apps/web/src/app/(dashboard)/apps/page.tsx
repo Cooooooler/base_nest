@@ -2,8 +2,9 @@
 
 import { FadeIn } from '@/components/animated/fade-in';
 import { StaggerList } from '@/components/animated/stagger-list';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useApps, useDeleteApp } from '@/hooks/use-chat';
+import { Button } from '@base/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@base/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -11,9 +12,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useApps, useDeleteApp } from '@/hooks/use-chat';
+} from '@base/ui/dialog';
+import { Skeleton } from '@base/ui/skeleton';
 import { MessageSquare, Plus, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';

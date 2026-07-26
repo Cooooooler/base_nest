@@ -3,7 +3,6 @@
 import type { FC } from 'react';
 import { useEffect, useState } from 'react';
 
-import { Input } from '@/components/ui/input';
 import {
   NodePanel,
   NodePanelHeader,
@@ -12,6 +11,7 @@ import {
 } from '@/components/workflow/node-panel';
 import { useKnowledgeBases } from '@/hooks/use-knowledge';
 import { useProviders } from '@/hooks/use-providers';
+import { Input } from '@base/ui/input';
 import { NODE_CONFIGS } from '../nodes/constants';
 import type { NodeConfigPanelProps } from './types';
 

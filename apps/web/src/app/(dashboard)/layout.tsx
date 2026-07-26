@@ -1,14 +1,14 @@
 'use client';
 
 import { AppSidebar } from '@/components/app/app-sidebar';
-import { Button } from '@/components/ui/button';
+import { Button } from '@base/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
+} from '@base/ui/dropdown-menu';
+import { SidebarInset, SidebarTrigger } from '@base/ui/sidebar';
 import { ArrowLeft, Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { usePathname, useRouter } from 'next/navigation';

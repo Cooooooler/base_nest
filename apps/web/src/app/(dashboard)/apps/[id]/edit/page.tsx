@@ -1,8 +1,11 @@
 'use client';
 
 import { FadeIn } from '@/components/animated/fade-in';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useApp, useDeleteApp, useUpdateApp } from '@/hooks/use-chat';
+import { useKnowledgeBases } from '@/hooks/use-knowledge';
+import { useProviders } from '@/hooks/use-providers';
+import { Button } from '@base/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@base/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -10,21 +13,12 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import { useApp, useDeleteApp, useUpdateApp } from '@/hooks/use-chat';
-import { useKnowledgeBases } from '@/hooks/use-knowledge';
-import { useProviders } from '@/hooks/use-providers';
+} from '@base/ui/dialog';
+import { Field, FieldLabel } from '@base/ui/field';
+import { Input } from '@base/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@base/ui/select';
+import { Skeleton } from '@base/ui/skeleton';
+import { Textarea } from '@base/ui/textarea';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';

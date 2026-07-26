@@ -2,9 +2,6 @@
   "name": "base_nest",
   "version": "0.0.2",
   "private": true,
-  "description": "",
-  "license": "UNLICENSED",
-  "author": "",
   "scripts": {
     "build": "turbo run build",
     "clean": "node clean.js",
@@ -18,40 +15,18 @@
     "start:dev": "pnpm --filter @base/api run start:dev",
     "start:prod": "pnpm --filter @base/api run start:prod",
     "test": "turbo run test",
-    "test:api": "pnpm --filter @base/api run test",
-    "test:e2e": "pnpm --filter @base/api run test:e2e"
-  },
-  "jest": {
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testEnvironment": "node",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    }
-  },
-  "dependencies": {
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "test:e2e": "pnpm --filter @base/api run test:e2e",
+    "typecheck": "turbo run typecheck"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
-    "husky": "^9.1.7",
+    "husky": "catalog:",
     "lint-staged": "^17.0.7",
-    "prettier": "^3.4.2",
+    "prettier": "catalog:",
     "prettier-plugin-organize-imports": "^4.3.0",
     "prettier-plugin-packagejson": "^3.0.2",
-    "turbo": "^2.9.18",
-    "typescript": "^5.7.3"
+    "turbo": "catalog:"
   },
   "packageManager": "pnpm@10.33.2+sha512.a90faf6feeab71ad6c6e57f94e0fe1a12f5dcc22cd754db40ae9593eb6a3e0b6b12e3540218bb37ae083404b1f2ce6db2a4121e979829b4aff94b99f49da1cf8"
 }

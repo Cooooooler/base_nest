@@ -1,8 +1,11 @@
 'use client';
 
 import { FadeIn } from '@/components/animated/fade-in';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCreateApp } from '@/hooks/use-chat';
+import { useKnowledgeBases } from '@/hooks/use-knowledge';
+import { useProviderModels, useProviders } from '@/hooks/use-providers';
+import { Button } from '@base/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@base/ui/card';
 import {
   Combobox,
   ComboboxContent,
@@ -10,15 +13,12 @@ import {
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
-} from '@/components/ui/combobox';
-import { Field, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
-import { Spinner } from '@/components/ui/spinner';
-import { Textarea } from '@/components/ui/textarea';
-import { useCreateApp } from '@/hooks/use-chat';
-import { useKnowledgeBases } from '@/hooks/use-knowledge';
-import { useProviderModels, useProviders } from '@/hooks/use-providers';
+} from '@base/ui/combobox';
+import { Field, FieldLabel } from '@base/ui/field';
+import { Input } from '@base/ui/input';
+import { Slider } from '@base/ui/slider';
+import { Spinner } from '@base/ui/spinner';
+import { Textarea } from '@base/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { Controller, useForm, useWatch } from 'react-hook-form';

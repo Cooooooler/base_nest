@@ -2,10 +2,10 @@
 
 import { CountUp } from '@/components/animated/count-up';
 import { FadeIn } from '@/components/animated/fade-in';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useKnowledgeBases } from '@/hooks/use-knowledge';
 import { useProviders } from '@/hooks/use-providers';
+import { Card, CardContent } from '@base/ui/card';
+import { Skeleton } from '@base/ui/skeleton';
 import { BookOpen, Bot, FileText } from 'lucide-react';
 
 const statCards = [

@@ -1,6 +1,6 @@
 'use client';
 
-import { Spinner } from '@/components/ui/spinner';
+import { Spinner } from '@base/ui/spinner';
 import { Brain } from 'lucide-react';
 import { useState } from 'react';
 

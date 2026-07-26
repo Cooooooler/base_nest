@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from '@base/ui';
 
 function Empty({ className, ...props }: React.ComponentProps<'div'>) {
   return (

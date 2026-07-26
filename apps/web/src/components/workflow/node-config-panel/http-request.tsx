@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Input } from '@base/ui/input';
+import { Label } from '@base/ui/label';
 import type { NodeConfigProps } from './types';
 
 export function HttpRequestConfig({ config, onSave }: NodeConfigProps) {
