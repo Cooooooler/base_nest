@@ -1,0 +1,32 @@
+{
+  "name": "@base/web-v2",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "max build",
+    "dev": "max dev",
+    "format": "prettier --cache --write .",
+    "postinstall": "max setup",
+    "lint": "max lint",
+    "setup": "max setup",
+    "start": "max dev",
+    "typecheck": "max lint"
+  },
+  "dependencies": {
+    "@ant-design/icons": "^5.0.1",
+    "@ant-design/pro-components": "^2.4.4",
+    "@umijs/max": "^4.6.82",
+    "antd": "^5.4.0",
+    "react": "catalog:",
+    "react-dom": "catalog:"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.1",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "lint-staged": "^13.2.0",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.3",
+    "typescript": "catalog:"
+  }
+}

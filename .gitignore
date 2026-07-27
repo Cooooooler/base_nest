@@ -99,3 +99,19 @@ run/
 # Developer docs (design docs, plans, specs)
 # ============================================================
 docs/
+
+# ============================================================
+# UmiJS (web-v2)
+# ============================================================
+.umi/
+src/.umi/
+apps/web-v2/.umirc.local.ts
+apps/web-v2/config/config.local.ts
+apps/web-v2/src/.umi-production
+apps/web-v2/src/.umi-test
+apps/web-v2/.umi-production
+apps/web-v2/.umi-test
+apps/web-v2/.mfsu
+.swc
+.turbopack
+
